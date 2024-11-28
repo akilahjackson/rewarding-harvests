@@ -29,7 +29,8 @@ export class PreloaderScene extends Phaser.Scene {
 
     this.messageText = this.add.text(width / 2, height * 0.2, this.messages[0], {
       fontSize: '24px',
-      color: '#F97316'
+      color: '#F97316',
+      fontFamily: 'Space Grotesk'
     });
     this.messageText.setOrigin(0.5);
 
