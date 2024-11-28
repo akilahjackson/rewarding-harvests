@@ -47,10 +47,10 @@ export class PreloaderScene extends Phaser.Scene {
     }
 
     // Initialize particle emitter
-    this.emitter = this.add.particles(0, 0, {
-      frames: ['__WHITE'], // Changed 'frame' to 'frames'
+    this.emitter = this.add.particles(width / 2, height / 2, '__WHITE', {
       lifespan: 2000,
-      speed: { min: 50, max: 100 },
+      speedX: { min: -50, max: 50 },
+      speedY: { min: -50, max: 50 },
       scale: { start: 0.2, end: 0 },
       alpha: { start: 0.6, end: 0 },
       blendMode: 'ADD',
