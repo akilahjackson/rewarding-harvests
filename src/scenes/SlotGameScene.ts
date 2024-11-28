@@ -10,6 +10,7 @@ export class SlotGameScene extends Phaser.Scene {
   private currentGrid: string[][] = [];
   private floatingTweens: Phaser.Tweens.Tween[] = [];
   private winAnimationManager: WinAnimationManager;
+  private baseScale: number = 1;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -22,6 +23,18 @@ export class SlotGameScene extends Phaser.Scene {
     this.winAnimationManager = new WinAnimationManager(this);
     this.createGrid();
     this.startFloatingAnimations();
+  }
+
+  private adjustGridScale(hasWinningLines: boolean) {
+    const scale = hasWinningLines ? 0.9 : 1;
+    this.symbols.flat().forEach(symbol => {
+      this.tweens.add({
+        targets: symbol,
+        scale: this.baseScale * scale,
+        duration: 200,
+        ease: 'Power2'
+      });
+    });
   }
 
   private stopFloatingAnimations() {
@@ -65,6 +78,7 @@ export class SlotGameScene extends Phaser.Scene {
     this.isSpinning = true;
     this.stopFloatingAnimations();
     this.winAnimationManager.clearPreviousAnimations();
+    this.adjustGridScale(false);
 
     try {
       await new Promise<void>((resolve) => {
@@ -88,7 +102,7 @@ export class SlotGameScene extends Phaser.Scene {
                 
                 this.tweens.add({
                   targets: symbol,
-                  scaleX: 1,
+                  scaleX: this.baseScale,
                   duration: spinDuration,
                   ease: 'Power1',
                   onComplete: () => {
@@ -108,6 +122,7 @@ export class SlotGameScene extends Phaser.Scene {
       
       if (winningLines.length > 0) {
         console.log('SlotGameScene: Win detected! Creating win animations');
+        this.adjustGridScale(true);
         winningLines.forEach(line => {
           this.winAnimationManager.createWinAnimation(line.positions, this.symbols);
         });
@@ -129,7 +144,7 @@ export class SlotGameScene extends Phaser.Scene {
 
   private createGrid() {
     const { width, height } = this.cameras.main;
-    const padding = Math.min(width, height) * 0.1;
+    const padding = Math.min(width, height) * 0.15; // Increased padding for animations
     const availableWidth = width - (padding * 2);
     const availableHeight = height - (padding * 2);
     const cellSize = Math.min(
@@ -139,13 +154,15 @@ export class SlotGameScene extends Phaser.Scene {
 
     const startX = (width - (cellSize * (GRID_SIZE - 1))) / 2;
     const startY = (height - (cellSize * (GRID_SIZE - 1))) / 2;
+    this.baseScale = cellSize / SYMBOL_SIZE;
 
     console.log('SlotGameScene: Creating grid with dimensions:', {
       width,
       height,
       cellSize,
       startX,
-      startY
+      startY,
+      baseScale: this.baseScale
     });
 
     for (let row = 0; row < GRID_SIZE; row++) {
@@ -155,10 +172,11 @@ export class SlotGameScene extends Phaser.Scene {
         const y = startY + row * cellSize;
         
         const symbol = this.add.text(x, y, this.currentGrid[row][col], {
-          fontSize: `${cellSize * 0.6}px`,
-          padding: { x: cellSize * 0.15, y: cellSize * 0.15 },
+          fontSize: `${SYMBOL_SIZE}px`,
+          padding: { x: SYMBOL_SIZE * 0.15, y: SYMBOL_SIZE * 0.15 },
         })
         .setOrigin(0.5)
+        .setScale(this.baseScale)
         .setInteractive();
         
         this.symbols[row][col] = symbol;

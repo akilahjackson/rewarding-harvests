@@ -1,4 +1,4 @@
-import { SYMBOLS, SYMBOL_VALUES } from '../configs/symbolConfig';
+import { SYMBOLS, SYMBOL_VALUES, GRID_SIZE } from '../configs/symbolConfig';
 
 interface WinningLine {
   positions: number[][];
@@ -8,81 +8,109 @@ interface WinningLine {
 
 export const findWinningLines = (grid: string[][]): WinningLine[] => {
   const winningLines: WinningLine[] = [];
-  const size = grid.length;
-
+  
   // Check horizontal lines
-  for (let row = 0; row < size; row++) {
-    for (let col = 0; col < size - 2; col++) {
+  for (let row = 0; row < GRID_SIZE; row++) {
+    let currentSymbol = '';
+    let count = 0;
+    let positions: number[][] = [];
+    
+    for (let col = 0; col < GRID_SIZE; col++) {
       const symbol = grid[row][col];
-      if (checkConsecutive(grid, row, col, 0, 1, symbol)) {
-        winningLines.push({
-          positions: [[row, col], [row, col + 1], [row, col + 2]],
-          symbol,
-          count: 3
-        });
+      
+      if (symbol === currentSymbol) {
+        count++;
+        positions.push([row, col]);
+      } else {
+        if (count >= 3) {
+          winningLines.push({ positions: [...positions], symbol: currentSymbol, count });
+        }
+        currentSymbol = symbol;
+        count = 1;
+        positions = [[row, col]];
       }
+    }
+    
+    if (count >= 3) {
+      winningLines.push({ positions: [...positions], symbol: currentSymbol, count });
     }
   }
 
   // Check vertical lines
-  for (let col = 0; col < size; col++) {
-    for (let row = 0; row < size - 2; row++) {
+  for (let col = 0; col < GRID_SIZE; col++) {
+    let currentSymbol = '';
+    let count = 0;
+    let positions: number[][] = [];
+    
+    for (let row = 0; row < GRID_SIZE; row++) {
       const symbol = grid[row][col];
-      if (checkConsecutive(grid, row, col, 1, 0, symbol)) {
-        winningLines.push({
-          positions: [[row, col], [row + 1, col], [row + 2, col]],
-          symbol,
-          count: 3
-        });
+      
+      if (symbol === currentSymbol) {
+        count++;
+        positions.push([row, col]);
+      } else {
+        if (count >= 3) {
+          winningLines.push({ positions: [...positions], symbol: currentSymbol, count });
+        }
+        currentSymbol = symbol;
+        count = 1;
+        positions = [[row, col]];
       }
+    }
+    
+    if (count >= 3) {
+      winningLines.push({ positions: [...positions], symbol: currentSymbol, count });
     }
   }
 
   // Check diagonal (top-left to bottom-right)
-  for (let row = 0; row < size - 2; row++) {
-    for (let col = 0; col < size - 2; col++) {
-      const symbol = grid[row][col];
-      if (checkConsecutive(grid, row, col, 1, 1, symbol)) {
-        winningLines.push({
-          positions: [[row, col], [row + 1, col + 1], [row + 2, col + 2]],
-          symbol,
-          count: 3
-        });
+  for (let startRow = 0; startRow < GRID_SIZE - 2; startRow++) {
+    for (let startCol = 0; startCol < GRID_SIZE - 2; startCol++) {
+      const positions: number[][] = [];
+      const symbol = grid[startRow][startCol];
+      let isWinningLine = true;
+      
+      for (let i = 0; i < 3; i++) {
+        const row = startRow + i;
+        const col = startCol + i;
+        if (grid[row][col] !== symbol) {
+          isWinningLine = false;
+          break;
+        }
+        positions.push([row, col]);
+      }
+      
+      if (isWinningLine) {
+        winningLines.push({ positions, symbol, count: 3 });
       }
     }
   }
 
   // Check diagonal (top-right to bottom-left)
-  for (let row = 0; row < size - 2; row++) {
-    for (let col = 2; col < size; col++) {
-      const symbol = grid[row][col];
-      if (checkConsecutive(grid, row, col, 1, -1, symbol)) {
-        winningLines.push({
-          positions: [[row, col], [row + 1, col - 1], [row + 2, col - 2]],
-          symbol,
-          count: 3
-        });
+  for (let startRow = 0; startRow < GRID_SIZE - 2; startRow++) {
+    for (let startCol = GRID_SIZE - 1; startCol >= 2; startCol--) {
+      const positions: number[][] = [];
+      const symbol = grid[startRow][startCol];
+      let isWinningLine = true;
+      
+      for (let i = 0; i < 3; i++) {
+        const row = startRow + i;
+        const col = startCol - i;
+        if (grid[row][col] !== symbol) {
+          isWinningLine = false;
+          break;
+        }
+        positions.push([row, col]);
+      }
+      
+      if (isWinningLine) {
+        winningLines.push({ positions, symbol, count: 3 });
       }
     }
   }
 
+  console.log('Found winning lines:', winningLines);
   return winningLines;
-};
-
-const checkConsecutive = (
-  grid: string[][],
-  startRow: number,
-  startCol: number,
-  rowDelta: number,
-  colDelta: number,
-  symbol: string
-): boolean => {
-  for (let i = 0; i < 3; i++) {
-    const row = startRow + (i * rowDelta);
-    const col = startCol + (i * colDelta);
-    if (grid[row][col] !== symbol) return false;
-  }
-  return true;
 };
 
 export const calculateWinnings = (
@@ -95,7 +123,9 @@ export const calculateWinnings = (
 
   winningLines.forEach(line => {
     const symbolValue = SYMBOL_VALUES[line.symbol as keyof typeof SYMBOLS];
-    totalWin += betAmount * multiplier * (symbolValue / 100) * line.count;
+    const lineWin = betAmount * multiplier * (symbolValue / 100) * line.count;
+    totalWin += lineWin;
+    console.log(`Win line: ${line.symbol} x${line.count} = ${lineWin}`);
   });
 
   return { winAmount: totalWin, winningLines };
