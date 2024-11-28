@@ -3,12 +3,11 @@ import { COLORS } from '../configs/styleConfig';
 
 export class WinAnimationManager {
   private scene: Phaser.Scene;
-  private winCircles: Phaser.GameObjects.Graphics[];
-  private symbolScale: number = 1.05;
+  private activeEffects: (Phaser.GameObjects.Graphics | Phaser.GameObjects.Particles.ParticleEmitter)[];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.winCircles = [];
+    this.activeEffects = [];
     console.log('WinAnimationManager: Initialized');
   }
 
@@ -51,7 +50,7 @@ export class WinAnimationManager {
         }
       });
 
-      this.winCircles.push(circle);
+      this.activeEffects.push(circle);
 
       // Create particles
       const particles = this.scene.add.particles(symbol.x, symbol.y, 'particle', {
@@ -66,7 +65,7 @@ export class WinAnimationManager {
       });
 
       particles.setDepth(symbol.depth - 2);
-      this.winCircles.push(particles);
+      this.activeEffects.push(particles);
     });
 
     // Create connecting line between positions
@@ -99,13 +98,13 @@ export class WinAnimationManager {
         }
       });
 
-      this.winCircles.push(graphics);
+      this.activeEffects.push(graphics);
     }
   }
 
   clearPreviousAnimations(): void {
     console.log('WinAnimationManager: Clearing previous animations');
-    this.winCircles.forEach(circle => circle.destroy());
-    this.winCircles = [];
+    this.activeEffects.forEach(effect => effect.destroy());
+    this.activeEffects = [];
   }
 }

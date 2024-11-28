@@ -42,7 +42,7 @@ export const findWinningLines = (grid: string[][]): WinningLine[] => {
         positions: [...positions], 
         symbol: currentSymbol, 
         count,
-        winAmount: 0 // Will be calculated later
+        winAmount: 0
       });
     }
   }
@@ -103,7 +103,12 @@ export const findWinningLines = (grid: string[][]): WinningLine[] => {
       }
       
       if (isWinningLine) {
-        winningLines.push({ positions, symbol, count: 3 });
+        winningLines.push({ 
+          positions, 
+          symbol, 
+          count: 3,
+          winAmount: 0
+        });
       }
     }
   }
@@ -126,7 +131,12 @@ export const findWinningLines = (grid: string[][]): WinningLine[] => {
       }
       
       if (isWinningLine) {
-        winningLines.push({ positions, symbol, count: 3 });
+        winningLines.push({ 
+          positions, 
+          symbol, 
+          count: 3,
+          winAmount: 0
+        });
       }
     }
   }
