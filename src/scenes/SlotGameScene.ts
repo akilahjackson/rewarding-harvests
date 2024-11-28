@@ -7,6 +7,7 @@ export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
+  private particles: Phaser.GameObjects.Particles.ParticleEmitterManager | null = null;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -17,6 +18,98 @@ export class SlotGameScene extends Phaser.Scene {
     console.log('SlotGameScene: Creating game grid');
     this.currentGrid = createInitialGrid();
     this.createGrid();
+    this.setupParticles();
+  }
+
+  private setupParticles() {
+    this.particles = this.add.particles('particle');
+  }
+
+  private createWinAnimation(positions: number[][]) {
+    if (!this.particles) return;
+
+    positions.forEach(([row, col]) => {
+      const symbol = this.symbols[row][col];
+      
+      // Create particle effect
+      this.particles?.createEmitter({
+        x: symbol.x,
+        y: symbol.y,
+        speed: { min: 50, max: 100 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 0.4, end: 0 },
+        blendMode: 'ADD',
+        lifespan: 1000,
+        quantity: 20
+      });
+
+      // Create glowing effect
+      this.tweens.add({
+        targets: symbol,
+        alpha: 0.5,
+        yoyo: true,
+        repeat: 5,
+        duration: 200,
+        onComplete: () => {
+          symbol.setAlpha(1);
+        }
+      });
+    });
+  }
+
+  public async startSpin(betAmount: number, multiplier: number): Promise<number> {
+    if (this.isSpinning) {
+      console.log('Spin already in progress');
+      return 0;
+    }
+
+    console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
+    this.isSpinning = true;
+
+    // Stop all current animations
+    this.symbols.flat().forEach(symbol => {
+      this.tweens.killTweensOf(symbol);
+    });
+
+    // Spin animation
+    await this.animateSpinSequence();
+
+    // Update grid with new symbols
+    this.currentGrid = createInitialGrid();
+    
+    // Update symbols with new values
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        this.symbols[row][col].setText(this.currentGrid[row][col]);
+      }
+    }
+
+    // Calculate winnings and animate winning lines
+    const { winAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
+    
+    if (winningLines.length > 0) {
+      winningLines.forEach(line => {
+        this.createWinAnimation(line.positions);
+      });
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for animations
+    }
+
+    // Restart floating animations
+    this.symbols.flat().forEach((symbol, index) => {
+      const baseY = symbol.y;
+      this.tweens.add({
+        targets: symbol,
+        y: baseY + 10,
+        duration: 2000 + Math.random() * 1000,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+    });
+
+    this.isSpinning = false;
+    console.log(`Spin completed. Win amount: ${winAmount}`);
+    return winAmount;
   }
 
   private createGrid() {
@@ -58,54 +151,6 @@ export class SlotGameScene extends Phaser.Scene {
         });
       }
     }
-  }
-
-  public async startSpin(betAmount: number, multiplier: number): Promise<number> {
-    if (this.isSpinning) {
-      console.log('Spin already in progress');
-      return 0;
-    }
-
-    console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
-    this.isSpinning = true;
-
-    // Stop all current animations
-    this.symbols.flat().forEach(symbol => {
-      this.tweens.killTweensOf(symbol);
-    });
-
-    // Spin animation
-    await this.animateSpinSequence();
-
-    // Update grid with new symbols
-    this.currentGrid = createInitialGrid();
-    
-    // Update symbols with new values
-    for (let row = 0; row < GRID_SIZE; row++) {
-      for (let col = 0; col < GRID_SIZE; col++) {
-        this.symbols[row][col].setText(this.currentGrid[row][col]);
-      }
-    }
-
-    // Calculate winnings
-    const winAmount = calculateWinnings(this.currentGrid, betAmount, multiplier);
-    
-    // Restart floating animations
-    this.symbols.flat().forEach((symbol, index) => {
-      const baseY = symbol.y;
-      this.tweens.add({
-        targets: symbol,
-        y: baseY + 10,
-        duration: 2000 + Math.random() * 1000,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut'
-      });
-    });
-
-    this.isSpinning = false;
-    console.log(`Spin completed. Win amount: ${winAmount}`);
-    return winAmount;
   }
 
   private async animateSpinSequence(): Promise<void> {

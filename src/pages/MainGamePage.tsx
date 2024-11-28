@@ -34,16 +34,15 @@ const MainGamePage = () => {
 
     try {
       if (gameSceneRef.current) {
-        // Pass 1 as the multiplier when not in auto spin, and 2 when in auto spin
         const multiplier = isAutoSpin ? 2 : 1;
         const winAmount = await gameSceneRef.current.startSpin(betAmount, multiplier);
         
         if (winAmount > 0) {
-          setBalance(prev => prev + winAmount);
-          setTotalWinnings(prev => prev + winAmount);
+          const hrvestTokens = winAmount * 1000; // Convert SOL to HRVST tokens (1 SOL = 1000 HRVST)
+          setTotalWinnings(prev => prev + hrvestTokens);
           toast({
             title: "Winner!",
-            description: `You won ${winAmount.toFixed(3)} SOL!`,
+            description: `You won ${hrvestTokens.toFixed(0)} HRVST tokens!`,
           });
         } else {
           toast({
@@ -105,7 +104,7 @@ const MainGamePage = () => {
               Balance: {balance.toFixed(3)} SOL
             </Badge>
             <Badge variant="outline" className="bg-neongreen/20 text-neongreen border-neongreen">
-              Total Winnings: {totalWinnings.toFixed(3)} SOL
+              Total Winnings: {totalWinnings.toFixed(0)} HRVST
             </Badge>
           </div>
           <Badge variant="outline" className="bg-harvestpeach/20 text-harvestpeach border-harvestpeach">
@@ -125,7 +124,7 @@ const MainGamePage = () => {
           isSpinning={isSpinning}
           onSpin={handleSpin}
           isAutoSpin={isAutoSpin}
-          onAutoSpinToggle={toggleAutoSpin}
+          onAutoSpinToggle={() => setIsAutoSpin(!isAutoSpin)}
         />
       </div>
     </div>
