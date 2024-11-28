@@ -14,7 +14,7 @@ export class PreloaderScene extends Phaser.Scene {
   preload() {
     console.log('PreloaderScene: Starting preload');
     
-    // Load audio assets
+    // Load all audio assets
     this.load.audio('background-music', '/sounds/background-music.mp3');
     this.load.audio('spin-sound', '/sounds/spin.mp3');
     this.load.audio('win-sound', '/sounds/win.mp3');
@@ -25,6 +25,15 @@ export class PreloaderScene extends Phaser.Scene {
       .fillRect(0, 0, 2, 2);
     
     whitePixel.generateTexture('pixel', 2, 2);
+
+    // Add loading event listeners
+    this.load.on('complete', () => {
+      console.log('PreloaderScene: All assets loaded successfully');
+    });
+
+    this.load.on('loaderror', (fileObj: any) => {
+      console.error('PreloaderScene: Error loading asset:', fileObj.key);
+    });
   }
 
   create() {
@@ -32,14 +41,19 @@ export class PreloaderScene extends Phaser.Scene {
     const { width, height } = this.cameras.main;
 
     // Start background music
-    this.bgMusic = this.sound.add('background-music', {
-      volume: 0.5,
-      loop: true
-    });
-    this.bgMusic.play();
-
-    // Store music reference in registry for access in other scenes
-    this.registry.set('bgMusic', this.bgMusic);
+    try {
+      this.bgMusic = this.sound.add('background-music', {
+        volume: 0.5,
+        loop: true
+      });
+      this.bgMusic.play();
+      console.log('PreloaderScene: Background music started');
+      
+      // Store music reference in registry for access in other scenes
+      this.registry.set('bgMusic', this.bgMusic);
+    } catch (error) {
+      console.error('PreloaderScene: Error starting background music:', error);
+    }
 
     // Create the crop circle
     this.cropCircle = this.add.circle(width / 2, height / 2, 128, 0x000000, 0)
@@ -56,6 +70,8 @@ export class PreloaderScene extends Phaser.Scene {
         setTimeout(() => {
           this.loadingComplete = true;
           console.log('PreloaderScene: Starting transition to SlotGameScene');
+          // Store loaded audio cache in registry for other scenes
+          this.registry.set('audioLoaded', true);
           this.game.events.emit('sceneComplete');
         }, 2000);
       }
