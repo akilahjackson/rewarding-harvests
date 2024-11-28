@@ -7,7 +7,7 @@ export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
-  private particles: Phaser.GameObjects.Particles.ParticleEmitterManager | null = null;
+  private particles: Phaser.GameObjects.ParticleEmitter | null = null;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -22,7 +22,15 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private setupParticles() {
-    this.particles = this.add.particles('particle');
+    const particles = this.add.particles(0, 0, 'particle', {
+      speed: { min: 50, max: 100 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 0.4, end: 0 },
+      blendMode: Phaser.BlendModes.ADD,
+      lifespan: 1000,
+      quantity: 20
+    });
+    this.particles = particles;
   }
 
   private createWinAnimation(positions: number[][]) {
@@ -31,17 +39,9 @@ export class SlotGameScene extends Phaser.Scene {
     positions.forEach(([row, col]) => {
       const symbol = this.symbols[row][col];
       
-      // Create particle effect
-      this.particles?.createEmitter({
-        x: symbol.x,
-        y: symbol.y,
-        speed: { min: 50, max: 100 },
-        angle: { min: 0, max: 360 },
-        scale: { start: 0.4, end: 0 },
-        blendMode: 'ADD',
-        lifespan: 1000,
-        quantity: 20
-      });
+      // Create particle effect at symbol position
+      this.particles?.setPosition(symbol.x, symbol.y);
+      this.particles?.start();
 
       // Create glowing effect
       this.tweens.add({
