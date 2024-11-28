@@ -7,6 +7,7 @@ export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
+  private floatingTweens: Phaser.Tweens.Tween[] = [];
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -38,6 +39,30 @@ export class SlotGameScene extends Phaser.Scene {
     });
   }
 
+  private stopFloatingAnimations() {
+    this.floatingTweens.forEach(tween => {
+      if (tween.isPlaying()) {
+        tween.stop();
+      }
+    });
+    this.floatingTweens = [];
+  }
+
+  private startFloatingAnimations() {
+    this.symbols.flat().forEach((symbol) => {
+      const baseY = symbol.y;
+      const tween = this.tweens.add({
+        targets: symbol,
+        y: baseY + 10,
+        duration: 2000 + Math.random() * 1000,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
+      });
+      this.floatingTweens.push(tween);
+    });
+  }
+
   public async startSpin(betAmount: number, multiplier: number): Promise<number> {
     if (this.isSpinning) {
       console.log('Spin already in progress, returning');
@@ -48,6 +73,9 @@ export class SlotGameScene extends Phaser.Scene {
     this.isSpinning = true;
 
     try {
+      // Stop floating animations
+      this.stopFloatingAnimations();
+
       // Kill all existing tweens
       console.log('Killing existing tweens');
       this.tweens.killAll();
@@ -60,13 +88,14 @@ export class SlotGameScene extends Phaser.Scene {
           const symbol = this.symbols[rowIndex][colIndex];
           
           spinPromises.push(
-            new Promise<void>((resolve) => {
+            new Promise<void>((resolve, reject) => {
               console.log(`Creating spin animation for symbol at [${rowIndex}, ${colIndex}]`);
               
               // Reset scale before starting new animation
               symbol.setScale(1);
               
-              this.tweens.add({
+              // First tween - spin out
+              const spinOutTween = this.tweens.add({
                 targets: symbol,
                 scaleX: 0,
                 duration: 300,
@@ -77,7 +106,8 @@ export class SlotGameScene extends Phaser.Scene {
                   this.currentGrid[rowIndex][colIndex] = newSymbol;
                   symbol.setText(newSymbol);
                   
-                  this.tweens.add({
+                  // Second tween - spin in
+                  const spinInTween = this.tweens.add({
                     targets: symbol,
                     scaleX: 1,
                     duration: 300,
@@ -109,6 +139,9 @@ export class SlotGameScene extends Phaser.Scene {
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
+      // Restart floating animations
+      this.startFloatingAnimations();
+
       // Reset spinning state
       this.isSpinning = false;
       console.log(`Spin sequence completed. Win amount: ${winAmount}`);
@@ -117,6 +150,8 @@ export class SlotGameScene extends Phaser.Scene {
     } catch (error) {
       console.error('Error during spin:', error);
       this.isSpinning = false;
+      // Ensure floating animations are restarted even on error
+      this.startFloatingAnimations();
       return 0;
     }
   }
@@ -148,16 +183,10 @@ export class SlotGameScene extends Phaser.Scene {
         .setInteractive();
         
         this.symbols[row][col] = symbol;
-        
-        this.tweens.add({
-          targets: symbol,
-          y: y + 10,
-          duration: 2000 + Math.random() * 1000,
-          yoyo: true,
-          repeat: -1,
-          ease: 'Sine.easeInOut'
-        });
       }
     }
+
+    // Start initial floating animations
+    this.startFloatingAnimations();
   }
 }
