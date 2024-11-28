@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Phaser from 'phaser';
 import { SlotGameScene } from '@/scenes/SlotGameScene';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -11,25 +11,26 @@ interface GameCanvasProps {
 const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(true);
-  const [game, setGame] = useState<Phaser.Game | null>(null);
+  const gameRef = useRef<Phaser.Game | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log('Initializing GameCanvas with responsive config');
-    const container = document.getElementById('game-container');
-    if (!container) return;
+    console.log('GameCanvas: Initial mount');
+    if (!containerRef.current || gameRef.current) return;
 
     const getGameDimensions = () => {
       const maxHeight = window.innerHeight * 0.6;
-      const width = container.clientWidth;
-      const height = Math.min(container.clientHeight, maxHeight);
+      const width = containerRef.current?.clientWidth || window.innerWidth;
+      const height = Math.min(containerRef.current?.clientHeight || window.innerHeight, maxHeight);
       return { width, height };
     };
 
     const { width, height } = getGameDimensions();
+    console.log('GameCanvas: Creating new game instance with dimensions:', { width, height });
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
-      parent: 'game-container',
+      parent: containerRef.current,
       width: width,
       height: height,
       backgroundColor: '#000000',
@@ -42,7 +43,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       },
       callbacks: {
         postBoot: (game) => {
-          console.log('Game loaded successfully');
+          console.log('GameCanvas: Game loaded successfully');
           const scene = game.scene.getScene('SlotGameScene') as SlotGameScene;
           if (onSceneCreated) {
             onSceneCreated(scene);
@@ -52,24 +53,29 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       }
     };
 
-    const newGame = new Phaser.Game(config);
-    setGame(newGame);
+    gameRef.current = new Phaser.Game(config);
 
     const handleResize = () => {
+      if (!gameRef.current) return;
       const { width: newWidth, height: newHeight } = getGameDimensions();
-      newGame.scale.resize(newWidth, newHeight);
+      console.log('GameCanvas: Resizing game to:', { newWidth, newHeight });
+      gameRef.current.scale.resize(newWidth, newHeight);
     };
 
     window.addEventListener('resize', handleResize);
 
     return () => {
+      console.log('GameCanvas: Cleaning up game instance');
       window.removeEventListener('resize', handleResize);
-      newGame.destroy(true);
+      if (gameRef.current) {
+        gameRef.current.destroy(true);
+        gameRef.current = null;
+      }
     };
   }, [isMobile, onSceneCreated]);
 
   return (
-    <div className="w-full h-[60vh] flex items-center justify-center">
+    <div className="w-full h-[60vh] relative">
       {isLoading && (
         <div className="absolute inset-0 bg-nightsky/80 flex items-center justify-center z-50 animate-fade-in">
           <div className="text-center space-y-4">
@@ -80,7 +86,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       )}
       
       <div 
-        id="game-container" 
+        ref={containerRef}
         className="w-full h-full flex items-center justify-center bg-transparent"
       />
     </div>

@@ -16,7 +16,7 @@ const MainGamePage = () => {
   const { toast } = useToast();
   const autoSpinIntervalRef = useRef<NodeJS.Timeout>();
 
-  const handleSpin = async () => {
+  const handleSpin = useCallback(async () => {
     if (isSpinning || !gameSceneRef.current) return;
     
     if (betAmount > balance) {
@@ -31,7 +31,7 @@ const MainGamePage = () => {
     try {
       setIsSpinning(true);
       setBalance(prev => prev - betAmount);
-      console.log('Starting spin with bet:', betAmount);
+      console.log('MainGamePage: Starting spin with bet:', betAmount);
 
       const multiplier = isAutoSpin ? 2 : 1;
       const winAmount = await gameSceneRef.current.startSpin(betAmount, multiplier);
@@ -44,15 +44,9 @@ const MainGamePage = () => {
           title: "Winner! 🎉",
           description: `You won ${hrvestTokens.toFixed(0)} HRVST tokens!`,
         });
-      } else {
-        toast({
-          title: "Try Again!",
-          description: "Better luck next time!",
-          variant: "destructive",
-        });
       }
     } catch (error) {
-      console.error('Spin error:', error);
+      console.error('MainGamePage: Spin error:', error);
       toast({
         title: "Error",
         description: "Something went wrong during the spin.",
@@ -61,7 +55,7 @@ const MainGamePage = () => {
     } finally {
       setIsSpinning(false);
     }
-  };
+  }, [betAmount, balance, isAutoSpin, toast, isSpinning]);
 
   const toggleAutoSpin = useCallback(() => {
     if (isAutoSpin) {
@@ -82,7 +76,7 @@ const MainGamePage = () => {
         }
       }, 3000);
     }
-  }, [isAutoSpin, isSpinning, balance, betAmount]);
+  }, [isAutoSpin, isSpinning, balance, betAmount, handleSpin]);
 
   useEffect(() => {
     return () => {
@@ -90,6 +84,11 @@ const MainGamePage = () => {
         clearInterval(autoSpinIntervalRef.current);
       }
     };
+  }, []);
+
+  const handleSceneCreated = useCallback((scene: SlotGameScene) => {
+    console.log('MainGamePage: Game scene created and ready');
+    gameSceneRef.current = scene;
   }, []);
 
   return (
@@ -113,7 +112,7 @@ const MainGamePage = () => {
         </div>
 
         <div className="flex-1 w-full">
-          <GameCanvas onSceneCreated={(scene) => gameSceneRef.current = scene} />
+          <GameCanvas onSceneCreated={handleSceneCreated} />
         </div>
 
         <BettingControls

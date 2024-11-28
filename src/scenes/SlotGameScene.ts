@@ -22,7 +22,7 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private createWinAnimation(positions: number[][]) {
-    console.log('Creating win animation for positions:', positions);
+    console.log('SlotGameScene: Creating win animation for positions:', positions);
     positions.forEach(([row, col]) => {
       const symbol = this.symbols[row][col];
       this.tweens.add({
@@ -40,7 +40,7 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private stopFloatingAnimations() {
-    console.log('Stopping floating animations');
+    console.log('SlotGameScene: Stopping floating animations');
     this.floatingTweens.forEach(tween => {
       if (tween.isPlaying()) {
         tween.stop();
@@ -50,7 +50,12 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private startFloatingAnimations() {
-    console.log('Starting floating animations');
+    if (this.isSpinning) {
+      console.log('SlotGameScene: Skipping floating animations while spinning');
+      return;
+    }
+    
+    console.log('SlotGameScene: Starting floating animations');
     this.symbols.flat().forEach((symbol) => {
       const baseY = symbol.y;
       const tween = this.tweens.add({
@@ -67,11 +72,11 @@ export class SlotGameScene extends Phaser.Scene {
 
   public async startSpin(betAmount: number, multiplier: number): Promise<number> {
     if (this.isSpinning) {
-      console.log('Spin already in progress, ignoring new spin request');
+      console.log('SlotGameScene: Spin already in progress, ignoring new spin request');
       return 0;
     }
 
-    console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
+    console.log(`SlotGameScene: Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
     this.isSpinning = true;
     this.stopFloatingAnimations();
 
@@ -116,18 +121,18 @@ export class SlotGameScene extends Phaser.Scene {
       const { winAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
       
       if (winningLines.length > 0) {
-        console.log('Win detected! Creating win animations');
+        console.log('SlotGameScene: Win detected! Creating win animations');
         winningLines.forEach(line => this.createWinAnimation(line.positions));
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      this.startFloatingAnimations();
+      console.log(`SlotGameScene: Spin completed. Win amount: ${winAmount}`);
       this.isSpinning = false;
-      console.log(`Spin completed. Win amount: ${winAmount}`);
+      this.startFloatingAnimations();
       return winAmount;
 
     } catch (error) {
-      console.error('Error during spin:', error);
+      console.error('SlotGameScene: Error during spin:', error);
       this.isSpinning = false;
       this.startFloatingAnimations();
       return 0;
@@ -147,7 +152,7 @@ export class SlotGameScene extends Phaser.Scene {
     const startX = (width - (cellSize * (GRID_SIZE - 1))) / 2;
     const startY = (height - (cellSize * (GRID_SIZE - 1))) / 2;
 
-    console.log('Creating grid with dimensions:', {
+    console.log('SlotGameScene: Creating grid with dimensions:', {
       width,
       height,
       cellSize,
