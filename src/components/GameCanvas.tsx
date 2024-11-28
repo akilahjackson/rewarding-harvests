@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import Phaser from 'phaser';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PreloaderScene } from '@/scenes/PreloaderScene';
+import { MainGameScene } from '@/scenes/MainGameScene';
 
 const GameCanvas = () => {
   const gameRef = useRef<HTMLDivElement>(null);
@@ -10,8 +12,8 @@ const GameCanvas = () => {
     if (!gameRef.current) return;
 
     const getGameDimensions = () => {
-      const width = Math.min(window.innerWidth - 32, 800); // 32px for padding
-      const height = Math.min(window.innerHeight - 200, 600); // 200px for UI elements
+      const width = Math.min(window.innerWidth - 32, 800);
+      const height = Math.min(window.innerHeight - 200, 600);
       return { width, height };
     };
 
@@ -28,19 +30,7 @@ const GameCanvas = () => {
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
       backgroundColor: '#1a1f2c',
-      scene: {
-        preload: function() {
-          console.log('Preloading game assets...');
-        },
-        create: function() {
-          console.log('Creating game scene...');
-          const text = this.add.text(width / 2, height / 2, 'Harvest Slots', {
-            fontSize: isMobile ? '24px' : '32px',
-            color: '#4AE54A'
-          });
-          text.setOrigin(0.5);
-        }
-      }
+      scene: [PreloaderScene, MainGameScene]
     };
 
     const game = new Phaser.Game(config);
