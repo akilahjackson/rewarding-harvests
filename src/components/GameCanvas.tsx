@@ -52,7 +52,7 @@ const GameCanvas = () => {
   return (
     <div 
       ref={gameRef} 
-      className="w-full h-full min-h-[300px] rounded-lg overflow-hidden shadow-lg"
+      className="w-full h-full min-h-[300px] rounded-lg overflow-hidden shadow-lg flex items-center justify-center mx-auto"
     />
   );
 };
