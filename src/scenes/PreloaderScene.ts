@@ -8,7 +8,7 @@ export class PreloaderScene extends Phaser.Scene {
   private loadingComplete: boolean = false;
   private bgMusic?: Phaser.Sound.BaseSound;
   private bgImage?: Phaser.GameObjects.Image;
-  private particles?: Phaser.GameObjects.Particles.ParticleEmitterManager;
+  private particles?: Phaser.GameObjects.Particles.ParticleEmitter;
 
   constructor() {
     super({ key: 'PreloaderScene' });
@@ -76,7 +76,7 @@ export class PreloaderScene extends Phaser.Scene {
       ease: 'Sine.easeInOut'
     });
 
-    // Add particle effects
+    // Update particle creation to use the correct type
     this.particles = this.add.particles(0, 0, 'pixel', {
       frame: 0,
       quantity: 2,
