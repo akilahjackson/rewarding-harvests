@@ -14,7 +14,7 @@ export class PreloaderScene extends Phaser.Scene {
   private loadingComplete: boolean = false;
   private progressText?: Phaser.GameObjects.Text;
   private progress: number = 0;
-  private particles?: Phaser.GameObjects.Particles.ParticleEmitterManager;
+  private emitter?: Phaser.GameObjects.Particles.ParticleEmitter;
   private bgMusic?: Phaser.Sound.BaseSound;
 
   constructor() {
@@ -22,20 +22,33 @@ export class PreloaderScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.audio('ambient', '/assets/ambient.mp3');
+    // Load audio file with correct path and key
+    this.load.audio('ambient', ['/assets/ambient.mp3']);
+    
+    // Show loading progress
+    this.load.on('progress', (value: number) => {
+      this.progress = Math.floor(value * 100);
+      if (this.progressText) {
+        this.progressText.setText(`${this.progress}%`);
+      }
+    });
   }
 
   create() {
     console.log('Creating preloader scene...');
     const { width, height } = this.cameras.main;
 
-    // Initialize background music
-    this.bgMusic = this.sound.add('ambient', { loop: true, volume: 0.3 });
-    this.bgMusic.play();
+    // Initialize background music after loading
+    try {
+      this.bgMusic = this.sound.add('ambient', { loop: true, volume: 0.3 });
+      this.bgMusic.play();
+    } catch (error) {
+      console.error('Error playing background music:', error);
+    }
 
-    // Initialize particle effects
-    this.particles = this.add.particles(0, 0, 'particle', {
-      frame: { frames: [ '__WHITE' ] },
+    // Initialize particle emitter
+    this.emitter = this.add.particles(0, 0, {
+      frame: { frames: ['__WHITE'] },
       lifespan: 2000,
       speed: { min: 50, max: 100 },
       scale: { start: 0.2, end: 0 },
@@ -61,8 +74,7 @@ export class PreloaderScene extends Phaser.Scene {
       fontSize: '24px',
       color: '#F97316',
       fontFamily: 'Space Grotesk'
-    });
-    this.messageText.setOrigin(0.5);
+    }).setOrigin(0.5);
 
     // Update messages periodically
     this.time.addEvent({
@@ -125,17 +137,12 @@ export class PreloaderScene extends Phaser.Scene {
       graphics.lineStyle(2, glowColor, alpha * 0.8);
       
       // Emit particles
-      if (this.particles && Math.random() > 0.95) {
-        this.particles.createEmitter({
-          x: circle.x + (Math.random() - 0.5) * circle.radius,
-          y: circle.y + (Math.random() - 0.5) * circle.radius,
-          speed: { min: 20, max: 50 },
-          angle: { min: 0, max: 360 },
-          scale: { start: 0.2, end: 0 },
-          alpha: { start: 0.5, end: 0 },
-          lifespan: 1000,
-          quantity: 1
-        });
+      if (this.emitter && Math.random() > 0.95) {
+        this.emitter.setPosition(
+          circle.x + (Math.random() - 0.5) * circle.radius,
+          circle.y + (Math.random() - 0.5) * circle.radius
+        );
+        this.emitter.explode(1);
       }
 
       // Draw geometric patterns based on circle type
