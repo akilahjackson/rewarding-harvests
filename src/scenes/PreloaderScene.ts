@@ -53,7 +53,7 @@ export class PreloaderScene extends Phaser.Scene {
 
     // Initialize particle emitter with updated configuration
     this.emitter = this.add.particles(0, 0, {
-      frame: '__WHITE',
+      frames: ['__WHITE'],
       lifespan: { min: 1000, max: 2000 },
       speed: { min: 20, max: 50 },
       scale: { start: 0.2, end: 0 },
