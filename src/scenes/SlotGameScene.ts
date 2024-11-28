@@ -12,7 +12,7 @@ export class SlotGameScene extends Phaser.Scene {
   private winAnimationManager: WinAnimationManager;
   private messageManager: MessageManager;
   private baseScale: number = 1;
-  private alienMessage: Phaser.GameObjects.Text; // Add this line to define the property
+  private alienMessage: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -46,18 +46,19 @@ export class SlotGameScene extends Phaser.Scene {
     this.winAnimationManager = new WinAnimationManager(this);
     this.messageManager = new MessageManager(this);
     
-    // Initialize alienMessage
+    // Initialize alienMessage with futuristic font
     this.alienMessage = this.add.text(
       this.cameras.main.width / 2, 
       50, 
       '', 
       {
         fontFamily: 'Space Grotesk',
-        fontSize: '24px',
+        fontSize: '28px',
         color: '#4AE54A',
         align: 'center',
         stroke: '#000000',
         strokeThickness: 4,
+        shadow: { color: '#4AE54A', blur: 10, fill: true }
       }
     )
     .setOrigin(0.5)

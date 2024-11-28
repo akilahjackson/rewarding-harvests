@@ -41,15 +41,16 @@ const MainGamePage = () => {
         setTotalWinnings(prev => prev + hrvestTokens);
         setBalance(prev => prev + totalWinAmount);
 
-        // Create detailed win message for toast
-        const winMessages = winningLines.map(line => 
-          `${line.symbol} x${line.count} = ${(line.winAmount * 1000).toFixed(0)} HRVST`
-        );
-
         toast({
-          title: "Cosmic Harvest Success! 🛸",
-          description: `Total Win: ${hrvestTokens.toFixed(0)} HRVST\n${winMessages.join('\n')}`,
-          duration: 5000,
+          title: "🛸 Cosmic Win!",
+          description: `Total Win: ${hrvestTokens.toFixed(0)} HRVST`,
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: "👽 No Win",
+          description: "Better luck next harvest!",
+          duration: 2000,
         });
       }
     } catch (error) {

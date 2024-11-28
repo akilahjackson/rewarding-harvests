@@ -3,11 +3,10 @@ import { COLORS } from '../configs/styleConfig';
 
 export class WinAnimationManager {
   private scene: Phaser.Scene;
-  private activeEffects: (Phaser.GameObjects.Graphics | Phaser.GameObjects.Particles.ParticleEmitter)[];
+  private activeEffects: (Phaser.GameObjects.Graphics | Phaser.GameObjects.Particles.ParticleEmitter)[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
-    this.activeEffects = [];
     console.log('WinAnimationManager: Initialized');
   }
 
@@ -52,7 +51,7 @@ export class WinAnimationManager {
 
       this.activeEffects.push(circle);
 
-      // Create particles
+      // Single particle per winning symbol
       const particles = this.scene.add.particles(symbol.x, symbol.y, 'particle', {
         lifespan: 2000,
         speed: { min: 50, max: 100 },
@@ -67,39 +66,6 @@ export class WinAnimationManager {
       particles.setDepth(symbol.depth - 2);
       this.activeEffects.push(particles);
     });
-
-    // Create connecting line between positions
-    if (positions.length > 1) {
-      const graphics = this.scene.add.graphics();
-      graphics.setDepth(symbols[0][0].depth - 1);
-      
-      const points = positions.map(([row, col]) => ({
-        x: symbols[row][col].x,
-        y: symbols[row][col].y
-      }));
-
-      this.scene.tweens.add({
-        targets: { progress: 0 },
-        progress: 1,
-        duration: 1500,
-        onUpdate: (tween) => {
-          graphics.clear();
-          
-          // Draw glowing line
-          [0.2, 0.4, 0.8].forEach(alpha => {
-            graphics.lineStyle(4 * (1 + alpha), COLORS.neonGreen, alpha);
-            graphics.beginPath();
-            graphics.moveTo(points[0].x, points[0].y);
-            for (let i = 1; i < points.length; i++) {
-              graphics.lineTo(points[i].x, points[i].y);
-            }
-            graphics.strokePath();
-          });
-        }
-      });
-
-      this.activeEffects.push(graphics);
-    }
   }
 
   clearPreviousAnimations(): void {
