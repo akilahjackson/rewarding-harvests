@@ -38,33 +38,17 @@ export class PreloaderScene extends Phaser.Scene {
     // Add loading event listeners
     this.load.on('complete', () => {
       console.log('PreloaderScene: All assets loaded successfully');
-      this.startBackgroundMusic();
+      this.initializeBackgroundMusic();
     });
 
     this.load.on('loaderror', (fileObj: any) => {
       console.error('PreloaderScene: Error loading asset:', fileObj.key);
-      // Try loading from alternative path if main path fails
       if (fileObj.key.includes('sound')) {
         const altPath = `${window.location.origin}/sounds/${fileObj.key}.mp3`;
         console.log(`PreloaderScene: Attempting to load from alternative path: ${altPath}`);
         this.load.audio(fileObj.key, altPath);
       }
     });
-  }
-
-  private startBackgroundMusic() {
-    try {
-      if (this.sound.locked) {
-        console.log('PreloaderScene: Audio locked, waiting for user interaction');
-        this.sound.once('unlocked', () => {
-          this.initializeBackgroundMusic();
-        });
-      } else {
-        this.initializeBackgroundMusic();
-      }
-    } catch (error) {
-      console.error('PreloaderScene: Error in startBackgroundMusic:', error);
-    }
   }
 
   private initializeBackgroundMusic() {
@@ -75,16 +59,30 @@ export class PreloaderScene extends Phaser.Scene {
           volume: 0.5,
           loop: true
         });
-        
-        this.bgMusic.play();
-        console.log('PreloaderScene: Background music started successfully');
-        
-        // Store music reference in registry for access in other scenes
-        this.registry.set('bgMusic', this.bgMusic);
-        this.registry.set('audioLoaded', true);
+
+        // Handle audio unlock for browsers
+        if (this.sound.locked) {
+          console.log('PreloaderScene: Audio locked, waiting for user interaction');
+          this.sound.once('unlocked', () => {
+            this.startBackgroundMusic();
+          });
+        } else {
+          this.startBackgroundMusic();
+        }
       }
     } catch (error) {
       console.error('PreloaderScene: Error initializing background music:', error);
+    }
+  }
+
+  private startBackgroundMusic() {
+    if (this.bgMusic && !this.bgMusic.isPlaying) {
+      this.bgMusic.play();
+      console.log('PreloaderScene: Background music started successfully');
+      
+      // Store music reference in registry for access in other scenes
+      this.registry.set('bgMusic', this.bgMusic);
+      this.registry.set('audioLoaded', true);
     }
   }
 
