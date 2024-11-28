@@ -7,7 +7,6 @@ import { Coins, Volume2, VolumeX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SlotGameScene } from '@/scenes/SlotGameScene';
 import HowToPlay from '@/components/HowToPlay';
-import AudioManager from '@/utils/AudioManager';
 
 const MainGamePage = () => {
   const [balance, setBalance] = useState(1.0);
@@ -19,27 +18,18 @@ const MainGamePage = () => {
   const gameSceneRef = useRef<SlotGameScene | null>(null);
   const { toast } = useToast();
   const autoSpinIntervalRef = useRef<NodeJS.Timeout>();
-  const audioManager = AudioManager.getInstance();
 
-  useEffect(() => {
-    const initAudio = async () => {
-      // We'll initialize audio on first user interaction instead
-      console.log('Audio manager ready for initialization');
-    };
-    initAudio();
-  }, []);
-
-  const toggleMute = async () => {
-    await audioManager.initializeAudio(); // Ensure audio is initialized
-    const newMutedState = await audioManager.toggleMute();
-    setIsMuted(newMutedState);
+  const toggleMute = () => {
+    if (gameSceneRef.current) {
+      const scene = gameSceneRef.current;
+      const newMutedState = !isMuted;
+      scene.sound.mute = newMutedState;
+      setIsMuted(newMutedState);
+    }
   };
 
   const handleSpin = useCallback(async () => {
     if (isSpinning || !gameSceneRef.current) return;
-    
-    // Initialize audio on first spin
-    await audioManager.initializeAudio();
     
     if (betAmount > balance) {
       toast({
@@ -54,13 +44,10 @@ const MainGamePage = () => {
       setIsSpinning(true);
       setBalance(prev => prev - betAmount);
       
-      await audioManager.playSpinSound();
-      
       const multiplier = isAutoSpin ? 2 : 1;
       const { totalWinAmount, winningLines } = await gameSceneRef.current.startSpin(betAmount, multiplier);
       
       if (totalWinAmount > 0) {
-        await audioManager.playWinSound();
         const hrvestTokens = totalWinAmount * 1000;
         setTotalWinnings(prev => prev + hrvestTokens);
         setBalance(prev => prev + totalWinAmount);
@@ -93,7 +80,6 @@ const MainGamePage = () => {
     console.log('MainGamePage: Toggling auto-spin. Current state:', isAutoSpin);
     
     if (isAutoSpin) {
-      // Stop auto-spin
       if (autoSpinIntervalRef.current) {
         clearInterval(autoSpinIntervalRef.current);
         autoSpinIntervalRef.current = undefined;
@@ -101,14 +87,12 @@ const MainGamePage = () => {
       setIsAutoSpin(false);
       console.log('MainGamePage: Auto-spin stopped');
     } else {
-      // Start auto-spin
       setIsAutoSpin(true);
       console.log('MainGamePage: Auto-spin started');
       autoSpinIntervalRef.current = setInterval(() => {
         if (!isSpinning && betAmount <= balance) {
           handleSpin();
         } else if (betAmount > balance) {
-          // Stop auto-spin if insufficient balance
           clearInterval(autoSpinIntervalRef.current);
           autoSpinIntervalRef.current = undefined;
           setIsAutoSpin(false);
@@ -118,7 +102,6 @@ const MainGamePage = () => {
     }
   }, [isAutoSpin, isSpinning, balance, betAmount, handleSpin]);
 
-  // Cleanup interval on unmount
   useEffect(() => {
     return () => {
       if (autoSpinIntervalRef.current) {
