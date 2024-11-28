@@ -2,6 +2,11 @@ import Phaser from 'phaser';
 import { COLORS } from '../configs/styleConfig';
 import { ParticleManager } from './ParticleManager';
 
+interface TweenValues {
+  progress: number;
+  circles: number;
+}
+
 export class WinAnimationManager {
   private scene: Phaser.Scene;
   private particleManager: ParticleManager;
@@ -79,15 +84,16 @@ export class WinAnimationManager {
     const duration = 1500;
     
     this.scene.tweens.add({
-      targets: { progress: 0, circles: numberOfCircles },
+      targets: { progress: 0, circles: numberOfCircles } as TweenValues,
       progress: 1,
       circles: 1,
       duration: duration,
       ease: 'Sine.easeInOut',
       onUpdate: (tween) => {
         circle.clear();
-        const progress = tween.getValue().progress;
-        const currentCircles = Math.ceil(tween.getValue().circles);
+        const values = tween.getValue() as TweenValues;
+        const progress = values.progress;
+        const currentCircles = Math.ceil(values.circles);
         
         for (let i = 0; i < currentCircles; i++) {
           const circleRadius = maxRadius * (0.6 + (i * 0.15)) * (1 + Math.sin(progress * Math.PI) * 0.1);
