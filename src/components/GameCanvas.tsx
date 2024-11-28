@@ -8,16 +8,22 @@ const GameCanvas = () => {
 
   useEffect(() => {
     console.log('Initializing GameCanvas with responsive config');
+    const container = document.getElementById('game-container');
+    const width = container?.clientWidth || window.innerWidth;
+    const height = container?.clientHeight || window.innerHeight;
+
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       parent: 'game-container',
-      width: isMobile ? window.innerWidth * 0.95 : 1024,
-      height: isMobile ? window.innerHeight * 0.6 : 768,
+      width: width,
+      height: height,
       backgroundColor: '#1A1F2C',
       scene: [SlotGameScene],
       scale: {
-        mode: Phaser.Scale.FIT,
-        autoCenter: Phaser.Scale.CENTER_BOTH
+        mode: Phaser.Scale.RESIZE,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        width: width,
+        height: height,
       }
     };
 
@@ -25,10 +31,9 @@ const GameCanvas = () => {
 
     const handleResize = () => {
       console.log('Window resized, updating game size');
-      game.scale.resize(
-        isMobile ? window.innerWidth * 0.95 : 1024,
-        isMobile ? window.innerHeight * 0.6 : 768
-      );
+      const newWidth = container?.clientWidth || window.innerWidth;
+      const newHeight = container?.clientHeight || window.innerHeight;
+      game.scale.resize(newWidth, newHeight);
     };
 
     window.addEventListener('resize', handleResize);
@@ -43,7 +48,7 @@ const GameCanvas = () => {
   return (
     <div 
       id="game-container" 
-      className="w-full h-full min-h-[50vh] md:min-h-[768px] flex items-center justify-center p-2 md:p-4"
+      className="w-full h-full min-h-[60vh] md:min-h-[80vh] flex items-center justify-center p-2 md:p-4 bg-nightsky rounded-lg"
     />
   );
 };
