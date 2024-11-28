@@ -19,6 +19,29 @@ export class SlotGameScene extends Phaser.Scene {
 
   create() {
     console.log('SlotGameScene: Creating game grid');
+    
+    // Create glowing particle texture
+    const particleTexture = this.add.graphics();
+    particleTexture.clear();
+    
+    // Create gradient for glow effect
+    const radius = 64;
+    const gradient = particleTexture.createRadialGradient(
+      radius/2, radius/2, 0,
+      radius/2, radius/2, radius/2
+    );
+    gradient.addColorStop(0, '#4AE54A');
+    gradient.addColorStop(0.2, 'rgba(74, 229, 74, 0.8)');
+    gradient.addColorStop(0.5, 'rgba(74, 229, 74, 0.4)');
+    gradient.addColorStop(1, 'rgba(74, 229, 74, 0)');
+    
+    particleTexture.fillStyle(gradient);
+    particleTexture.fillCircle(radius/2, radius/2, radius/2);
+    
+    // Generate texture from graphics
+    particleTexture.generateTexture('particle', radius, radius);
+    particleTexture.destroy();
+
     this.currentGrid = createInitialGrid();
     this.winAnimationManager = new WinAnimationManager(this);
     this.createGrid();

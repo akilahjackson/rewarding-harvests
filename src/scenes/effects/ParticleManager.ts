@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { COLORS } from '../configs/styleConfig';
 
 export class ParticleManager {
   private scene: Phaser.Scene;
@@ -13,39 +12,19 @@ export class ParticleManager {
   createWinParticles(x: number, y: number, radius: number): void {
     console.log('ParticleManager: Creating win particles at', { x, y, radius });
     
-    // Create 1-3 glowing neon orbs
-    const numOrbs = Phaser.Math.Between(1, 3);
-    
-    for (let i = 0; i < numOrbs; i++) {
-      const particles = this.scene.add.particles(x, y, 'particle', {
-        gravityY: 0,
-        quantity: 1,
-        frequency: 500,
-        lifespan: 2000,
-        scale: { start: 0.4, end: 0.1 },
-        alpha: { start: 0.8, end: 0 },
-        speedX: { min: -20, max: 20 },
-        speedY: { min: -20, max: 20 },
-        blendMode: Phaser.BlendModes.ADD,
-        tint: 0x4AE54A // Neon green
-      });
-      
-      this.particleSystems.push(particles);
-      
-      // Create circular motion for each particle system
-      const angle = (i * 360 / numOrbs) * (Math.PI / 180);
-      const orbitRadius = radius * 0.8;
-      
-      this.scene.tweens.add({
-        targets: particles,
-        x: x + Math.cos(angle) * orbitRadius,
-        y: y + Math.sin(angle) * orbitRadius,
-        duration: 2000,
-        ease: 'Sine.easeInOut',
-        yoyo: true,
-        repeat: -1
-      });
-    }
+    const particles = this.scene.add.particles(x, y, 'particle', {
+      lifespan: 2000,
+      speed: { min: 50, max: 100 },
+      scale: { start: 0.4, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      blendMode: Phaser.BlendModes.ADD,
+      emitting: true,
+      quantity: 1,
+      frequency: 100,
+      rotate: { min: 0, max: 360 }
+    });
+
+    this.particleSystems.push(particles);
   }
 
   createPaylineParticles(points: { x: number, y: number }[]): void {
@@ -56,16 +35,15 @@ export class ParticleManager {
         const nextPoint = points[i + 1];
         
         const particles = this.scene.add.particles(point.x, point.y, 'particle', {
-          gravityY: 0,
-          quantity: 1,
-          frequency: 200,
           lifespan: 1500,
+          speed: { min: 30, max: 60 },
           scale: { start: 0.3, end: 0 },
           alpha: { start: 0.6, end: 0 },
-          speedX: { min: -10, max: 10 },
-          speedY: { min: -10, max: 10 },
           blendMode: Phaser.BlendModes.ADD,
-          tint: 0x4AE54A
+          emitting: true,
+          quantity: 1,
+          frequency: 150,
+          rotate: { min: 0, max: 360 }
         });
 
         this.particleSystems.push(particles);
