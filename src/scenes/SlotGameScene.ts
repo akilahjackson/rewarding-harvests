@@ -7,7 +7,7 @@ export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
-  private particles: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
+  private particles: Phaser.GameObjects.Particles.ParticleEmitterManager | null = null;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -22,15 +22,8 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private setupParticles() {
-    const particles = this.add.particles(0, 0, 'particle', {
-      speed: { min: 50, max: 100 },
-      angle: { min: 0, max: 360 },
-      scale: { start: 0.4, end: 0 },
-      blendMode: Phaser.BlendModes.ADD,
-      lifespan: 1000,
-      quantity: 20
-    });
-    this.particles = particles.createEmitter();
+    // Create a particle manager
+    this.particles = this.add.particles('particle');
   }
 
   private createWinAnimation(positions: number[][]) {
@@ -39,9 +32,22 @@ export class SlotGameScene extends Phaser.Scene {
     positions.forEach(([row, col]) => {
       const symbol = this.symbols[row][col];
       
-      // Create particle effect at symbol position
-      this.particles?.setPosition(symbol.x, symbol.y);
-      this.particles?.start();
+      // Create a new emitter for each winning position
+      const emitter = this.particles?.createEmitter({
+        x: symbol.x,
+        y: symbol.y,
+        speed: { min: 50, max: 100 },
+        angle: { min: 0, max: 360 },
+        scale: { start: 0.4, end: 0 },
+        blendMode: Phaser.BlendModes.ADD,
+        lifespan: 1000,
+        quantity: 20
+      });
+
+      // Stop the emitter after animation
+      this.time.delayedCall(1000, () => {
+        emitter.stop();
+      });
 
       // Create glowing effect
       this.tweens.add({
