@@ -22,10 +22,14 @@ export class PreloaderScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load audio file with correct path and key
-    this.load.audio('ambient', ['/assets/ambient.mp3']);
+    // Load audio with explicit path and proper error handling
+    this.load.audio('ambient', '/assets/ambient.mp3');
     
-    // Show loading progress
+    // Add loading error handler
+    this.load.on('loaderror', (fileObj: any) => {
+      console.error('Error loading:', fileObj.key);
+    });
+
     this.load.on('progress', (value: number) => {
       this.progress = Math.floor(value * 100);
       if (this.progressText) {
@@ -38,19 +42,33 @@ export class PreloaderScene extends Phaser.Scene {
     console.log('Creating preloader scene...');
     const { width, height } = this.cameras.main;
 
-    // Initialize background music after loading
+    // Initialize background music with error handling
     try {
-      this.bgMusic = this.sound.add('ambient', { loop: true, volume: 0.3 });
-      this.bgMusic.play();
+      if (this.cache.audio.exists('ambient')) {
+        this.bgMusic = this.sound.add('ambient', { loop: true, volume: 0.3 });
+        this.bgMusic.play();
+      } else {
+        console.warn('Ambient audio not found in cache');
+      }
     } catch (error) {
-      console.error('Error playing background music:', error);
+      console.error('Error initializing background music:', error);
     }
 
-    // Initialize particle emitter
-    this.emitter = this.add.particles(width / 2, height / 2, '__WHITE', {
-      lifespan: 2000,
-      speedX: { min: -50, max: 50 },
-      speedY: { min: -50, max: 50 },
+    // Initialize particle emitter with correct configuration
+    const particles = this.add.particles(0, 0, '__WHITE', {
+      speed: 50,
+      lifespan: {
+        min: 1000,
+        max: 2000
+      },
+      scale: { start: 0.2, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      blendMode: 'ADD',
+      emitting: false
+    });
+
+    this.emitter = particles.createEmitter({
+      speed: 50,
       scale: { start: 0.2, end: 0 },
       alpha: { start: 0.6, end: 0 },
       blendMode: 'ADD',
@@ -122,21 +140,16 @@ export class PreloaderScene extends Phaser.Scene {
       circle.phase += 0.02;
       const alpha = (Math.sin(circle.phase) + 1) / 2;
       
-      // Neon glow effect
       const glowColor = index === 0 ? 0xF97316 : index === 1 ? 0x4AE54A : 0x0EA5E9;
       
-      // Outer glow
       graphics.lineStyle(8, glowColor, alpha * 0.3);
       graphics.strokeCircle(circle.x, circle.y, circle.radius + 20);
       
-      // Main circle
       graphics.lineStyle(3, glowColor, alpha);
       graphics.strokeCircle(circle.x, circle.y, circle.radius);
       
-      // Inner patterns
       graphics.lineStyle(2, glowColor, alpha * 0.8);
       
-      // Emit particles
       if (this.emitter && Math.random() > 0.95) {
         this.emitter.setPosition(
           circle.x + (Math.random() - 0.5) * circle.radius,
@@ -145,7 +158,6 @@ export class PreloaderScene extends Phaser.Scene {
         this.emitter.explode(1);
       }
 
-      // Draw geometric patterns based on circle type
       if (circle.type === 'basic') {
         for (let i = 0; i < 6; i++) {
           const angle = (Math.PI * 2 * i) / 6;
