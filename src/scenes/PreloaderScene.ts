@@ -22,10 +22,8 @@ export class PreloaderScene extends Phaser.Scene {
   }
 
   preload() {
-    // Load audio with explicit path and proper error handling
     this.load.audio('ambient', '/assets/ambient.mp3');
     
-    // Add loading error handler
     this.load.on('loaderror', (fileObj: any) => {
       console.error('Error loading:', fileObj.key);
     });
@@ -42,7 +40,6 @@ export class PreloaderScene extends Phaser.Scene {
     console.log('Creating preloader scene...');
     const { width, height } = this.cameras.main;
 
-    // Initialize background music with error handling
     try {
       if (this.cache.audio.exists('ambient')) {
         this.bgMusic = this.sound.add('ambient', { loop: true, volume: 0.3 });
@@ -54,24 +51,15 @@ export class PreloaderScene extends Phaser.Scene {
       console.error('Error initializing background music:', error);
     }
 
-    // Initialize particle emitter with correct configuration
-    const particles = this.add.particles(0, 0, '__WHITE', {
-      speed: 50,
-      lifespan: {
-        min: 1000,
-        max: 2000
-      },
+    // Initialize particle emitter with updated configuration
+    this.emitter = this.add.particles(0, 0, {
+      frame: '__WHITE',
+      lifespan: { min: 1000, max: 2000 },
+      speed: { min: 20, max: 50 },
       scale: { start: 0.2, end: 0 },
       alpha: { start: 0.6, end: 0 },
       blendMode: 'ADD',
-      emitting: false
-    });
-
-    this.emitter = particles.createEmitter({
-      speed: 50,
-      scale: { start: 0.2, end: 0 },
-      alpha: { start: 0.6, end: 0 },
-      blendMode: 'ADD',
+      quantity: 1,
       emitting: false
     });
 
@@ -81,7 +69,6 @@ export class PreloaderScene extends Phaser.Scene {
       { x: width * 0.5, y: height * 0.7, radius: 120, phase: Math.PI / 2, type: 'advanced' }
     ];
 
-    // Initialize progress text
     this.progressText = this.add.text(width / 2, height * 0.85, '0%', {
       fontSize: '32px',
       color: '#4AE54A',
@@ -94,7 +81,6 @@ export class PreloaderScene extends Phaser.Scene {
       fontFamily: 'Space Grotesk'
     }).setOrigin(0.5);
 
-    // Update messages periodically
     this.time.addEvent({
       delay: 2000,
       callback: this.updateMessage,
@@ -102,7 +88,6 @@ export class PreloaderScene extends Phaser.Scene {
       repeat: this.messages.length - 1
     });
 
-    // Simulate loading progress
     this.time.addEvent({
       delay: 100,
       callback: this.updateProgress,
@@ -151,10 +136,8 @@ export class PreloaderScene extends Phaser.Scene {
       graphics.lineStyle(2, glowColor, alpha * 0.8);
       
       if (this.emitter && Math.random() > 0.95) {
-        this.emitter.setPosition(
-          circle.x + (Math.random() - 0.5) * circle.radius,
-          circle.y + (Math.random() - 0.5) * circle.radius
-        );
+        this.emitter.setPosition(circle.x + (Math.random() - 0.5) * circle.radius, 
+                                circle.y + (Math.random() - 0.5) * circle.radius);
         this.emitter.explode(1);
       }
 
