@@ -4,6 +4,7 @@ export class PreloaderScene extends Phaser.Scene {
   private messageText?: Phaser.GameObjects.Text;
   private cropCircle?: Phaser.GameObjects.Arc;
   private loadingComplete: boolean = false;
+  private bgMusic?: Phaser.Sound.BaseSound;
 
   constructor() {
     super({ key: 'PreloaderScene' });
@@ -12,6 +13,11 @@ export class PreloaderScene extends Phaser.Scene {
 
   preload() {
     console.log('PreloaderScene: Starting preload');
+    
+    // Load audio assets
+    this.load.audio('background-music', '/sounds/background-music.mp3');
+    this.load.audio('spin-sound', '/sounds/spin.mp3');
+    this.load.audio('win-sound', '/sounds/win.mp3');
     
     // Create a white pixel for particles
     const whitePixel = this.make.graphics({ x: 0, y: 0 })
@@ -24,6 +30,16 @@ export class PreloaderScene extends Phaser.Scene {
   create() {
     console.log('PreloaderScene: Starting create phase');
     const { width, height } = this.cameras.main;
+
+    // Start background music
+    this.bgMusic = this.sound.add('background-music', {
+      volume: 0.5,
+      loop: true
+    });
+    this.bgMusic.play();
+
+    // Store music reference in registry for access in other scenes
+    this.registry.set('bgMusic', this.bgMusic);
 
     // Create the crop circle
     this.cropCircle = this.add.circle(width / 2, height / 2, 128, 0x000000, 0)

@@ -4,6 +4,7 @@ import { calculateWinnings } from './utils/winCalculator';
 import { createInitialGrid, generateRandomSymbol } from './utils/gridManager';
 import { WinAnimationManager } from './effects/WinAnimationManager';
 import { MessageManager } from './effects/MessageManager';
+import { SoundManager } from './effects/SoundManager';
 
 export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
@@ -11,6 +12,7 @@ export class SlotGameScene extends Phaser.Scene {
   private currentGrid: string[][] = [];
   private winAnimationManager: WinAnimationManager;
   private messageManager: MessageManager;
+  private soundManager: SoundManager;
   private baseScale: number = 1;
   private alienMessage: Phaser.GameObjects.Text;
 
@@ -22,25 +24,14 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game grid');
     
-    // Create glowing particle texture
-    const particleTexture = this.add.graphics();
-    particleTexture.clear();
+    // Initialize sound manager
+    this.soundManager = new SoundManager(this);
     
-    // Create a circular glow effect
-    const radius = 64;
-    const colors = [
-      { radius: 0, color: 0x4AE54A, alpha: 1 },
-      { radius: 0.5, color: 0x4AE54A, alpha: 0.5 },
-      { radius: 1, color: 0x4AE54A, alpha: 0 }
-    ];
-
-    colors.forEach((stop) => {
-      particleTexture.fillStyle(stop.color, stop.alpha);
-      particleTexture.fillCircle(radius/2, radius/2, radius/2 * (1 - stop.radius));
-    });
-    
-    particleTexture.generateTexture('particle', radius, radius);
-    particleTexture.destroy();
+    // Continue background music from preloader
+    const bgMusic = this.registry.get('bgMusic') as Phaser.Sound.BaseSound;
+    if (bgMusic && !bgMusic.isPlaying) {
+      bgMusic.play();
+    }
 
     this.currentGrid = createInitialGrid();
     this.winAnimationManager = new WinAnimationManager(this);
@@ -200,6 +191,9 @@ export class SlotGameScene extends Phaser.Scene {
     try {
       await this.messageManager.showMessage("Initiating crop analysis...");
       
+      // Play spin sound
+      this.soundManager.playSpinSound();
+      
       // Perform spin animation
       await new Promise<void>((resolve) => {
         let completedSpins = 0;
@@ -243,7 +237,8 @@ export class SlotGameScene extends Phaser.Scene {
       const { totalWinAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
       
       if (winningLines.length > 0) {
-        await this.messageManager.showMessage("Exceptional specimens detected!");
+        // Play win sound
+        this.soundManager.playWinSound();
         
         for (const line of winningLines) {
           this.winAnimationManager.createWinAnimation(line.positions, this.symbols);
