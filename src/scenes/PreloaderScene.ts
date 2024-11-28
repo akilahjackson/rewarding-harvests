@@ -9,6 +9,7 @@ export class PreloaderScene extends Phaser.Scene {
   private bgMusic?: Phaser.Sound.BaseSound;
   private bgImage?: Phaser.GameObjects.Image;
   private particles?: Phaser.GameObjects.Particles.ParticleEmitter;
+  private clickText?: Phaser.GameObjects.Text;
 
   constructor() {
     super({ key: 'PreloaderScene' });
@@ -88,7 +89,7 @@ export class PreloaderScene extends Phaser.Scene {
       blendMode: Phaser.BlendModes.ADD
     });
 
-    // Create main loading text with neon effect and responsive positioning
+    // Create main loading text with neon effect
     this.messageText = this.add.text(width / 2, height * 0.4, 'The Harvest Begins...', {
       fontFamily: 'Space Grotesk',
       fontSize: Math.min(width * 0.05, 32) + 'px',
@@ -100,7 +101,7 @@ export class PreloaderScene extends Phaser.Scene {
     .setOrigin(0.5)
     .setAlpha(0);
 
-    // Create secondary loading message with responsive positioning
+    // Create secondary loading message
     this.loadingText = this.add.text(width / 2, height * 0.5, '', {
       fontFamily: 'Space Grotesk',
       fontSize: Math.min(width * 0.04, 24) + 'px',
@@ -112,7 +113,40 @@ export class PreloaderScene extends Phaser.Scene {
     .setOrigin(0.5)
     .setAlpha(0);
 
-    // Add glow effect to texts
+    // Add click to start text if audio is locked
+    if (this.sound.locked) {
+      this.clickText = this.add.text(width / 2, height * 0.6, 'Click/Tap to Start', {
+        fontFamily: 'Space Grotesk',
+        fontSize: Math.min(width * 0.04, 24) + 'px',
+        color: '#FFFFFF',
+        align: 'center',
+        stroke: '#000000',
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
+
+      // Fade in click text
+      this.tweens.add({
+        targets: this.clickText,
+        alpha: 1,
+        duration: 1000,
+        ease: 'Power2'
+      });
+
+      // Make the entire scene clickable
+      this.input.on('pointerdown', () => {
+        console.log('PreloaderScene: User interaction detected, attempting to unlock audio');
+        this.startBackgroundMusic();
+        if (this.clickText) {
+          this.clickText.destroy();
+        }
+      });
+    } else {
+      this.startBackgroundMusic();
+    }
+
+    // Add glow effects and animations
     const glowFX = this.messageText.preFX?.addGlow(0x4AE54A, 0, 0, false, 0.1, 16);
     const loadingGlowFX = this.loadingText.preFX?.addGlow(0xFEC6A1, 0, 0, false, 0.1, 16);
 
@@ -124,7 +158,7 @@ export class PreloaderScene extends Phaser.Scene {
       ease: 'Power2'
     });
 
-    // Add pulsing circle animation behind texts
+    // Add pulsing circle animation
     const circle = this.add.circle(width / 2, height * 0.45, 100, 0x4AE54A, 0.2);
     this.tweens.add({
       targets: circle,
@@ -144,15 +178,20 @@ export class PreloaderScene extends Phaser.Scene {
       loop: true
     });
 
-    // Transition to game after delay
-    this.time.delayedCall(6000, () => {
-      this.loadingComplete = true;
-      console.log('PreloaderScene: Starting transition to SlotGameScene');
-      this.game.events.emit('sceneComplete');
-    });
+    // Initialize background music
+    this.initializeBackgroundMusic();
 
-    // Add resize listener for responsiveness
+    // Add resize listener
     this.scale.on('resize', this.handleResize, this);
+
+    // Transition to game after delay only if music is playing or failed to load
+    this.time.delayedCall(6000, () => {
+      if (this.bgMusic?.isPlaying || !this.bgMusic) {
+        this.loadingComplete = true;
+        console.log('PreloaderScene: Starting transition to SlotGameScene');
+        this.game.events.emit('sceneComplete');
+      }
+    });
 
     console.log('PreloaderScene: Scene setup complete');
   }
@@ -196,16 +235,6 @@ export class PreloaderScene extends Phaser.Scene {
           volume: 0.5,
           loop: true
         });
-
-        // Handle audio unlock for browsers
-        if (this.sound.locked) {
-          console.log('PreloaderScene: Audio locked, waiting for user interaction');
-          this.sound.once('unlocked', () => {
-            this.startBackgroundMusic();
-          });
-        } else {
-          this.startBackgroundMusic();
-        }
       }
     } catch (error) {
       console.error('PreloaderScene: Error initializing background music:', error);
@@ -214,6 +243,7 @@ export class PreloaderScene extends Phaser.Scene {
 
   private startBackgroundMusic() {
     if (this.bgMusic && !this.bgMusic.isPlaying) {
+      console.log('PreloaderScene: Attempting to start background music');
       this.bgMusic.play();
       console.log('PreloaderScene: Background music started successfully');
       
