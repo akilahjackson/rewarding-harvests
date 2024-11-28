@@ -7,7 +7,7 @@ export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
-  private particles: Phaser.GameObjects.ParticleEmitter | null = null;
+  private particles: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -30,7 +30,7 @@ export class SlotGameScene extends Phaser.Scene {
       lifespan: 1000,
       quantity: 20
     });
-    this.particles = particles;
+    this.particles = particles.createEmitter();
   }
 
   private createWinAnimation(positions: number[][]) {
