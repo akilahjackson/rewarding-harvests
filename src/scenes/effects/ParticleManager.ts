@@ -3,7 +3,7 @@ import { COLORS } from '../configs/styleConfig';
 
 export class ParticleManager {
   private scene: Phaser.Scene;
-  private particleSystems: Phaser.GameObjects.Particles.ParticleEmitterManager[] = [];
+  private particleSystems: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -17,22 +17,17 @@ export class ParticleManager {
     const numOrbs = Phaser.Math.Between(1, 3);
     
     for (let i = 0; i < numOrbs; i++) {
-      const particles = this.scene.add.particles(0, 0, {
-        key: 'particle',
-        config: {
-          x: x,
-          y: y,
-          gravityY: 0,
-          quantity: 1,
-          frequency: 500,
-          lifespan: 2000,
-          scale: { start: 0.4, end: 0.1 },
-          alpha: { start: 0.8, end: 0 },
-          speedX: { min: -20, max: 20 },
-          speedY: { min: -20, max: 20 },
-          blendMode: Phaser.BlendModes.ADD,
-          tint: 0x4AE54A // Neon green
-        }
+      const particles = this.scene.add.particles(x, y, 'particle', {
+        gravityY: 0,
+        quantity: 1,
+        frequency: 500,
+        lifespan: 2000,
+        scale: { start: 0.4, end: 0.1 },
+        alpha: { start: 0.8, end: 0 },
+        speedX: { min: -20, max: 20 },
+        speedY: { min: -20, max: 20 },
+        blendMode: Phaser.BlendModes.ADD,
+        tint: 0x4AE54A // Neon green
       });
       
       this.particleSystems.push(particles);
@@ -60,22 +55,17 @@ export class ParticleManager {
       if (i < points.length - 1) {
         const nextPoint = points[i + 1];
         
-        const particles = this.scene.add.particles(0, 0, {
-          key: 'particle',
-          config: {
-            x: point.x,
-            y: point.y,
-            gravityY: 0,
-            quantity: 1,
-            frequency: 200,
-            lifespan: 1500,
-            scale: { start: 0.3, end: 0 },
-            alpha: { start: 0.6, end: 0 },
-            speedX: { min: -10, max: 10 },
-            speedY: { min: -10, max: 10 },
-            blendMode: Phaser.BlendModes.ADD,
-            tint: 0x4AE54A
-          }
+        const particles = this.scene.add.particles(point.x, point.y, 'particle', {
+          gravityY: 0,
+          quantity: 1,
+          frequency: 200,
+          lifespan: 1500,
+          scale: { start: 0.3, end: 0 },
+          alpha: { start: 0.6, end: 0 },
+          speedX: { min: -10, max: 10 },
+          speedY: { min: -10, max: 10 },
+          blendMode: Phaser.BlendModes.ADD,
+          tint: 0x4AE54A
         });
 
         this.particleSystems.push(particles);
