@@ -16,8 +16,8 @@ export class PreloaderScene extends Phaser.Scene {
   preload() {
     console.log('PreloaderScene: Starting preload');
     
-    // Update background image to .webp format
-    this.load.image('preloader-bg', '/images/neon-crop-circles.webp');
+    // Update background image to .WEBP format (matching case sensitivity)
+    this.load.image('preloader-bg', '/images/neon-crop-circles.WEBP');
     
     // Load all audio assets
     const audioFiles = [
