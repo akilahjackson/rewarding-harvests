@@ -7,7 +7,7 @@ export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
-  private particles: Phaser.GameObjects.Particles.ParticleEmitterManager | null = null;
+  private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -22,31 +22,35 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private setupParticles() {
-    // Create a particle manager
-    this.particles = this.add.particles('particle');
+    // Initialize empty emitters array
+    this.emitters = [];
   }
 
   private createWinAnimation(positions: number[][]) {
-    if (!this.particles) return;
-
     positions.forEach(([row, col]) => {
       const symbol = this.symbols[row][col];
       
-      // Create a new emitter for each winning position
-      const emitter = this.particles?.createEmitter({
-        x: symbol.x,
-        y: symbol.y,
+      // Create a new particle emitter for the winning position
+      const particles = this.add.particles(symbol.x, symbol.y, 'particle', {
         speed: { min: 50, max: 100 },
         angle: { min: 0, max: 360 },
         scale: { start: 0.4, end: 0 },
         blendMode: Phaser.BlendModes.ADD,
         lifespan: 1000,
-        quantity: 20
+        quantity: 20,
+        gravityY: 0
       });
 
-      // Stop the emitter after animation
+      // Store the emitter reference
+      this.emitters.push(particles);
+
+      // Stop and destroy the emitter after animation
       this.time.delayedCall(1000, () => {
-        emitter.stop();
+        particles.destroy();
+        const index = this.emitters.indexOf(particles);
+        if (index > -1) {
+          this.emitters.splice(index, 1);
+        }
       });
 
       // Create glowing effect
