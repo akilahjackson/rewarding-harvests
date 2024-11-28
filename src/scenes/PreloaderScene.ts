@@ -7,6 +7,8 @@ export class PreloaderScene extends Phaser.Scene {
   private cropCircle?: Phaser.GameObjects.Arc;
   private loadingComplete: boolean = false;
   private bgMusic?: Phaser.Sound.BaseSound;
+  private bgImage?: Phaser.GameObjects.Image;
+  private particles?: Phaser.GameObjects.Particles.ParticleEmitterManager;
 
   constructor() {
     super({ key: 'PreloaderScene' });
@@ -32,7 +34,7 @@ export class PreloaderScene extends Phaser.Scene {
       console.log(`PreloaderScene: Loading audio - ${audio.key} from ${audio.path}`);
       this.load.audio(audio.key, audio.path);
     });
-    
+
     // Create a white pixel for particles
     const whitePixel = this.make.graphics({ x: 0, y: 0 })
       .fillStyle(0xFFFFFF)
@@ -54,6 +56,136 @@ export class PreloaderScene extends Phaser.Scene {
         this.load.audio(fileObj.key, altPath);
       }
     });
+  }
+
+  create() {
+    console.log('PreloaderScene: Starting create phase');
+    const { width, height } = this.cameras.main;
+
+    // Add background image with animation
+    this.bgImage = this.add.image(width / 2, height / 2, 'preloader-bg')
+      .setDisplaySize(width, height);
+
+    // Add floating animation to background
+    this.tweens.add({
+      targets: this.bgImage,
+      y: height / 2 - 10,
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+
+    // Add particle effects
+    this.particles = this.add.particles(0, 0, 'pixel', {
+      frame: 0,
+      quantity: 2,
+      frequency: 500,
+      scale: { start: 0.05, end: 0 },
+      alpha: { start: 0.3, end: 0 },
+      speed: { min: 50, max: 100 },
+      lifespan: 3000,
+      blendMode: Phaser.BlendModes.ADD
+    });
+
+    // Create main loading text with neon effect and responsive positioning
+    this.messageText = this.add.text(width / 2, height * 0.4, 'The Harvest Begins...', {
+      fontFamily: 'Space Grotesk',
+      fontSize: Math.min(width * 0.05, 32) + 'px',
+      color: '#4AE54A',
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 4,
+    })
+    .setOrigin(0.5)
+    .setAlpha(0);
+
+    // Create secondary loading message with responsive positioning
+    this.loadingText = this.add.text(width / 2, height * 0.5, '', {
+      fontFamily: 'Space Grotesk',
+      fontSize: Math.min(width * 0.04, 24) + 'px',
+      color: '#FEC6A1',
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 3,
+    })
+    .setOrigin(0.5)
+    .setAlpha(0);
+
+    // Add glow effect to texts
+    const glowFX = this.messageText.preFX?.addGlow(0x4AE54A, 0, 0, false, 0.1, 16);
+    const loadingGlowFX = this.loadingText.preFX?.addGlow(0xFEC6A1, 0, 0, false, 0.1, 16);
+
+    // Animate texts
+    this.tweens.add({
+      targets: [this.messageText, this.loadingText],
+      alpha: 1,
+      duration: 1000,
+      ease: 'Power2'
+    });
+
+    // Add pulsing circle animation behind texts
+    const circle = this.add.circle(width / 2, height * 0.45, 100, 0x4AE54A, 0.2);
+    this.tweens.add({
+      targets: circle,
+      scale: 1.2,
+      alpha: 0.1,
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+
+    // Cycle through loading messages
+    this.time.addEvent({
+      delay: 2000,
+      callback: this.updateLoadingMessage,
+      callbackScope: this,
+      loop: true
+    });
+
+    // Transition to game after delay
+    this.time.delayedCall(6000, () => {
+      this.loadingComplete = true;
+      console.log('PreloaderScene: Starting transition to SlotGameScene');
+      this.game.events.emit('sceneComplete');
+    });
+
+    // Add resize listener for responsiveness
+    this.scale.on('resize', this.handleResize, this);
+
+    console.log('PreloaderScene: Scene setup complete');
+  }
+
+  private handleResize(gameSize: Phaser.Structs.Size) {
+    const width = gameSize.width;
+    const height = gameSize.height;
+
+    // Update background image size
+    if (this.bgImage) {
+      this.bgImage.setDisplaySize(width, height)
+        .setPosition(width / 2, height / 2);
+    }
+
+    // Update text positions and sizes
+    if (this.messageText) {
+      this.messageText
+        .setPosition(width / 2, height * 0.4)
+        .setFontSize(Math.min(width * 0.05, 32));
+    }
+
+    if (this.loadingText) {
+      this.loadingText
+        .setPosition(width / 2, height * 0.5)
+        .setFontSize(Math.min(width * 0.04, 24));
+    }
+  }
+
+  private updateLoadingMessage() {
+    if (this.loadingText && !this.loadingComplete) {
+      const randomMessage = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
+      this.loadingText.setText(randomMessage);
+    }
   }
 
   private initializeBackgroundMusic() {
@@ -88,85 +220,6 @@ export class PreloaderScene extends Phaser.Scene {
       // Store music reference in registry for access in other scenes
       this.registry.set('bgMusic', this.bgMusic);
       this.registry.set('audioLoaded', true);
-    }
-  }
-
-  create() {
-    console.log('PreloaderScene: Starting create phase');
-    const { width, height } = this.cameras.main;
-
-    // Add background image
-    const background = this.add.image(width / 2, height / 2, 'preloader-bg')
-      .setDisplaySize(width, height);
-
-    // Create main loading text with neon effect
-    this.messageText = this.add.text(width / 2, height * 0.4, 'The Harvest Begins...', {
-      fontFamily: 'Space Grotesk',
-      fontSize: '32px',
-      color: '#4AE54A',
-      align: 'center',
-      stroke: '#000000',
-      strokeThickness: 4,
-    })
-    .setOrigin(0.5)
-    .setAlpha(0);
-
-    // Create secondary loading message
-    this.loadingText = this.add.text(width / 2, height * 0.5, '', {
-      fontFamily: 'Space Grotesk',
-      fontSize: '24px',
-      color: '#FEC6A1',
-      align: 'center',
-      stroke: '#000000',
-      strokeThickness: 3,
-    })
-    .setOrigin(0.5)
-    .setAlpha(0);
-
-    // Animate texts
-    this.tweens.add({
-      targets: [this.messageText, this.loadingText],
-      alpha: 1,
-      duration: 1000,
-      ease: 'Power2'
-    });
-
-    // Cycle through loading messages
-    this.time.addEvent({
-      delay: 2000,
-      callback: this.updateLoadingMessage,
-      callbackScope: this,
-      loop: true
-    });
-
-    // Add particles
-    const particles = this.add.particles(0, 0, 'pixel', {
-      x: width / 2,
-      y: height / 2,
-      lifespan: 3000,
-      speed: { min: 50, max: 100 },
-      scale: { start: 0.5, end: 0 },
-      alpha: { start: 0.6, end: 0 },
-      blendMode: Phaser.BlendModes.ADD,
-      emitting: true,
-      quantity: 2,
-      frequency: 50
-    });
-
-    // Transition to game after delay
-    this.time.delayedCall(6000, () => {
-      this.loadingComplete = true;
-      console.log('PreloaderScene: Starting transition to SlotGameScene');
-      this.game.events.emit('sceneComplete');
-    });
-
-    console.log('PreloaderScene: Scene setup complete');
-  }
-
-  private updateLoadingMessage() {
-    if (this.loadingText && !this.loadingComplete) {
-      const randomMessage = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
-      this.loadingText.setText(randomMessage);
     }
   }
 }
