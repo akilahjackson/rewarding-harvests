@@ -26,14 +26,7 @@ export class SlotGameScene extends Phaser.Scene {
     const startX = (width - (cellSize * (this.GRID_SIZE - 1))) / 2;
     const startY = (height - (cellSize * (this.GRID_SIZE - 1))) / 2;
     
-    const symbolTypes = [
-      '🌾', // wheat
-      '🌽', // corn
-      '🎃', // pumpkin
-      '🍎', // apple
-      '🍇', // grapes
-      '🥕'  // carrot
-    ];
+    const symbolTypes = ['🌾', '🌽', '🎃', '🍎', '🍇', '🥕'];
 
     // Create 6x6 grid with spread animation
     for (let row = 0; row < this.GRID_SIZE; row++) {
@@ -45,18 +38,17 @@ export class SlotGameScene extends Phaser.Scene {
         
         const symbol = this.add.text(x, y, randomSymbol, {
           fontSize: `${cellSize * 0.6}px`,
-          backgroundColor: '#ffffff11',
           padding: { x: cellSize * 0.15, y: cellSize * 0.15 },
         })
         .setOrigin(0.5)
-        .setInteractive();
+        .setInteractive()
+        .setAlpha(0)
+        .setScale(0.3);
         
         this.symbols[row][col] = symbol;
         
         // Add spread animation with delay based on position
-        const delay = (row + col) * 100; // Stagger the animations
-        symbol.setScale(0.3).setAlpha(0);
-        
+        const delay = (row + col) * 100;
         this.tweens.add({
           targets: symbol,
           scale: 1,
@@ -78,7 +70,7 @@ export class SlotGameScene extends Phaser.Scene {
           }
         });
         
-        // Add hover effect
+        // Add hover effects
         symbol.on('pointerover', () => {
           this.tweens.add({
             targets: symbol,
