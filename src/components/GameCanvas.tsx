@@ -33,7 +33,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       parent: containerRef.current,
       width: width,
       height: height,
-      backgroundColor: '#000000',
+      transparent: true,
       scene: [SlotGameScene],
       scale: {
         mode: Phaser.Scale.RESIZE,
