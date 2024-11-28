@@ -17,7 +17,7 @@ const GameCanvas = () => {
       parent: 'game-container',
       width: width,
       height: height,
-      backgroundColor: '#1A1F2C',
+      transparent: true, // Enable transparency
       scene: [SlotGameScene],
       scale: {
         mode: Phaser.Scale.RESIZE,
@@ -55,10 +55,10 @@ const GameCanvas = () => {
         <div className="absolute w-24 h-24 rounded-full border-2 border-neongreen/30 animate-float delay-2000 left-1/3 bottom-1/4 blur-sm" />
       </div>
       
-      {/* Game container with glowing effect */}
+      {/* Game container with transparent background */}
       <div 
         id="game-container" 
-        className="relative w-full h-full flex items-center justify-center p-4 backdrop-blur-sm bg-nightsky/40 rounded-xl shadow-lg border border-neongreen/20 animate-glow-pulse"
+        className="relative w-full h-full flex items-center justify-center p-4 backdrop-blur-sm bg-transparent rounded-xl shadow-lg border border-neongreen/20"
       />
       
       {/* Floating particles */}
