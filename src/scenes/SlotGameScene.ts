@@ -5,6 +5,7 @@ export class SlotGameScene extends Phaser.Scene {
   private readonly GRID_SIZE = 6;
   private particles: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   private isSpinning: boolean = false;
+  private symbolTypes = ['🌾', '🌽', '🎃', '🍎', '🍇', '🥕'];
   
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -12,14 +13,16 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   preload() {
+    // Load particle effects for ambient background
     this.load.atlas('flares', 'https://labs.phaser.io/assets/particles/flares.png', 'https://labs.phaser.io/assets/particles/flares.json');
+    console.log('SlotGameScene: Assets preloaded');
   }
 
   create() {
     console.log('SlotGameScene: Creating slot game grid');
     const { width, height } = this.cameras.main;
     
-    // Create particle emitter for ambient effects
+    // Initialize particle effects for ambient background
     const particleManager = this.add.particles(0, 0, 'flares', {
       frame: ['blue', 'green'],
       lifespan: 4000,
@@ -35,11 +38,11 @@ export class SlotGameScene extends Phaser.Scene {
     });
     
     this.particles = particleManager;
-
     this.createGrid();
   }
 
   private createGrid() {
+    console.log('Creating initial grid layout');
     const { width, height } = this.cameras.main;
     const padding = Math.min(width, height) * 0.1;
     const availableWidth = width - (padding * 2);
@@ -51,13 +54,12 @@ export class SlotGameScene extends Phaser.Scene {
     
     const startX = (width - (cellSize * (this.GRID_SIZE - 1))) / 2;
     const startY = (height - (cellSize * (this.GRID_SIZE - 1))) / 2;
-    
-    const symbolTypes = ['🌾', '🌽', '🎃', '🍎', '🍇', '🥕'];
 
+    // Create initial grid with symbols
     for (let row = 0; row < this.GRID_SIZE; row++) {
       this.symbols[row] = [];
       for (let col = 0; col < this.GRID_SIZE; col++) {
-        const randomSymbol = symbolTypes[Phaser.Math.Between(0, symbolTypes.length - 1)];
+        const randomSymbol = this.symbolTypes[Phaser.Math.Between(0, this.symbolTypes.length - 1)];
         const x = startX + col * cellSize;
         const y = startY + row * cellSize;
         
@@ -72,6 +74,7 @@ export class SlotGameScene extends Phaser.Scene {
         
         this.symbols[row][col] = symbol;
         
+        // Add entrance animation for each symbol
         this.tweens.add({
           targets: symbol,
           scale: 1,
@@ -81,6 +84,7 @@ export class SlotGameScene extends Phaser.Scene {
           delay: (row + col) * 100,
           ease: 'Back.out',
           onComplete: () => {
+            // Add floating animation
             this.tweens.add({
               targets: symbol,
               y: y + 10,
@@ -93,22 +97,27 @@ export class SlotGameScene extends Phaser.Scene {
         });
       }
     }
+    console.log('Grid creation completed');
   }
 
   public startSpin(betAmount: number, multiplier: number): Promise<number> {
     return new Promise((resolve) => {
-      if (this.isSpinning) return;
-      this.isSpinning = true;
+      if (this.isSpinning) {
+        console.log('Spin already in progress');
+        return;
+      }
+
       console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
+      this.isSpinning = true;
 
       // Stop all current animations
       this.symbols.flat().forEach(symbol => {
         this.tweens.killTweensOf(symbol);
       });
 
-      // Spin animation
-      const spinDuration = 2000;
-      const symbolTypes = ['🌾', '🌽', '🎃', '🍎', '🍇', '🥕'];
+      // Spin animation for each symbol
+      let completedSpins = 0;
+      const totalSymbols = this.GRID_SIZE * this.GRID_SIZE;
 
       this.symbols.forEach((row, rowIndex) => {
         row.forEach((symbol, colIndex) => {
@@ -121,7 +130,7 @@ export class SlotGameScene extends Phaser.Scene {
             delay: (rowIndex + colIndex) * 50,
             onComplete: () => {
               // Change symbol
-              const newSymbol = symbolTypes[Phaser.Math.Between(0, symbolTypes.length - 1)];
+              const newSymbol = this.symbolTypes[Phaser.Math.Between(0, this.symbolTypes.length - 1)];
               symbol.setText(newSymbol);
 
               // Spin in animation
@@ -132,9 +141,15 @@ export class SlotGameScene extends Phaser.Scene {
                 duration: 300,
                 ease: 'Back.out',
                 onComplete: () => {
-                  if (rowIndex === this.GRID_SIZE - 1 && colIndex === this.GRID_SIZE - 1) {
+                  completedSpins++;
+                  console.log(`Symbol spin completed: ${completedSpins}/${totalSymbols}`);
+
+                  // Check if all symbols have completed spinning
+                  if (completedSpins === totalSymbols) {
+                    console.log('All symbols have completed spinning');
                     this.isSpinning = false;
                     const winAmount = this.calculateWinnings(betAmount, multiplier);
+                    console.log(`Spin completed with win amount: ${winAmount}`);
                     resolve(winAmount);
                   }
                 }
@@ -147,11 +162,49 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private calculateWinnings(betAmount: number, multiplier: number): number {
-    // Simple random win calculation - replace with actual win logic
-    const randomWin = Math.random();
-    if (randomWin > 0.7) {
-      return betAmount * multiplier * (Math.floor(randomWin * 5) + 1);
+    console.log('Calculating winnings...');
+    
+    // Count matching symbols in rows, columns, and diagonals
+    let matches = this.countMatches();
+    console.log(`Found ${matches} matching combinations`);
+
+    if (matches > 0) {
+      const winAmount = betAmount * multiplier * matches;
+      console.log(`Win amount calculated: ${winAmount}`);
+      return winAmount;
     }
+    
+    console.log('No winning combinations found');
     return 0;
+  }
+
+  private countMatches(): number {
+    let totalMatches = 0;
+
+    // Check rows
+    for (let row = 0; row < this.GRID_SIZE; row++) {
+      for (let col = 0; col < this.GRID_SIZE - 2; col++) {
+        const symbol = this.symbols[row][col].text;
+        if (symbol === this.symbols[row][col + 1].text &&
+            symbol === this.symbols[row][col + 2].text) {
+          totalMatches++;
+          console.log(`Found horizontal match at row ${row}, column ${col}`);
+        }
+      }
+    }
+
+    // Check columns
+    for (let col = 0; col < this.GRID_SIZE; col++) {
+      for (let row = 0; row < this.GRID_SIZE - 2; row++) {
+        const symbol = this.symbols[row][col].text;
+        if (symbol === this.symbols[row + 1][col].text &&
+            symbol === this.symbols[row + 2][col].text) {
+          totalMatches++;
+          console.log(`Found vertical match at row ${row}, column ${col}`);
+        }
+      }
+    }
+
+    return totalMatches;
   }
 }
