@@ -34,15 +34,22 @@ const MainGamePage = () => {
       console.log('MainGamePage: Starting spin with bet:', betAmount);
 
       const multiplier = isAutoSpin ? 2 : 1;
-      const winAmount = await gameSceneRef.current.startSpin(betAmount, multiplier);
+      const { totalWinAmount, winningLines } = await gameSceneRef.current.startSpin(betAmount, multiplier);
       
-      if (winAmount > 0) {
-        const hrvestTokens = winAmount * 1000;
+      if (totalWinAmount > 0) {
+        const hrvestTokens = totalWinAmount * 1000;
         setTotalWinnings(prev => prev + hrvestTokens);
-        setBalance(prev => prev + winAmount);
+        setBalance(prev => prev + totalWinAmount);
+
+        // Create detailed win message for toast
+        const winMessages = winningLines.map(line => 
+          `${line.symbol} x${line.count} = ${(line.winAmount * 1000).toFixed(0)} HRVST`
+        );
+
         toast({
-          title: "Winner! 🎉",
-          description: `You won ${hrvestTokens.toFixed(0)} HRVST tokens!`,
+          title: "Cosmic Harvest Success! 🛸",
+          description: `Total Win: ${hrvestTokens.toFixed(0)} HRVST\n${winMessages.join('\n')}`,
+          duration: 5000,
         });
       }
     } catch (error) {

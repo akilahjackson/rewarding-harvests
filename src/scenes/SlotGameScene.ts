@@ -4,13 +4,21 @@ import { calculateWinnings } from './utils/winCalculator';
 import { createInitialGrid, generateRandomSymbol } from './utils/gridManager';
 import { WinAnimationManager } from './effects/WinAnimationManager';
 
+const ALIEN_MESSAGES = [
+  "Analyzing crop patterns...",
+  "Exceptional specimens detected!",
+  "Harvesting energy signatures...",
+  "Cosmic alignment confirmed!",
+  "Initiating specimen collection..."
+];
+
 export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
-  private floatingTweens: Phaser.Tweens.Tween[] = [];
   private winAnimationManager: WinAnimationManager;
   private baseScale: number = 1;
+  private alienMessage: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -24,26 +32,19 @@ export class SlotGameScene extends Phaser.Scene {
     const particleTexture = this.add.graphics();
     particleTexture.clear();
     
-    // Create a circular glow effect with 3 layers
+    // Create a circular glow effect
     const radius = 64;
     const colors = [
       { radius: 0, color: 0x4AE54A, alpha: 1 },
-      { radius: 0.4, color: 0x4AE54A, alpha: 0.6 },
+      { radius: 0.5, color: 0x4AE54A, alpha: 0.5 },
       { radius: 1, color: 0x4AE54A, alpha: 0 }
     ];
 
     colors.forEach((stop) => {
-      const color = stop.color;
-      const alpha = stop.alpha;
-      particleTexture.fillStyle(color, alpha);
-      particleTexture.fillCircle(
-        radius/2, 
-        radius/2, 
-        radius/2 * (1 - stop.radius)
-      );
+      particleTexture.fillStyle(stop.color, stop.alpha);
+      particleTexture.fillCircle(radius/2, radius/2, radius/2 * (1 - stop.radius));
     });
     
-    // Generate texture from graphics
     particleTexture.generateTexture('particle', radius, radius);
     particleTexture.destroy();
 
@@ -51,6 +52,48 @@ export class SlotGameScene extends Phaser.Scene {
     this.winAnimationManager = new WinAnimationManager(this);
     this.createGrid();
     this.startFloatingAnimations();
+
+    // Create alien message text
+    this.alienMessage = this.add.text(
+      this.cameras.main.width / 2,
+      50,
+      '',
+      {
+        fontSize: '24px',
+        color: '#4AE54A',
+        fontFamily: 'monospace',
+        stroke: '#000',
+        strokeThickness: 4,
+        shadow: { blur: 10, color: '#4AE54A', fill: true }
+      }
+    )
+    .setOrigin(0.5)
+    .setAlpha(0)
+    .setDepth(100);
+  }
+
+  private showAlienMessage(message: string) {
+    if (this.alienMessage) {
+      this.alienMessage.setText(message);
+      this.tweens.add({
+        targets: this.alienMessage,
+        alpha: 1,
+        y: 70,
+        duration: 500,
+        ease: 'Power2',
+        onComplete: () => {
+          this.time.delayedCall(2000, () => {
+            this.tweens.add({
+              targets: this.alienMessage,
+              alpha: 0,
+              y: 50,
+              duration: 500,
+              ease: 'Power2'
+            });
+          });
+        }
+      });
+    }
   }
 
   private adjustGridScale(hasWinningLines: boolean) {
@@ -67,12 +110,9 @@ export class SlotGameScene extends Phaser.Scene {
 
   private stopFloatingAnimations() {
     console.log('SlotGameScene: Stopping floating animations');
-    this.floatingTweens.forEach(tween => {
-      if (tween.isPlaying()) {
-        tween.stop();
-      }
+    this.symbols.flat().forEach(symbol => {
+      this.tweens.killTweensOf(symbol);
     });
-    this.floatingTweens = [];
   }
 
   private startFloatingAnimations() {
@@ -92,7 +132,6 @@ export class SlotGameScene extends Phaser.Scene {
         repeat: -1,
         ease: 'Sine.easeInOut'
       });
-      this.floatingTweens.push(tween);
     });
   }
 
@@ -149,23 +188,21 @@ export class SlotGameScene extends Phaser.Scene {
     }
   }
 
-  public async startSpin(betAmount: number, multiplier: number): Promise<number> {
+  public async startSpin(betAmount: number, multiplier: number): Promise<{ totalWinAmount: number; winningLines: any[] }> {
     if (this.isSpinning) {
       console.log('SlotGameScene: Spin already in progress, ignoring new spin request');
-      return 0;
+      return { totalWinAmount: 0, winningLines: [] };
     }
 
     console.log(`SlotGameScene: Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
     this.isSpinning = true;
     this.stopFloatingAnimations();
     this.winAnimationManager.clearPreviousAnimations();
-    this.adjustGridScale(false);
 
     try {
       await new Promise<void>((resolve) => {
         let completedSpins = 0;
         const totalSpins = GRID_SIZE * GRID_SIZE;
-        const spinDuration = 300;
 
         for (let rowIndex = 0; rowIndex < GRID_SIZE; rowIndex++) {
           for (let colIndex = 0; colIndex < GRID_SIZE; colIndex++) {
@@ -174,7 +211,7 @@ export class SlotGameScene extends Phaser.Scene {
             this.tweens.add({
               targets: symbol,
               scaleX: 0,
-              duration: spinDuration,
+              duration: 300,
               ease: 'Power1',
               onComplete: () => {
                 const newSymbol = generateRandomSymbol();
@@ -184,7 +221,7 @@ export class SlotGameScene extends Phaser.Scene {
                 this.tweens.add({
                   targets: symbol,
                   scaleX: this.baseScale,
-                  duration: spinDuration,
+                  duration: 300,
                   ease: 'Power1',
                   onComplete: () => {
                     completedSpins++;
@@ -199,27 +236,34 @@ export class SlotGameScene extends Phaser.Scene {
         }
       });
 
-      const { winAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
+      // Show initial alien message
+      this.showAlienMessage(ALIEN_MESSAGES[0]);
+      await new Promise(resolve => this.time.delayedCall(1000, resolve));
+
+      const { totalWinAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
       
       if (winningLines.length > 0) {
         console.log('SlotGameScene: Win detected! Creating win animations');
-        this.adjustGridScale(true);
-        winningLines.forEach(line => {
+        this.showAlienMessage(ALIEN_MESSAGES[1]);
+        
+        // Process each winning line sequentially
+        for (const line of winningLines) {
           this.winAnimationManager.createWinAnimation(line.positions, this.symbols);
-        });
-        await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => this.time.delayedCall(500, resolve));
+        }
+
+        this.showAlienMessage(ALIEN_MESSAGES[2]);
+        await new Promise(resolve => this.time.delayedCall(1000, resolve));
       }
 
-      console.log(`SlotGameScene: Spin completed. Win amount: ${winAmount}`);
+      console.log(`SlotGameScene: Spin completed. Win amount: ${totalWinAmount}`);
       this.isSpinning = false;
-      this.startFloatingAnimations();
-      return winAmount;
+      return { totalWinAmount, winningLines };
 
     } catch (error) {
       console.error('SlotGameScene: Error during spin:', error);
       this.isSpinning = false;
-      this.startFloatingAnimations();
-      return 0;
+      return { totalWinAmount: 0, winningLines: [] };
     }
   }
 }

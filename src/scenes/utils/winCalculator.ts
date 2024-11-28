@@ -4,6 +4,7 @@ interface WinningLine {
   positions: number[][];
   symbol: string;
   count: number;
+  winAmount: number;
 }
 
 export const findWinningLines = (grid: string[][]): WinningLine[] => {
@@ -23,7 +24,12 @@ export const findWinningLines = (grid: string[][]): WinningLine[] => {
         positions.push([row, col]);
       } else {
         if (count >= 3) {
-          winningLines.push({ positions: [...positions], symbol: currentSymbol, count });
+          winningLines.push({ 
+            positions: [...positions], 
+            symbol: currentSymbol, 
+            count,
+            winAmount: 0 // Will be calculated later
+          });
         }
         currentSymbol = symbol;
         count = 1;
@@ -32,7 +38,12 @@ export const findWinningLines = (grid: string[][]): WinningLine[] => {
     }
     
     if (count >= 3) {
-      winningLines.push({ positions: [...positions], symbol: currentSymbol, count });
+      winningLines.push({ 
+        positions: [...positions], 
+        symbol: currentSymbol, 
+        count,
+        winAmount: 0 // Will be calculated later
+      });
     }
   }
 
@@ -50,7 +61,12 @@ export const findWinningLines = (grid: string[][]): WinningLine[] => {
         positions.push([row, col]);
       } else {
         if (count >= 3) {
-          winningLines.push({ positions: [...positions], symbol: currentSymbol, count });
+          winningLines.push({ 
+            positions: [...positions], 
+            symbol: currentSymbol, 
+            count,
+            winAmount: 0
+          });
         }
         currentSymbol = symbol;
         count = 1;
@@ -59,10 +75,16 @@ export const findWinningLines = (grid: string[][]): WinningLine[] => {
     }
     
     if (count >= 3) {
-      winningLines.push({ positions: [...positions], symbol: currentSymbol, count });
+      winningLines.push({ 
+        positions: [...positions], 
+        symbol: currentSymbol, 
+        count,
+        winAmount: 0
+      });
     }
   }
 
+  // Check diagonals
   // Check diagonal (top-left to bottom-right)
   for (let startRow = 0; startRow < GRID_SIZE - 2; startRow++) {
     for (let startCol = 0; startCol < GRID_SIZE - 2; startCol++) {
@@ -117,16 +139,16 @@ export const calculateWinnings = (
   grid: string[][],
   betAmount: number,
   multiplier: number
-): { winAmount: number; winningLines: WinningLine[] } => {
+): { totalWinAmount: number; winningLines: WinningLine[] } => {
   const winningLines = findWinningLines(grid);
-  let totalWin = 0;
+  let totalWinAmount = 0;
 
   winningLines.forEach(line => {
     const symbolValue = SYMBOL_VALUES[line.symbol as keyof typeof SYMBOLS];
-    const lineWin = betAmount * multiplier * (symbolValue / 100) * line.count;
-    totalWin += lineWin;
-    console.log(`Win line: ${line.symbol} x${line.count} = ${lineWin}`);
+    line.winAmount = betAmount * multiplier * (symbolValue / 100) * line.count;
+    totalWinAmount += line.winAmount;
+    console.log(`Win line: ${line.symbol} x${line.count} = ${line.winAmount}`);
   });
 
-  return { winAmount: totalWin, winningLines };
+  return { totalWinAmount, winningLines };
 };
