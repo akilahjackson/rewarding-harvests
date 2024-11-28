@@ -18,45 +18,21 @@ export class SlotGameScene extends Phaser.Scene {
     console.log('SlotGameScene: Creating game grid');
     this.currentGrid = createInitialGrid();
     this.createGrid();
-    this.setupParticles();
-  }
-
-  private setupParticles() {
-    this.emitters = [];
   }
 
   private createWinAnimation(positions: number[][]) {
     positions.forEach(([row, col]) => {
       const symbol = this.symbols[row][col];
       
-      const particles = this.add.particles(symbol.x, symbol.y, 'particle', {
-        speed: { min: 50, max: 100 },
-        angle: { min: 0, max: 360 },
-        scale: { start: 0.4, end: 0 },
-        blendMode: Phaser.BlendModes.ADD,
-        lifespan: 1000,
-        quantity: 20,
-        gravityY: 0
-      });
-
-      this.emitters.push(particles);
-
-      this.time.delayedCall(1000, () => {
-        particles.destroy();
-        const index = this.emitters.indexOf(particles);
-        if (index > -1) {
-          this.emitters.splice(index, 1);
-        }
-      });
-
       this.tweens.add({
         targets: symbol,
-        alpha: 0.5,
+        scale: 1.2,
+        duration: 200,
         yoyo: true,
         repeat: 5,
-        duration: 200,
+        ease: 'Sine.easeInOut',
         onComplete: () => {
-          symbol.setAlpha(1);
+          symbol.setScale(1);
         }
       });
     });
@@ -80,20 +56,19 @@ export class SlotGameScene extends Phaser.Scene {
     const spinPromises = this.symbols.map((row, rowIndex) => {
       return Promise.all(row.map((symbol, colIndex) => {
         return new Promise<void>((resolve) => {
-          // Create a spinning effect
-          this.tweens.add({
+          const spinTween = this.tweens.add({
             targets: symbol,
             scaleX: { from: 1, to: 0 },
             duration: 300,
             ease: 'Power1',
-            onComplete: function() {
+            onComplete: () => {
               // Update symbol when it's invisible
               const newSymbol = generateRandomSymbol();
-              this.scene.currentGrid[rowIndex][colIndex] = newSymbol;
+              this.currentGrid[rowIndex][colIndex] = newSymbol;
               symbol.setText(newSymbol);
               
               // Spin back
-              this.scene.tweens.add({
+              this.tweens.add({
                 targets: symbol,
                 scaleX: { from: 0, to: 1 },
                 duration: 300,
@@ -120,7 +95,7 @@ export class SlotGameScene extends Phaser.Scene {
     }
 
     // Restart floating animations
-    this.symbols.flat().forEach((symbol, index) => {
+    this.symbols.flat().forEach((symbol) => {
       const baseY = symbol.y;
       this.tweens.add({
         targets: symbol,
