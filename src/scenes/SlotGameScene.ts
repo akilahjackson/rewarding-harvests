@@ -130,7 +130,9 @@ export class SlotGameScene extends Phaser.Scene {
             alpha: 1,
             duration: 300,
             ease: 'Back.easeOut',
-            onComplete: resolve
+            onComplete: () => {
+              resolve();
+            }
           });
         }
       });
