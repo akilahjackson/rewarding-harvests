@@ -17,7 +17,7 @@ const MainGamePage = () => {
   const autoSpinIntervalRef = useRef<NodeJS.Timeout>();
 
   const handleSpin = async () => {
-    if (isSpinning) return;
+    if (isSpinning || !gameSceneRef.current) return;
     
     if (betAmount > balance) {
       toast({
@@ -28,29 +28,28 @@ const MainGamePage = () => {
       return;
     }
 
-    setIsSpinning(true);
-    setBalance(prev => prev - betAmount);
-    console.log('Starting spin with bet:', betAmount);
-
     try {
-      if (gameSceneRef.current) {
-        const multiplier = isAutoSpin ? 2 : 1;
-        const winAmount = await gameSceneRef.current.startSpin(betAmount, multiplier);
-        
-        if (winAmount > 0) {
-          const hrvestTokens = winAmount * 1000; // Convert SOL to HRVST tokens (1 SOL = 1000 HRVST)
-          setTotalWinnings(prev => prev + hrvestTokens);
-          toast({
-            title: "Winner!",
-            description: `You won ${hrvestTokens.toFixed(0)} HRVST tokens!`,
-          });
-        } else {
-          toast({
-            title: "Try Again!",
-            description: "Better luck next time!",
-            variant: "destructive",
-          });
-        }
+      setIsSpinning(true);
+      setBalance(prev => prev - betAmount);
+      console.log('Starting spin with bet:', betAmount);
+
+      const multiplier = isAutoSpin ? 2 : 1;
+      const winAmount = await gameSceneRef.current.startSpin(betAmount, multiplier);
+      
+      if (winAmount > 0) {
+        const hrvestTokens = winAmount * 1000;
+        setTotalWinnings(prev => prev + hrvestTokens);
+        setBalance(prev => prev + winAmount);
+        toast({
+          title: "Winner! 🎉",
+          description: `You won ${hrvestTokens.toFixed(0)} HRVST tokens!`,
+        });
+      } else {
+        toast({
+          title: "Try Again!",
+          description: "Better luck next time!",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Spin error:', error);
@@ -69,7 +68,9 @@ const MainGamePage = () => {
       if (autoSpinIntervalRef.current) {
         clearInterval(autoSpinIntervalRef.current);
       }
+      setIsAutoSpin(false);
     } else {
+      setIsAutoSpin(true);
       autoSpinIntervalRef.current = setInterval(() => {
         if (!isSpinning && betAmount <= balance) {
           handleSpin();
@@ -81,7 +82,6 @@ const MainGamePage = () => {
         }
       }, 3000);
     }
-    setIsAutoSpin(!isAutoSpin);
   }, [isAutoSpin, isSpinning, balance, betAmount]);
 
   useEffect(() => {
@@ -124,7 +124,7 @@ const MainGamePage = () => {
           isSpinning={isSpinning}
           onSpin={handleSpin}
           isAutoSpin={isAutoSpin}
-          onAutoSpinToggle={() => setIsAutoSpin(!isAutoSpin)}
+          onAutoSpinToggle={toggleAutoSpin}
         />
       </div>
     </div>

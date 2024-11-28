@@ -62,10 +62,7 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   public async startSpin(betAmount: number, multiplier: number): Promise<number> {
-    if (this.isSpinning) {
-      console.log('Spin already in progress, returning');
-      return 0;
-    }
+    if (this.isSpinning) return 0;
 
     console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
     this.isSpinning = true;
@@ -73,15 +70,15 @@ export class SlotGameScene extends Phaser.Scene {
     this.tweens.killAll();
 
     try {
-      const spinPromises: Promise<void>[] = [];
-      const spinDuration = 300;
+      await new Promise<void>((resolve) => {
+        const spinPromises: Promise<void>[] = [];
+        const spinDuration = 300;
 
-      for (let rowIndex = 0; rowIndex < GRID_SIZE; rowIndex++) {
-        for (let colIndex = 0; colIndex < GRID_SIZE; colIndex++) {
-          const symbol = this.symbols[rowIndex][colIndex];
-          
-          spinPromises.push(
-            new Promise<void>((resolve) => {
+        for (let rowIndex = 0; rowIndex < GRID_SIZE; rowIndex++) {
+          for (let colIndex = 0; colIndex < GRID_SIZE; colIndex++) {
+            const symbol = this.symbols[rowIndex][colIndex];
+            
+            const promise = new Promise<void>((resolveSymbol) => {
               symbol.setScale(1);
               
               this.tweens.add({
@@ -99,18 +96,20 @@ export class SlotGameScene extends Phaser.Scene {
                     scaleX: 1,
                     duration: spinDuration,
                     ease: 'Power1',
-                    onComplete: function() {
-                      resolve();
+                    onComplete: () => {
+                      resolveSymbol();
                     }
                   });
                 }
               });
-            })
-          );
+            });
+            
+            spinPromises.push(promise);
+          }
         }
-      }
 
-      await Promise.all(spinPromises);
+        Promise.all(spinPromises).then(() => resolve());
+      });
 
       const { winAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
       
