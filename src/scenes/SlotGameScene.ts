@@ -14,7 +14,7 @@ export class SlotGameScene extends Phaser.Scene {
   private messageManager: MessageManager;
   private soundManager: SoundManager;
   private baseScale: number = 1;
-  private alienMessage: Phaser.GameObjects.Text;
+  private bgImage?: Phaser.GameObjects.Image;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -22,13 +22,35 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   create() {
-    console.log('SlotGameScene: Creating game grid');
+    console.log('SlotGameScene: Creating game scene');
     
-    // Initialize sound manager
+    // Fade in camera
+    this.cameras.main.fadeIn(1000, 0, 0, 0);
+    
+    // Add background image
+    const { width, height } = this.cameras.main;
+    this.bgImage = this.add.image(width / 2, height / 2, 'preloader-bg')
+      .setDisplaySize(width, height)
+      .setAlpha(0.3);
+
+    // Add floating animation to background
+    this.tweens.add({
+      targets: this.bgImage,
+      y: height / 2 - 10,
+      duration: 2000,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut'
+    });
+
+    // Initialize managers
     this.soundManager = new SoundManager(this);
+    this.currentGrid = createInitialGrid();
+    this.winAnimationManager = new WinAnimationManager(this);
+    this.messageManager = new MessageManager(this);
     
-    // Get background music from registry and ensure it's playing
-    const bgMusic = this.registry.get('bgMusic') as Phaser.Sound.BaseSound;
+    // Continue background music
+    const bgMusic = this.game.registry.get('bgMusic') as Phaser.Sound.BaseSound;
     if (bgMusic) {
       console.log('SlotGameScene: Checking background music status');
       if (!bgMusic.isPlaying) {
@@ -44,32 +66,8 @@ export class SlotGameScene extends Phaser.Scene {
       console.warn('SlotGameScene: Background music not found in registry');
     }
 
-    this.currentGrid = createInitialGrid();
-    this.winAnimationManager = new WinAnimationManager(this);
-    this.messageManager = new MessageManager(this);
-    
-    // Initialize alienMessage with futuristic font
-    this.alienMessage = this.add.text(
-      this.cameras.main.width / 2, 
-      50, 
-      '', 
-      {
-        fontFamily: 'Space Grotesk',
-        fontSize: '28px',
-        color: '#4AE54A',
-        align: 'center',
-        stroke: '#000000',
-        strokeThickness: 4,
-        shadow: { color: '#4AE54A', blur: 10, fill: true }
-      }
-    )
-    .setOrigin(0.5)
-    .setAlpha(0);
-
     this.createGrid();
     this.startFloatingAnimations();
-
-    console.log('SlotGameScene: Initial setup complete');
   }
 
   private showAlienMessage(message: string) {

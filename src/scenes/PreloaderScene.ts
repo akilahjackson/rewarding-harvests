@@ -18,11 +18,8 @@ export class PreloaderScene extends Phaser.Scene {
 
   preload() {
     console.log('PreloaderScene: Starting preload');
-    
-    // Update background image to .WEBP format (matching case sensitivity)
     this.load.image('preloader-bg', '/images/neon-crop-circles.WEBP');
     
-    // Load all audio assets
     const audioFiles = [
       { key: 'background-music', path: '/sounds/background-music.mp3' },
       { key: 'spin-sound', path: '/sounds/spin.mp3' },
@@ -32,30 +29,18 @@ export class PreloaderScene extends Phaser.Scene {
     ];
 
     audioFiles.forEach(audio => {
-      console.log(`PreloaderScene: Loading audio - ${audio.key} from ${audio.path}`);
+      console.log(`PreloaderScene: Loading audio - ${audio.key}`);
       this.load.audio(audio.key, audio.path);
     });
 
-    // Create a white pixel for particles
     const whitePixel = this.make.graphics({ x: 0, y: 0 })
       .fillStyle(0xFFFFFF)
       .fillRect(0, 0, 2, 2);
-    
     whitePixel.generateTexture('pixel', 2, 2);
 
-    // Add loading event listeners
     this.load.on('complete', () => {
       console.log('PreloaderScene: All assets loaded successfully');
       this.initializeBackgroundMusic();
-    });
-
-    this.load.on('loaderror', (fileObj: any) => {
-      console.error('PreloaderScene: Error loading asset:', fileObj.key);
-      if (fileObj.key.includes('sound')) {
-        const altPath = `${window.location.origin}/sounds/${fileObj.key}.mp3`;
-        console.log(`PreloaderScene: Attempting to load from alternative path: ${altPath}`);
-        this.load.audio(fileObj.key, altPath);
-      }
     });
   }
 
@@ -67,7 +52,7 @@ export class PreloaderScene extends Phaser.Scene {
     this.bgImage = this.add.image(width / 2, height / 2, 'preloader-bg')
       .setDisplaySize(width, height);
 
-    // Add floating animation to background
+    // Add floating animation
     this.tweens.add({
       targets: this.bgImage,
       y: height / 2 - 10,
@@ -77,19 +62,7 @@ export class PreloaderScene extends Phaser.Scene {
       ease: 'Sine.easeInOut'
     });
 
-    // Update particle creation to use the correct type
-    this.particles = this.add.particles(0, 0, 'pixel', {
-      frame: 0,
-      quantity: 2,
-      frequency: 500,
-      scale: { start: 0.05, end: 0 },
-      alpha: { start: 0.3, end: 0 },
-      speed: { min: 50, max: 100 },
-      lifespan: 3000,
-      blendMode: Phaser.BlendModes.ADD
-    });
-
-    // Create main loading text with neon effect
+    // Create loading text
     this.messageText = this.add.text(width / 2, height * 0.4, 'The Harvest Begins...', {
       fontFamily: 'Space Grotesk',
       fontSize: Math.min(width * 0.05, 32) + 'px',
@@ -101,7 +74,6 @@ export class PreloaderScene extends Phaser.Scene {
     .setOrigin(0.5)
     .setAlpha(0);
 
-    // Create secondary loading message
     this.loadingText = this.add.text(width / 2, height * 0.5, '', {
       fontFamily: 'Space Grotesk',
       fontSize: Math.min(width * 0.04, 24) + 'px',
@@ -113,7 +85,6 @@ export class PreloaderScene extends Phaser.Scene {
     .setOrigin(0.5)
     .setAlpha(0);
 
-    // Add click to start text if audio is locked
     if (this.sound.locked) {
       this.clickText = this.add.text(width / 2, height * 0.6, 'Click/Tap to Start', {
         fontFamily: 'Space Grotesk',
@@ -126,7 +97,6 @@ export class PreloaderScene extends Phaser.Scene {
       .setOrigin(0.5)
       .setAlpha(0);
 
-      // Fade in click text
       this.tweens.add({
         targets: this.clickText,
         alpha: 1,
@@ -134,9 +104,8 @@ export class PreloaderScene extends Phaser.Scene {
         ease: 'Power2'
       });
 
-      // Make the entire scene clickable
       this.input.on('pointerdown', () => {
-        console.log('PreloaderScene: User interaction detected, attempting to unlock audio');
+        console.log('PreloaderScene: User interaction detected');
         this.startBackgroundMusic();
         if (this.clickText) {
           this.clickText.destroy();
@@ -146,11 +115,7 @@ export class PreloaderScene extends Phaser.Scene {
       this.startBackgroundMusic();
     }
 
-    // Add glow effects and animations
-    const glowFX = this.messageText.preFX?.addGlow(0x4AE54A, 0, 0, false, 0.1, 16);
-    const loadingGlowFX = this.loadingText.preFX?.addGlow(0xFEC6A1, 0, 0, false, 0.1, 16);
-
-    // Animate texts
+    // Fade in texts
     this.tweens.add({
       targets: [this.messageText, this.loadingText],
       alpha: 1,
@@ -158,19 +123,7 @@ export class PreloaderScene extends Phaser.Scene {
       ease: 'Power2'
     });
 
-    // Add pulsing circle animation
-    const circle = this.add.circle(width / 2, height * 0.45, 100, 0x4AE54A, 0.2);
-    this.tweens.add({
-      targets: circle,
-      scale: 1.2,
-      alpha: 0.1,
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
-
-    // Cycle through loading messages
+    // Update loading messages
     this.time.addEvent({
       delay: 2000,
       callback: this.updateLoadingMessage,
@@ -178,46 +131,19 @@ export class PreloaderScene extends Phaser.Scene {
       loop: true
     });
 
-    // Initialize background music
     this.initializeBackgroundMusic();
 
-    // Add resize listener
-    this.scale.on('resize', this.handleResize, this);
-
-    // Transition to game after delay only if music is playing or failed to load
+    // Transition to game after delay
     this.time.delayedCall(6000, () => {
       if (this.bgMusic?.isPlaying || !this.bgMusic) {
         this.loadingComplete = true;
-        console.log('PreloaderScene: Starting transition to SlotGameScene');
-        this.game.events.emit('sceneComplete');
+        this.cameras.main.fadeOut(1000, 0, 0, 0);
+        this.cameras.main.once('camerafadeoutcomplete', () => {
+          console.log('PreloaderScene: Starting transition to SlotGameScene');
+          this.scene.start('SlotGameScene');
+        });
       }
     });
-
-    console.log('PreloaderScene: Scene setup complete');
-  }
-
-  private handleResize(gameSize: Phaser.Structs.Size) {
-    const width = gameSize.width;
-    const height = gameSize.height;
-
-    // Update background image size
-    if (this.bgImage) {
-      this.bgImage.setDisplaySize(width, height)
-        .setPosition(width / 2, height / 2);
-    }
-
-    // Update text positions and sizes
-    if (this.messageText) {
-      this.messageText
-        .setPosition(width / 2, height * 0.4)
-        .setFontSize(Math.min(width * 0.05, 32));
-    }
-
-    if (this.loadingText) {
-      this.loadingText
-        .setPosition(width / 2, height * 0.5)
-        .setFontSize(Math.min(width * 0.04, 24));
-    }
   }
 
   private updateLoadingMessage() {
@@ -243,13 +169,10 @@ export class PreloaderScene extends Phaser.Scene {
 
   private startBackgroundMusic() {
     if (this.bgMusic && !this.bgMusic.isPlaying) {
-      console.log('PreloaderScene: Attempting to start background music');
+      console.log('PreloaderScene: Starting background music');
       this.bgMusic.play();
-      console.log('PreloaderScene: Background music started successfully');
-      
-      // Store music reference in registry for access in other scenes
-      this.registry.set('bgMusic', this.bgMusic);
-      this.registry.set('audioLoaded', true);
+      this.game.registry.set('bgMusic', this.bgMusic);
+      this.game.registry.set('audioLoaded', true);
     }
   }
 }
