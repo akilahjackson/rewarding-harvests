@@ -110,10 +110,8 @@ export class SlotGameScene extends Phaser.Scene {
 
   private async animateSpinSequence(): Promise<void> {
     return new Promise((resolve) => {
-      const timeline = this.tweens.createTimeline();
-      
-      // Spin out animation
-      timeline.add({
+      // Create spin out animation
+      const spinOutTween = this.tweens.add({
         targets: this.symbols.flat(),
         scale: 0,
         alpha: 0,
@@ -124,20 +122,18 @@ export class SlotGameScene extends Phaser.Scene {
           this.symbols.flat().forEach(symbol => {
             symbol.setText(generateRandomSymbol());
           });
+          
+          // Create spin in animation
+          this.tweens.add({
+            targets: this.symbols.flat(),
+            scale: 1,
+            alpha: 1,
+            duration: 300,
+            ease: 'Back.easeOut',
+            onComplete: resolve
+          });
         }
       });
-
-      // Spin in animation
-      timeline.add({
-        targets: this.symbols.flat(),
-        scale: 1,
-        alpha: 1,
-        duration: 300,
-        ease: 'Back.easeOut',
-        onComplete: resolve
-      });
-
-      timeline.play();
     });
   }
 }
