@@ -21,24 +21,26 @@ export class WinAnimationManager {
     
     this.clearPreviousAnimations();
 
+    // Calculate the maximum radius based on symbol size
     const maxRadius = Math.max(...positions.map(([row, col]) => {
       const symbol = symbols[row][col];
       return Math.max(symbol.width, symbol.height) * this.symbolScale;
     }));
 
+    // Create animations only for winning symbols
     positions.forEach(([row, col]) => {
       const symbol = symbols[row][col];
       this.createWinningSymbolAnimation(symbol, maxRadius);
       this.createAlienFlashEffect(symbol);
     });
 
+    // Create payline animation if there are multiple winning positions
     if (positions.length > 1) {
       this.createPaylineAnimation(positions, symbols);
     }
   }
 
   private createAlienFlashEffect(symbol: Phaser.GameObjects.Text): void {
-    // Create alien-like flashing background
     const flashTween = this.scene.tweens.add({
       targets: symbol,
       alpha: 0.7,
@@ -59,44 +61,49 @@ export class WinAnimationManager {
     this.flashTweens.push(flashTween);
   }
 
-  private createWinningSymbolAnimation(symbol: Phaser.GameObjects.Text, radius: number): void {
+  private createWinningSymbolAnimation(symbol: Phaser.GameObjects.Text, maxRadius: number): void {
     const circle = this.scene.add.graphics();
     
-    // Scale up the symbol with alien effect
+    // Scale up only winning symbols
     this.scene.tweens.add({
       targets: symbol,
-      scale: this.symbolScale * 1.05, // Additional 5% scale for winning symbols
+      scale: this.symbolScale,
       duration: 200,
       ease: 'Power2',
       yoyo: true,
       repeat: -1
     });
     
-    // Draw alien crop circle effect
-    circle.lineStyle(2, COLORS.neonGreen, 1);
-    circle.fillStyle(COLORS.neonGreen, 0.3);
+    // Create concentric circles that animate down to one
+    const numberOfCircles = 4;
+    const duration = 1500;
     
     this.scene.tweens.add({
-      targets: { progress: 0 },
+      targets: { progress: 0, circles: numberOfCircles },
       progress: 1,
-      duration: 1000,
+      circles: 1,
+      duration: duration,
+      ease: 'Sine.easeInOut',
       onUpdate: (tween) => {
         circle.clear();
-        const progress = tween.getValue();
-        const currentRadius = radius * progress;
+        const progress = tween.getValue().progress;
+        const currentCircles = Math.ceil(tween.getValue().circles);
         
-        // Draw multiple circles for enhanced crop circle effect
-        for (let i = 0; i < 4; i++) {
-          const circleRadius = currentRadius * (0.6 + (i * 0.15));
+        for (let i = 0; i < currentCircles; i++) {
+          const circleRadius = maxRadius * (0.6 + (i * 0.15)) * (1 + Math.sin(progress * Math.PI) * 0.1);
+          circle.lineStyle(2, COLORS.neonGreen, 1 - (i * 0.2));
           circle.beginPath();
           circle.arc(symbol.x, symbol.y, circleRadius, 0, Math.PI * 2);
           circle.strokePath();
         }
         
-        circle.fillCircle(symbol.x, symbol.y, currentRadius * 0.6);
+        // Inner glow effect
+        circle.fillStyle(COLORS.neonGreen, 0.2);
+        circle.fillCircle(symbol.x, symbol.y, maxRadius * 0.6);
       },
       onComplete: () => {
-        this.particleManager.createWinParticles(symbol.x, symbol.y, radius);
+        // Create persistent single circle with particle effect
+        this.particleManager.createWinParticles(symbol.x, symbol.y, maxRadius * 0.6);
       }
     });
 
@@ -120,6 +127,7 @@ export class WinAnimationManager {
         graphics.clear();
         const progress = tween.getValue();
         
+        // Draw connecting lines between winning symbols
         for (let i = 0; i < points.length - 1; i++) {
           const start = points[i];
           const end = points[i + 1];
