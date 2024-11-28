@@ -15,8 +15,8 @@ export class SlotGameScene extends Phaser.Scene {
     
     // Calculate dynamic spacing based on screen size
     const minDimension = Math.min(width, height);
-    const spacing = minDimension / (this.GRID_SIZE + 1); // Add 1 for padding
-    const symbolSize = spacing * 0.8; // Symbol size slightly smaller than spacing
+    const spacing = minDimension / (this.GRID_SIZE + 1);
+    const symbolSize = spacing * 0.8;
     
     // Calculate grid positioning
     const startX = (width - (spacing * (this.GRID_SIZE - 1))) / 2;
@@ -31,7 +31,7 @@ export class SlotGameScene extends Phaser.Scene {
       '🥕'  // carrot
     ];
 
-    // Create 6x6 grid
+    // Create 6x6 grid with floating animation
     for (let row = 0; row < this.GRID_SIZE; row++) {
       this.symbols[row] = [];
       for (let col = 0; col < this.GRID_SIZE; col++) {
@@ -41,7 +41,7 @@ export class SlotGameScene extends Phaser.Scene {
         
         const symbol = this.add.text(x, y, randomSymbol, {
           fontSize: `${symbolSize}px`,
-          backgroundColor: '#ffffff33',
+          backgroundColor: '#ffffff11',
           padding: { x: symbolSize * 0.2, y: symbolSize * 0.2 },
         })
         .setOrigin(0.5)
@@ -49,12 +49,23 @@ export class SlotGameScene extends Phaser.Scene {
         
         this.symbols[row][col] = symbol;
         
+        // Add floating animation
+        this.tweens.add({
+          targets: symbol,
+          y: y + 10,
+          duration: 2000 + Math.random() * 1000,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
+        
         // Add hover effect
         symbol.on('pointerover', () => {
           this.tweens.add({
             targets: symbol,
             scale: 1.1,
-            duration: 100
+            duration: 100,
+            ease: 'Power2'
           });
         });
         
@@ -62,7 +73,8 @@ export class SlotGameScene extends Phaser.Scene {
           this.tweens.add({
             targets: symbol,
             scale: 1,
-            duration: 100
+            duration: 100,
+            ease: 'Power2'
           });
         });
       }
