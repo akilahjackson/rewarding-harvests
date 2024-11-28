@@ -21,6 +21,9 @@ export class PreloaderScene extends Phaser.Scene {
   preload() {
     console.log('PreloaderScene: Starting preload');
     
+    // Preload a white pixel texture for particles
+    this.load.image('particle', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAACklEQVR4nGMAAQAABQABDQottAAAAABJRU5ErkJggg==');
+
     this.load.on('progress', (value: number) => {
       this.progress = Math.floor(value * 100);
       console.log(`PreloaderScene: Loading progress: ${this.progress}%`);
@@ -59,8 +62,9 @@ export class PreloaderScene extends Phaser.Scene {
 
     // Initialize particles
     try {
-      this.particles = this.add.particles(width / 2, height / 2, 'particle');
-      this.particles.createEmitter(createParticleConfig(width / 2, height / 2));
+      this.particles = this.add.particles(width / 2, height / 2, 'particle').createEmitter(
+        createParticleConfig(width / 2, height / 2)
+      );
       console.log('PreloaderScene: Particle system initialized');
     } catch (error) {
       console.error('PreloaderScene: Particle system error:', error);
