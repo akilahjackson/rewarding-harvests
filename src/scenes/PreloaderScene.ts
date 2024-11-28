@@ -11,7 +11,6 @@ export class PreloaderScene extends Phaser.Scene {
   private progressText?: Phaser.GameObjects.Text;
   private progress: number = 0;
   private particles?: Phaser.GameObjects.Particles.ParticleEmitter;
-  private emitter?: Phaser.GameObjects.Particles.ParticleEmitter;
   private bgMusic?: Phaser.Sound.BaseSound;
 
   constructor() {
@@ -60,8 +59,8 @@ export class PreloaderScene extends Phaser.Scene {
 
     // Initialize particles
     try {
-      const particleConfig = createParticleConfig(width / 2, height / 2);
-      this.particles = this.add.particles(width / 2, height / 2, particleConfig);
+      this.particles = this.add.particles(width / 2, height / 2, 'particle');
+      this.particles.createEmitter(createParticleConfig(width / 2, height / 2));
       console.log('PreloaderScene: Particle system initialized');
     } catch (error) {
       console.error('PreloaderScene: Particle system error:', error);

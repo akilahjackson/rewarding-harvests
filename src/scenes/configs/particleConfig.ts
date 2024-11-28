@@ -10,6 +10,6 @@ export const createParticleConfig = (x: number, y: number): Phaser.Types.GameObj
   quantity: 1,
   emitZone: { 
     type: 'random', 
-    source: new Phaser.Geom.Circle(0, 0, 50)
+    source: new Phaser.Geom.Circle(x, y, 50)
   }
 });
