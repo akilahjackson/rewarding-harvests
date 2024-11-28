@@ -40,15 +40,22 @@ export class WinAnimationManager {
           circle.lineStyle(3, COLORS.neonGreen, 0.8);
           circle.strokeCircle(symbol.x, symbol.y, target.radius);
           
-          // Add inner glow
-          const gradient = circle.createRadialGradient(
-            symbol.x, symbol.y, 0,
-            symbol.x, symbol.y, target.radius
-          );
-          gradient.addColorStop(0, 'rgba(74, 229, 74, 0.2)');
-          gradient.addColorStop(1, 'rgba(74, 229, 74, 0)');
-          circle.fillStyle(gradient);
-          circle.fillCircle(symbol.x, symbol.y, target.radius);
+          // Add inner glow using multiple circles with decreasing alpha
+          const glowSteps = [
+            { alpha: 0.2, scale: 1 },
+            { alpha: 0.15, scale: 0.8 },
+            { alpha: 0.1, scale: 0.6 },
+            { alpha: 0.05, scale: 0.4 }
+          ];
+
+          glowSteps.forEach(step => {
+            circle.fillStyle(COLORS.neonGreen, step.alpha);
+            circle.fillCircle(
+              symbol.x, 
+              symbol.y, 
+              target.radius * step.scale
+            );
+          });
         }
       });
 

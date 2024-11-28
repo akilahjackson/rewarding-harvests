@@ -24,19 +24,25 @@ export class SlotGameScene extends Phaser.Scene {
     const particleTexture = this.add.graphics();
     particleTexture.clear();
     
-    // Create gradient for glow effect
+    // Create a circular glow effect
     const radius = 64;
-    const gradient = particleTexture.createRadialGradient(
-      radius/2, radius/2, 0,
-      radius/2, radius/2, radius/2
-    );
-    gradient.addColorStop(0, '#4AE54A');
-    gradient.addColorStop(0.2, 'rgba(74, 229, 74, 0.8)');
-    gradient.addColorStop(0.5, 'rgba(74, 229, 74, 0.4)');
-    gradient.addColorStop(1, 'rgba(74, 229, 74, 0)');
-    
-    particleTexture.fillStyle(gradient);
-    particleTexture.fillCircle(radius/2, radius/2, radius/2);
+    const colors = [
+      { radius: 0, color: 0x4AE54A, alpha: 1 },
+      { radius: 0.2, color: 0x4AE54A, alpha: 0.8 },
+      { radius: 0.5, color: 0x4AE54A, alpha: 0.4 },
+      { radius: 1, color: 0x4AE54A, alpha: 0 }
+    ];
+
+    colors.forEach((stop, index) => {
+      const color = stop.color;
+      const alpha = stop.alpha;
+      particleTexture.fillStyle(color, alpha);
+      particleTexture.fillCircle(
+        radius/2, 
+        radius/2, 
+        radius/2 * (1 - stop.radius)
+      );
+    });
     
     // Generate texture from graphics
     particleTexture.generateTexture('particle', radius, radius);
