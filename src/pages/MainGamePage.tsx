@@ -2,9 +2,12 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import GameCanvas from '@/components/GameCanvas';
 import BettingControls from '@/components/BettingControls';
 import { Badge } from '@/components/ui/badge';
-import { Coins } from "lucide-react";
+import { Button } from '@/components/ui/button';
+import { Coins, Volume2, VolumeX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SlotGameScene } from '@/scenes/SlotGameScene';
+import HowToPlay from '@/components/HowToPlay';
+import AudioManager from '@/utils/AudioManager';
 
 const MainGamePage = () => {
   const [balance, setBalance] = useState(1.0);
@@ -12,9 +15,21 @@ const MainGamePage = () => {
   const [totalWinnings, setTotalWinnings] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isAutoSpin, setIsAutoSpin] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const gameSceneRef = useRef<SlotGameScene | null>(null);
   const { toast } = useToast();
   const autoSpinIntervalRef = useRef<NodeJS.Timeout>();
+  const audioManager = AudioManager.getInstance();
+
+  useEffect(() => {
+    // Start background music when component mounts
+    audioManager.playBackgroundMusic();
+  }, []);
+
+  const toggleMute = () => {
+    const newMutedState = audioManager.toggleMute();
+    setIsMuted(newMutedState);
+  };
 
   const handleSpin = useCallback(async () => {
     if (isSpinning || !gameSceneRef.current) return;
@@ -33,10 +48,13 @@ const MainGamePage = () => {
       setBalance(prev => prev - betAmount);
       console.log('MainGamePage: Starting spin with bet:', betAmount);
 
+      audioManager.playSpinSound();
+      
       const multiplier = isAutoSpin ? 2 : 1;
       const { totalWinAmount, winningLines } = await gameSceneRef.current.startSpin(betAmount, multiplier);
       
       if (totalWinAmount > 0) {
+        audioManager.playWinSound();
         const hrvestTokens = totalWinAmount * 1000;
         setTotalWinnings(prev => prev + hrvestTokens);
         setBalance(prev => prev + totalWinAmount);
@@ -123,9 +141,21 @@ const MainGamePage = () => {
               Total Winnings: {totalWinnings.toFixed(0)} HRVST
             </Badge>
           </div>
-          <Badge variant="outline" className="bg-harvestpeach/20 text-harvestpeach border-harvestpeach">
-            Current Bet: {betAmount.toFixed(3)} SOL
-          </Badge>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={toggleMute}
+              className="bg-nightsky/50 border-neongreen"
+            >
+              {isMuted ? (
+                <VolumeX className="h-5 w-5 text-neongreen" />
+              ) : (
+                <Volume2 className="h-5 w-5 text-neongreen" />
+              )}
+            </Button>
+            <HowToPlay />
+          </div>
         </div>
 
         <div className="flex-1 w-full">

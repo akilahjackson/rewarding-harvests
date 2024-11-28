@@ -1,5 +1,4 @@
 import Phaser from 'phaser';
-import { COLORS } from '../configs/styleConfig';
 
 export class WinAnimationManager {
   private scene: Phaser.Scene;
@@ -32,30 +31,20 @@ export class WinAnimationManager {
           circle.clear();
           
           // Draw multiple circles for glow effect
-          const layers = [
-            { alpha: 0.8, scale: 1.0 },
-            { alpha: 0.4, scale: 1.1 },
-            { alpha: 0.2, scale: 1.2 }
-          ];
-          
-          layers.forEach(layer => {
-            circle.lineStyle(2, COLORS.neonGreen, layer.alpha);
-            circle.strokeCircle(
-              symbol.x, 
-              symbol.y, 
-              target.radius * layer.scale
-            );
+          [0.8, 0.4, 0.2].forEach(alpha => {
+            circle.lineStyle(2, 0x4AE54A, alpha);
+            circle.strokeCircle(symbol.x, symbol.y, target.radius);
           });
         }
       });
-
+      
       this.activeEffects.push(circle);
 
-      // Single particle per winning symbol
+      // Single tiny particle per winning symbol
       const particles = this.scene.add.particles(symbol.x, symbol.y, 'particle', {
         lifespan: 2000,
         speed: { min: 50, max: 100 },
-        scale: { start: 0.4, end: 0 },
+        scale: { start: 0.1, end: 0 }, // Reduced particle size
         alpha: { start: 0.6, end: 0 },
         blendMode: Phaser.BlendModes.ADD,
         emitting: true,
