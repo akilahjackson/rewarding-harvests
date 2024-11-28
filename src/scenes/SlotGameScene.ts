@@ -27,10 +27,21 @@ export class SlotGameScene extends Phaser.Scene {
     // Initialize sound manager
     this.soundManager = new SoundManager(this);
     
-    // Continue background music from preloader
+    // Get background music from registry and ensure it's playing
     const bgMusic = this.registry.get('bgMusic') as Phaser.Sound.BaseSound;
-    if (bgMusic && !bgMusic.isPlaying) {
-      bgMusic.play();
+    if (bgMusic) {
+      console.log('SlotGameScene: Checking background music status');
+      if (!bgMusic.isPlaying) {
+        console.log('SlotGameScene: Restarting background music');
+        bgMusic.play({
+          volume: 0.5,
+          loop: true
+        });
+      } else {
+        console.log('SlotGameScene: Background music already playing');
+      }
+    } else {
+      console.warn('SlotGameScene: Background music not found in registry');
     }
 
     this.currentGrid = createInitialGrid();
