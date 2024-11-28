@@ -12,20 +12,50 @@ export class PreloaderScene extends Phaser.Scene {
   private currentMessage: number = 0;
   private messageText?: Phaser.GameObjects.Text;
   private loadingComplete: boolean = false;
+  private progressText?: Phaser.GameObjects.Text;
+  private progress: number = 0;
+  private particles?: Phaser.GameObjects.Particles.ParticleEmitterManager;
+  private bgMusic?: Phaser.Sound.BaseSound;
 
   constructor() {
     super({ key: 'PreloaderScene' });
+  }
+
+  preload() {
+    this.load.audio('ambient', '/assets/ambient.mp3');
   }
 
   create() {
     console.log('Creating preloader scene...');
     const { width, height } = this.cameras.main;
 
+    // Initialize background music
+    this.bgMusic = this.sound.add('ambient', { loop: true, volume: 0.3 });
+    this.bgMusic.play();
+
+    // Initialize particle effects
+    this.particles = this.add.particles(0, 0, 'particle', {
+      frame: { frames: [ '__WHITE' ] },
+      lifespan: 2000,
+      speed: { min: 50, max: 100 },
+      scale: { start: 0.2, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      blendMode: 'ADD',
+      emitting: false
+    });
+
     this.circles = [
       { x: width * 0.3, y: height * 0.6, radius: 80, phase: 0, type: 'basic' },
       { x: width * 0.7, y: height * 0.4, radius: 100, phase: Math.PI / 3, type: 'complex' },
       { x: width * 0.5, y: height * 0.7, radius: 120, phase: Math.PI / 2, type: 'advanced' }
     ];
+
+    // Initialize progress text
+    this.progressText = this.add.text(width / 2, height * 0.85, '0%', {
+      fontSize: '32px',
+      color: '#4AE54A',
+      fontFamily: 'Space Grotesk'
+    }).setOrigin(0.5);
 
     this.messageText = this.add.text(width / 2, height * 0.2, this.messages[0], {
       fontSize: '24px',
@@ -34,6 +64,7 @@ export class PreloaderScene extends Phaser.Scene {
     });
     this.messageText.setOrigin(0.5);
 
+    // Update messages periodically
     this.time.addEvent({
       delay: 2000,
       callback: this.updateMessage,
@@ -41,11 +72,25 @@ export class PreloaderScene extends Phaser.Scene {
       repeat: this.messages.length - 1
     });
 
-    this.time.delayedCall(10000, () => {
-      console.log('Loading complete, emitting scene complete event...');
+    // Simulate loading progress
+    this.time.addEvent({
+      delay: 100,
+      callback: this.updateProgress,
+      callbackScope: this,
+      repeat: 100
+    });
+  }
+
+  updateProgress() {
+    if (this.progress < 100) {
+      this.progress++;
+      if (this.progressText) {
+        this.progressText.setText(`${this.progress}%`);
+      }
+    } else if (!this.loadingComplete) {
       this.loadingComplete = true;
       this.game.events.emit('sceneComplete');
-    });
+    }
   }
 
   updateMessage() {
@@ -61,18 +106,39 @@ export class PreloaderScene extends Phaser.Scene {
     const graphics = this.add.graphics();
     graphics.clear();
 
-    this.circles.forEach(circle => {
+    this.circles.forEach((circle, index) => {
       circle.phase += 0.02;
       const alpha = (Math.sin(circle.phase) + 1) / 2;
       
-      graphics.lineStyle(4, 0x0EA5E9, alpha * 0.3);
+      // Neon glow effect
+      const glowColor = index === 0 ? 0xF97316 : index === 1 ? 0x4AE54A : 0x0EA5E9;
+      
+      // Outer glow
+      graphics.lineStyle(8, glowColor, alpha * 0.3);
       graphics.strokeCircle(circle.x, circle.y, circle.radius + 20);
       
-      graphics.lineStyle(2, 0xF97316, alpha);
+      // Main circle
+      graphics.lineStyle(3, glowColor, alpha);
       graphics.strokeCircle(circle.x, circle.y, circle.radius);
       
-      graphics.lineStyle(1, 0x0EA5E9, alpha * 0.8);
+      // Inner patterns
+      graphics.lineStyle(2, glowColor, alpha * 0.8);
       
+      // Emit particles
+      if (this.particles && Math.random() > 0.95) {
+        this.particles.createEmitter({
+          x: circle.x + (Math.random() - 0.5) * circle.radius,
+          y: circle.y + (Math.random() - 0.5) * circle.radius,
+          speed: { min: 20, max: 50 },
+          angle: { min: 0, max: 360 },
+          scale: { start: 0.2, end: 0 },
+          alpha: { start: 0.5, end: 0 },
+          lifespan: 1000,
+          quantity: 1
+        });
+      }
+
+      // Draw geometric patterns based on circle type
       if (circle.type === 'basic') {
         for (let i = 0; i < 6; i++) {
           const angle = (Math.PI * 2 * i) / 6;
