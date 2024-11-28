@@ -72,13 +72,11 @@ export class SlotGameScene extends Phaser.Scene {
     this.stopFloatingAnimations();
 
     try {
-      // Kill all existing tweens
       this.tweens.killAll();
 
       const spinPromises: Promise<void>[] = [];
       const spinDuration = 300;
 
-      // Create spin animations for each symbol
       for (let rowIndex = 0; rowIndex < GRID_SIZE; rowIndex++) {
         for (let colIndex = 0; colIndex < GRID_SIZE; colIndex++) {
           const symbol = this.symbols[rowIndex][colIndex];
@@ -87,25 +85,22 @@ export class SlotGameScene extends Phaser.Scene {
             new Promise<void>((resolve) => {
               symbol.setScale(1);
               
-              // Spin out animation
               this.tweens.add({
                 targets: symbol,
                 scaleX: 0,
                 duration: spinDuration,
                 ease: 'Power1',
                 onComplete: () => {
-                  // Update symbol
                   const newSymbol = generateRandomSymbol();
                   this.currentGrid[rowIndex][colIndex] = newSymbol;
                   symbol.setText(newSymbol);
                   
-                  // Spin in animation
                   this.tweens.add({
                     targets: symbol,
                     scaleX: 1,
                     duration: spinDuration,
                     ease: 'Power1',
-                    onComplete: resolve
+                    onComplete: () => resolve()
                   });
                 }
               });
@@ -114,10 +109,8 @@ export class SlotGameScene extends Phaser.Scene {
         }
       }
 
-      // Wait for all spin animations to complete
       await Promise.all(spinPromises);
 
-      // Calculate winnings
       const { winAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
       
       if (winningLines.length > 0) {
