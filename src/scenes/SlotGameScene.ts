@@ -21,16 +21,14 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private createWinAnimation(positions: number[][]) {
-    console.log('Creating win animation for positions:', positions);
     positions.forEach(([row, col]) => {
       const symbol = this.symbols[row][col];
-      
       this.tweens.add({
         targets: symbol,
         scale: 1.2,
         duration: 200,
         yoyo: true,
-        repeat: 5,
+        repeat: 2,
         ease: 'Sine.easeInOut',
         onComplete: () => {
           symbol.setScale(1);
@@ -71,51 +69,43 @@ export class SlotGameScene extends Phaser.Scene {
 
     console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
     this.isSpinning = true;
+    this.stopFloatingAnimations();
 
     try {
-      // Stop floating animations
-      this.stopFloatingAnimations();
-
       // Kill all existing tweens
-      console.log('Killing existing tweens');
       this.tweens.killAll();
 
-      // Create spin animations for each symbol
       const spinPromises: Promise<void>[] = [];
+      const spinDuration = 300;
 
+      // Create spin animations for each symbol
       for (let rowIndex = 0; rowIndex < GRID_SIZE; rowIndex++) {
         for (let colIndex = 0; colIndex < GRID_SIZE; colIndex++) {
           const symbol = this.symbols[rowIndex][colIndex];
           
           spinPromises.push(
-            new Promise<void>((resolve, reject) => {
-              console.log(`Creating spin animation for symbol at [${rowIndex}, ${colIndex}]`);
-              
-              // Reset scale before starting new animation
+            new Promise<void>((resolve) => {
               symbol.setScale(1);
               
-              // First tween - spin out
-              const spinOutTween = this.tweens.add({
+              // Spin out animation
+              this.tweens.add({
                 targets: symbol,
                 scaleX: 0,
-                duration: 300,
+                duration: spinDuration,
                 ease: 'Power1',
                 onComplete: () => {
+                  // Update symbol
                   const newSymbol = generateRandomSymbol();
-                  console.log(`Updating symbol at [${rowIndex}, ${colIndex}] to ${newSymbol}`);
                   this.currentGrid[rowIndex][colIndex] = newSymbol;
                   symbol.setText(newSymbol);
                   
-                  // Second tween - spin in
-                  const spinInTween = this.tweens.add({
+                  // Spin in animation
+                  this.tweens.add({
                     targets: symbol,
                     scaleX: 1,
-                    duration: 300,
+                    duration: spinDuration,
                     ease: 'Power1',
-                    onComplete: () => {
-                      console.log(`Spin complete for symbol at [${rowIndex}, ${colIndex}]`);
-                      resolve();
-                    }
+                    onComplete: resolve
                   });
                 }
               });
@@ -124,33 +114,24 @@ export class SlotGameScene extends Phaser.Scene {
         }
       }
 
-      console.log(`Waiting for ${spinPromises.length} spin animations to complete...`);
+      // Wait for all spin animations to complete
       await Promise.all(spinPromises);
-      console.log('All spin animations completed');
 
       // Calculate winnings
       const { winAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
       
       if (winningLines.length > 0) {
-        console.log('Creating win animations for winning lines');
-        winningLines.forEach(line => {
-          this.createWinAnimation(line.positions);
-        });
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        winningLines.forEach(line => this.createWinAnimation(line.positions));
+        await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
-      // Restart floating animations
       this.startFloatingAnimations();
-
-      // Reset spinning state
       this.isSpinning = false;
-      console.log(`Spin sequence completed. Win amount: ${winAmount}`);
       return winAmount;
 
     } catch (error) {
       console.error('Error during spin:', error);
       this.isSpinning = false;
-      // Ensure floating animations are restarted even on error
       this.startFloatingAnimations();
       return 0;
     }
@@ -186,7 +167,6 @@ export class SlotGameScene extends Phaser.Scene {
       }
     }
 
-    // Start initial floating animations
     this.startFloatingAnimations();
   }
 }

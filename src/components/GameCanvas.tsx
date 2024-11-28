@@ -68,8 +68,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
   }, [isMobile, onSceneCreated]);
 
   return (
-    <div className="relative w-full h-full min-h-[50vh] md:min-h-[60vh] overflow-hidden rounded-xl">
-      {/* Loading overlay */}
+    <div className="relative w-full h-full min-h-[60vh] md:min-h-[70vh] overflow-hidden rounded-xl">
       {isLoading && (
         <div className="absolute inset-0 bg-nightsky/80 flex items-center justify-center z-50 animate-fade-in">
           <div className="text-center space-y-4">
@@ -79,7 +78,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
         </div>
       )}
       
-      {/* Game container */}
       <div 
         id="game-container" 
         className={`relative w-full h-full flex items-center justify-center backdrop-blur-sm bg-transparent rounded-xl shadow-lg border border-neongreen/20 transition-opacity duration-500 ${
