@@ -7,8 +7,8 @@ const GameCanvas = () => {
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       parent: 'game-container',
-      width: 800,
-      height: 600,
+      width: 1024,
+      height: 768,
       backgroundColor: '#1A1F2C',
       scene: [SlotGameScene],
       scale: {
@@ -24,7 +24,7 @@ const GameCanvas = () => {
     };
   }, []);
 
-  return <div id="game-container" className="w-full h-full" />;
+  return <div id="game-container" className="w-full h-full min-h-[768px]" />;
 };
 
 export default GameCanvas;

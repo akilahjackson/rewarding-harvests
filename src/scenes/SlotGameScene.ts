@@ -3,8 +3,8 @@ import Phaser from 'phaser';
 export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private readonly GRID_SIZE = 6;
-  private readonly SYMBOL_SPACING = 80;
-  private readonly SYMBOL_SCALE = 1.5;
+  private readonly SYMBOL_SPACING = 120;
+  private readonly SYMBOL_SCALE = 2.5;
   
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -37,9 +37,9 @@ export class SlotGameScene extends Phaser.Scene {
         const y = startY + row * this.SYMBOL_SPACING;
         
         const symbol = this.add.text(x, y, randomSymbol, {
-          fontSize: '48px',
+          fontSize: '64px',
           backgroundColor: '#ffffff33',
-          padding: { x: 10, y: 10 },
+          padding: { x: 15, y: 15 },
         })
         .setOrigin(0.5)
         .setScale(this.SYMBOL_SCALE)
