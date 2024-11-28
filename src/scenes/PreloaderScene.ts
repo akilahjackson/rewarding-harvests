@@ -16,8 +16,9 @@ export class PreloaderScene extends Phaser.Scene {
     // Create a white pixel for particles
     const whitePixel = this.make.graphics({ x: 0, y: 0 })
       .fillStyle(0xFFFFFF)
-      .fillRect(0, 0, 2, 2)
-      .generateTexture('pixel', 2, 2);
+      .fillRect(0, 0, 2, 2);
+    
+    whitePixel.generateTexture('pixel', 2, 2);
   }
 
   create() {
@@ -62,18 +63,17 @@ export class PreloaderScene extends Phaser.Scene {
       ease: 'Sine.easeInOut'
     });
 
-    // Add particles
-    const particles = this.add.particles('pixel');
-    
-    particles.createEmitter({
+    // Add particles using the new particle system
+    const emitter = this.add.particles(0, 0, 'pixel', {
       x: width / 2,
       y: height / 2,
       speed: { min: 50, max: 100 },
       scale: { start: 0.5, end: 0 },
       alpha: { start: 0.6, end: 0 },
       lifespan: 3000,
+      frequency: 50,
       quantity: 2,
-      blendMode: 'ADD',
+      blendMode: Phaser.BlendModes.ADD,
       tint: 0xff00ff
     });
 
