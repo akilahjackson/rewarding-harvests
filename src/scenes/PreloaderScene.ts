@@ -19,17 +19,27 @@ export class PreloaderScene extends Phaser.Scene {
 
   constructor() {
     super({ key: 'PreloaderScene' });
+    console.log('PreloaderScene: Constructor initialized');
   }
 
   preload() {
+    console.log('PreloaderScene: Starting preload');
+    
+    // Load audio asset
     this.load.audio('ambient', '/assets/ambient.mp3');
+    console.log('PreloaderScene: Queued ambient audio for loading');
     
     this.load.on('loaderror', (fileObj: any) => {
-      console.error('Error loading:', fileObj.key);
+      console.error('PreloaderScene: Asset loading error:', {
+        key: fileObj.key,
+        type: fileObj.type,
+        url: fileObj.url
+      });
     });
 
     this.load.on('progress', (value: number) => {
       this.progress = Math.floor(value * 100);
+      console.log(`PreloaderScene: Loading progress: ${this.progress}%`);
       if (this.progressText) {
         this.progressText.setText(`${this.progress}%`);
       }
@@ -37,38 +47,54 @@ export class PreloaderScene extends Phaser.Scene {
   }
 
   create() {
-    console.log('Creating preloader scene...');
+    console.log('PreloaderScene: Starting create phase');
     const { width, height } = this.cameras.main;
+    console.log('PreloaderScene: Scene dimensions:', { width, height });
 
+    // Initialize audio
     try {
+      console.log('PreloaderScene: Attempting to initialize audio');
       if (this.cache.audio.exists('ambient')) {
         this.bgMusic = this.sound.add('ambient', { loop: true, volume: 0.3 });
         this.bgMusic.play();
+        console.log('PreloaderScene: Background music initialized and playing');
       } else {
-        console.warn('Ambient audio not found in cache');
+        console.warn('PreloaderScene: Ambient audio not found in cache');
       }
     } catch (error) {
-      console.error('Error initializing background music:', error);
+      console.error('PreloaderScene: Error initializing background music:', error);
     }
 
-    // Initialize particle emitter with updated configuration
-    this.emitter = this.add.particles(0, 0, {
-      frames: ['__WHITE'],
-      lifespan: { min: 1000, max: 2000 },
-      speed: { min: 20, max: 50 },
-      scale: { start: 0.2, end: 0 },
-      alpha: { start: 0.6, end: 0 },
-      blendMode: 'ADD',
-      quantity: 1,
-      emitting: false
-    });
+    // Initialize particle system
+    try {
+      console.log('PreloaderScene: Setting up particle system');
+      const particleConfig = {
+        texture: '__WHITE',
+        emitZone: { type: 'random', source: new Phaser.Geom.Circle(0, 0, 50) },
+        lifespan: 2000,
+        speed: { min: 20, max: 50 },
+        scale: { start: 0.2, end: 0 },
+        alpha: { start: 0.6, end: 0 },
+        blendMode: 'ADD',
+        quantity: 1,
+        emitting: false
+      };
+      
+      this.emitter = this.add.particles(0, 0, particleConfig);
+      console.log('PreloaderScene: Particle system initialized');
+    } catch (error) {
+      console.error('PreloaderScene: Error initializing particle system:', error);
+    }
 
+    // Initialize circles
     this.circles = [
       { x: width * 0.3, y: height * 0.6, radius: 80, phase: 0, type: 'basic' },
       { x: width * 0.7, y: height * 0.4, radius: 100, phase: Math.PI / 3, type: 'complex' },
       { x: width * 0.5, y: height * 0.7, radius: 120, phase: Math.PI / 2, type: 'advanced' }
     ];
+    console.log('PreloaderScene: Circles initialized:', this.circles.length);
 
+    // Initialize text elements
     this.progressText = this.add.text(width / 2, height * 0.85, '0%', {
       fontSize: '32px',
       color: '#4AE54A',
@@ -80,7 +106,9 @@ export class PreloaderScene extends Phaser.Scene {
       color: '#F97316',
       fontFamily: 'Space Grotesk'
     }).setOrigin(0.5);
+    console.log('PreloaderScene: Text elements initialized');
 
+    // Set up message cycling
     this.time.addEvent({
       delay: 2000,
       callback: this.updateMessage,
@@ -88,6 +116,7 @@ export class PreloaderScene extends Phaser.Scene {
       repeat: this.messages.length - 1
     });
 
+    // Set up progress updates
     this.time.addEvent({
       delay: 100,
       callback: this.updateProgress,
@@ -102,8 +131,10 @@ export class PreloaderScene extends Phaser.Scene {
       if (this.progressText) {
         this.progressText.setText(`${this.progress}%`);
       }
+      console.log(`PreloaderScene: Progress updated to ${this.progress}%`);
     } else if (!this.loadingComplete) {
       this.loadingComplete = true;
+      console.log('PreloaderScene: Loading complete, emitting scene complete event');
       this.game.events.emit('sceneComplete');
     }
   }
@@ -112,6 +143,7 @@ export class PreloaderScene extends Phaser.Scene {
     if (this.messageText && !this.loadingComplete) {
       this.currentMessage = (this.currentMessage + 1) % this.messages.length;
       this.messageText.setText(this.messages[this.currentMessage]);
+      console.log('PreloaderScene: Updated message to:', this.messages[this.currentMessage]);
     }
   }
 
@@ -134,7 +166,7 @@ export class PreloaderScene extends Phaser.Scene {
       graphics.strokeCircle(circle.x, circle.y, circle.radius);
       
       graphics.lineStyle(2, glowColor, alpha * 0.8);
-      
+
       if (this.emitter && Math.random() > 0.95) {
         this.emitter.setPosition(circle.x + (Math.random() - 0.5) * circle.radius, 
                                 circle.y + (Math.random() - 0.5) * circle.radius);
