@@ -1,16 +1,18 @@
 import Phaser from 'phaser';
-import { COLORS, TEXT_STYLE } from './configs/styleConfig';
-import { createParticleConfig, createCircleConfig } from './configs/animationConfig';
-import { LOADING_MESSAGES } from './configs/messageConfig';
+import { LOADING_MESSAGES } from './constants/loadingMessages';
+import { createParticleConfig } from './configs/particleConfig';
+import { CircleConfig, createCircleConfigs } from './configs/circleConfig';
 
 export class PreloaderScene extends Phaser.Scene {
-  private messageText?: Phaser.GameObjects.Text;
-  private progressText?: Phaser.GameObjects.Text;
+  private circles: CircleConfig[] = [];
   private currentMessage: number = 0;
-  private progress: number = 0;
+  private messageText?: Phaser.GameObjects.Text;
   private loadingComplete: boolean = false;
-  private cropCircle?: Phaser.GameObjects.Graphics;
-  private particles?: Phaser.GameObjects.Particles.ParticleEmitterManager;
+  private progressText?: Phaser.GameObjects.Text;
+  private progress: number = 0;
+  private particles?: Phaser.GameObjects.Particles.ParticleEmitter;
+  private emitter?: Phaser.GameObjects.Particles.ParticleEmitter;
+  private bgMusic?: Phaser.Sound.BaseSound;
 
   constructor() {
     super({ key: 'PreloaderScene' });
@@ -41,38 +43,35 @@ export class PreloaderScene extends Phaser.Scene {
     console.log('PreloaderScene: Starting create phase');
     const { width, height } = this.cameras.main;
 
-    // Initialize text
-    this.messageText = this.add.text(width / 2, height * 0.2, LOADING_MESSAGES[0], TEXT_STYLE)
-      .setOrigin(0.5)
-      .setAlpha(0);
+    // Initialize text elements
+    this.messageText = this.add.text(width / 2, height * 0.2, LOADING_MESSAGES[0], {
+      fontFamily: 'Arial',
+      fontSize: '24px',
+      color: '#39ff14',
+      align: 'center'
+    }).setOrigin(0.5);
 
-    this.progressText = this.add.text(width / 2, height * 0.85, '0%', TEXT_STYLE)
-      .setOrigin(0.5);
+    this.progressText = this.add.text(width / 2, height * 0.85, '0%', {
+      fontFamily: 'Arial',
+      fontSize: '18px',
+      color: '#ffffff',
+      align: 'center'
+    }).setOrigin(0.5);
 
-    // Create crop circle
-    this.cropCircle = this.add.graphics();
-    const circleConfig = createCircleConfig(width / 2, height / 2, 100);
-    
-    // Animate crop circle
-    this.tweens.add({
-      targets: { progress: 0 },
-      progress: 1,
-      duration: 2000,
-      onUpdate: (tween) => {
-        this.cropCircle?.clear();
-        this.cropCircle?.lineStyle(circleConfig.lineStyle.width, circleConfig.lineStyle.color);
-        this.cropCircle?.strokeCircle(
-          circleConfig.x,
-          circleConfig.y,
-          circleConfig.radius * tween.getValue()
-        );
-      }
-    });
+    // Initialize particles
+    try {
+      const particleConfig = createParticleConfig(width / 2, height / 2);
+      this.particles = this.add.particles(width / 2, height / 2, particleConfig);
+      console.log('PreloaderScene: Particle system initialized');
+    } catch (error) {
+      console.error('PreloaderScene: Particle system error:', error);
+    }
 
-    // Setup particles
-    this.particles = this.add.particles(0, 0, 'particle', createParticleConfig(this));
-    
-    // Cycle messages
+    // Initialize circles
+    this.circles = createCircleConfigs(width, height);
+    console.log('PreloaderScene: Circles initialized:', this.circles.length);
+
+    // Start message cycling
     this.time.addEvent({
       delay: 2000,
       callback: this.updateMessage,
@@ -94,22 +93,7 @@ export class PreloaderScene extends Phaser.Scene {
   private updateMessage() {
     if (this.messageText && !this.loadingComplete) {
       this.currentMessage = (this.currentMessage + 1) % LOADING_MESSAGES.length;
-      
-      this.tweens.add({
-        targets: this.messageText,
-        alpha: 0,
-        duration: 500,
-        onComplete: () => {
-          if (this.messageText) {
-            this.messageText.setText(LOADING_MESSAGES[this.currentMessage]);
-            this.tweens.add({
-              targets: this.messageText,
-              alpha: 1,
-              duration: 500
-            });
-          }
-        }
-      });
+      this.messageText.setText(LOADING_MESSAGES[this.currentMessage]);
     }
   }
 
