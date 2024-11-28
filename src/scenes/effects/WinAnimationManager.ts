@@ -26,6 +26,13 @@ export class WinAnimationManager {
     
     this.clearPreviousAnimations();
 
+    // Stop all floating animations during win sequence
+    symbols.flat().forEach(symbol => {
+      symbol.setData('isFloating', false);
+      this.scene.tweens.killTweensOf(symbol);
+      symbol.y = symbol.getData('originalY') || symbol.y;
+    });
+
     // Calculate the maximum radius based on symbol size
     const maxRadius = Math.max(...positions.map(([row, col]) => {
       const symbol = symbols[row][col];
@@ -83,17 +90,18 @@ export class WinAnimationManager {
     const numberOfCircles = 4;
     const duration = 1500;
     
+    const tweenTarget = { progress: 0, circles: numberOfCircles };
+    
     this.scene.tweens.add({
-      targets: { progress: 0, circles: numberOfCircles } as TweenValues,
+      targets: tweenTarget,
       progress: 1,
       circles: 1,
       duration: duration,
       ease: 'Sine.easeInOut',
-      onUpdate: (tween) => {
+      onUpdate: () => {
         circle.clear();
-        const values = tween.getValue() as TweenValues;
-        const progress = values.progress;
-        const currentCircles = Math.ceil(values.circles);
+        const currentCircles = Math.ceil(tweenTarget.circles);
+        const progress = tweenTarget.progress;
         
         for (let i = 0; i < currentCircles; i++) {
           const circleRadius = maxRadius * (0.6 + (i * 0.15)) * (1 + Math.sin(progress * Math.PI) * 0.1);
@@ -131,7 +139,7 @@ export class WinAnimationManager {
       duration: 1500,
       onUpdate: (tween) => {
         graphics.clear();
-        const progress = tween.getValue();
+        const progress = tween.getValue() as number;
         
         // Draw connecting lines between winning symbols
         for (let i = 0; i < points.length - 1; i++) {

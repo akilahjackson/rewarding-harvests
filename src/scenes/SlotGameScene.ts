@@ -71,15 +71,16 @@ export class SlotGameScene extends Phaser.Scene {
   private createGrid() {
     const { width, height } = this.cameras.main;
     const padding = Math.min(width, height) * 0.15;
+    const gridPadding = Math.min(width, height) * 0.04; // 4% padding between pieces
     const availableWidth = width - (padding * 2);
     const availableHeight = height - (padding * 2);
     const cellSize = Math.min(
-      availableWidth / GRID_SIZE,
-      availableHeight / GRID_SIZE
+      (availableWidth - (gridPadding * (GRID_SIZE - 1))) / GRID_SIZE,
+      (availableHeight - (gridPadding * (GRID_SIZE - 1))) / GRID_SIZE
     );
 
-    const startX = (width - (cellSize * (GRID_SIZE - 1))) / 2;
-    const startY = (height - (cellSize * (GRID_SIZE - 1))) / 2;
+    const startX = (width - ((cellSize + gridPadding) * (GRID_SIZE - 1))) / 2;
+    const startY = (height - ((cellSize + gridPadding) * (GRID_SIZE - 1))) / 2;
     this.baseScale = cellSize / SYMBOL_SIZE;
 
     console.log('SlotGameScene: Creating grid with dimensions:', {
@@ -88,18 +89,19 @@ export class SlotGameScene extends Phaser.Scene {
       cellSize,
       startX,
       startY,
-      baseScale: this.baseScale
+      baseScale: this.baseScale,
+      gridPadding
     });
 
     for (let row = 0; row < GRID_SIZE; row++) {
       this.symbols[row] = [];
       for (let col = 0; col < GRID_SIZE; col++) {
-        const x = startX + col * cellSize;
-        const y = startY + row * cellSize;
+        const x = startX + col * (cellSize + gridPadding);
+        const y = startY + row * (cellSize + gridPadding);
         
         const symbol = this.add.text(x, y, this.currentGrid[row][col], {
           fontSize: `${SYMBOL_SIZE}px`,
-          padding: { x: SYMBOL_SIZE * 0.02, y: SYMBOL_SIZE * 0.02 }, // 2% padding
+          padding: { x: SYMBOL_SIZE * 0.02, y: SYMBOL_SIZE * 0.02 },
           shadow: {
             offsetX: 2,
             offsetY: 2,
@@ -112,6 +114,8 @@ export class SlotGameScene extends Phaser.Scene {
         .setScale(this.baseScale)
         .setInteractive();
         
+        symbol.setData('originalY', y);
+        symbol.setData('isFloating', true);
         this.symbols[row][col] = symbol;
       }
     }
