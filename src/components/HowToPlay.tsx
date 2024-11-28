@@ -7,14 +7,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { QuestionMarkCircle } from "lucide-react";
+import { HelpCircle } from "lucide-react";
 
 const HowToPlay = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon" className="bg-nightsky/50 border-neongreen">
-          <QuestionMarkCircle className="h-5 w-5 text-neongreen" />
+          <HelpCircle className="h-5 w-5 text-neongreen" />
         </Button>
       </DialogTrigger>
       <DialogContent className="bg-nightsky border-neongreen">
