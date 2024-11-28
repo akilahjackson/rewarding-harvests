@@ -58,26 +58,35 @@ const MainGamePage = () => {
   }, [betAmount, balance, isAutoSpin, toast, isSpinning]);
 
   const toggleAutoSpin = useCallback(() => {
+    console.log('MainGamePage: Toggling auto-spin. Current state:', isAutoSpin);
+    
     if (isAutoSpin) {
+      // Stop auto-spin
       if (autoSpinIntervalRef.current) {
         clearInterval(autoSpinIntervalRef.current);
+        autoSpinIntervalRef.current = undefined;
       }
       setIsAutoSpin(false);
+      console.log('MainGamePage: Auto-spin stopped');
     } else {
+      // Start auto-spin
       setIsAutoSpin(true);
+      console.log('MainGamePage: Auto-spin started');
       autoSpinIntervalRef.current = setInterval(() => {
         if (!isSpinning && betAmount <= balance) {
           handleSpin();
-        } else {
-          if (autoSpinIntervalRef.current) {
-            clearInterval(autoSpinIntervalRef.current);
-            setIsAutoSpin(false);
-          }
+        } else if (betAmount > balance) {
+          // Stop auto-spin if insufficient balance
+          clearInterval(autoSpinIntervalRef.current);
+          autoSpinIntervalRef.current = undefined;
+          setIsAutoSpin(false);
+          console.log('MainGamePage: Auto-spin stopped due to insufficient balance');
         }
       }, 3000);
     }
   }, [isAutoSpin, isSpinning, balance, betAmount, handleSpin]);
 
+  // Cleanup interval on unmount
   useEffect(() => {
     return () => {
       if (autoSpinIntervalRef.current) {
