@@ -12,6 +12,7 @@ export class SlotGameScene extends Phaser.Scene {
   private winAnimationManager: WinAnimationManager;
   private messageManager: MessageManager;
   private baseScale: number = 1;
+  private alienMessage: Phaser.GameObjects.Text; // Add this line to define the property
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -44,6 +45,24 @@ export class SlotGameScene extends Phaser.Scene {
     this.currentGrid = createInitialGrid();
     this.winAnimationManager = new WinAnimationManager(this);
     this.messageManager = new MessageManager(this);
+    
+    // Initialize alienMessage
+    this.alienMessage = this.add.text(
+      this.cameras.main.width / 2, 
+      50, 
+      '', 
+      {
+        fontFamily: 'Space Grotesk',
+        fontSize: '24px',
+        color: '#4AE54A',
+        align: 'center',
+        stroke: '#000000',
+        strokeThickness: 4,
+      }
+    )
+    .setOrigin(0.5)
+    .setAlpha(0);
+
     this.createGrid();
     this.startFloatingAnimations();
 
