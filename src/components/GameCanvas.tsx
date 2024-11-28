@@ -30,7 +30,7 @@ const GameCanvas = () => {
       callbacks: {
         postBoot: () => {
           console.log('Game loaded successfully');
-          setTimeout(() => setIsLoading(false), 1000); // Ensure minimal loading state visibility
+          setTimeout(() => setIsLoading(false), 1000);
         }
       }
     };
@@ -55,14 +55,6 @@ const GameCanvas = () => {
 
   return (
     <div className="relative w-full h-full min-h-[80vh] overflow-hidden rounded-xl transition-all duration-300 ease-in-out">
-      {/* Animated background with crop circles */}
-      <div className="absolute inset-0 bg-gradient-to-b from-nightsky to-harvestorange/20 overflow-hidden animate-fade-in">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517022812141-23620dba5c23')] bg-cover bg-center opacity-10 animate-scale-in" />
-        <div className="absolute w-32 h-32 rounded-full border-2 border-neongreen/30 animate-float left-1/4 top-1/4 blur-sm" />
-        <div className="absolute w-48 h-48 rounded-full border-2 border-neongreen/30 animate-float delay-1000 right-1/3 bottom-1/3 blur-sm" />
-        <div className="absolute w-24 h-24 rounded-full border-2 border-neongreen/30 animate-float delay-2000 left-1/3 bottom-1/4 blur-sm" />
-      </div>
-      
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 bg-nightsky/80 flex items-center justify-center z-50 animate-fade-in">
@@ -76,17 +68,10 @@ const GameCanvas = () => {
       {/* Game container with transparent background */}
       <div 
         id="game-container" 
-        className={`relative w-full h-full flex items-center justify-center p-4 backdrop-blur-sm bg-transparent rounded-xl shadow-lg border border-neongreen/20 transition-opacity duration-500 ${
+        className={`relative w-full h-full flex items-center justify-center backdrop-blur-sm bg-transparent rounded-xl shadow-lg border border-neongreen/20 transition-opacity duration-500 ${
           isLoading ? 'opacity-0' : 'opacity-100'
         }`}
       />
-      
-      {/* Floating particles */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute w-2 h-2 bg-neongreen rounded-full animate-float top-1/4 left-1/4 opacity-50" />
-        <div className="absolute w-2 h-2 bg-neongreen rounded-full animate-float delay-1000 top-3/4 right-1/4 opacity-50" />
-        <div className="absolute w-2 h-2 bg-neongreen rounded-full animate-float delay-2000 top-1/2 left-1/2 opacity-50" />
-      </div>
     </div>
   );
 };
