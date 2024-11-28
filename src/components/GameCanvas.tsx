@@ -11,6 +11,7 @@ interface GameCanvasProps {
 const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(true);
+  const [game, setGame] = useState<Phaser.Game | null>(null);
 
   useEffect(() => {
     console.log('Initializing GameCanvas with responsive config');
@@ -31,7 +32,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       parent: 'game-container',
       width: width,
       height: height,
-      transparent: true,
+      backgroundColor: '#000000',
       scene: [SlotGameScene],
       scale: {
         mode: Phaser.Scale.RESIZE,
@@ -51,23 +52,24 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       }
     };
 
-    const game = new Phaser.Game(config);
+    const newGame = new Phaser.Game(config);
+    setGame(newGame);
 
     const handleResize = () => {
       const { width: newWidth, height: newHeight } = getGameDimensions();
-      game.scale.resize(newWidth, newHeight);
+      newGame.scale.resize(newWidth, newHeight);
     };
 
     window.addEventListener('resize', handleResize);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      game.destroy(true);
+      newGame.destroy(true);
     };
   }, [isMobile, onSceneCreated]);
 
   return (
-    <div className="relative w-full h-[60vh] overflow-hidden rounded-xl">
+    <div className="w-full h-[60vh] flex items-center justify-center">
       {isLoading && (
         <div className="absolute inset-0 bg-nightsky/80 flex items-center justify-center z-50 animate-fade-in">
           <div className="text-center space-y-4">
@@ -79,7 +81,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       
       <div 
         id="game-container" 
-        className="relative w-full h-full flex items-center justify-center backdrop-blur-sm bg-transparent rounded-xl shadow-lg border border-neongreen/20 transition-opacity duration-500"
+        className="w-full h-full flex items-center justify-center bg-transparent"
       />
     </div>
   );
