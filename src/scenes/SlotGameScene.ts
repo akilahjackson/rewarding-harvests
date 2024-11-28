@@ -86,19 +86,19 @@ export class SlotGameScene extends Phaser.Scene {
             scaleX: { from: 1, to: 0 },
             duration: 300,
             ease: 'Power1',
-            onComplete: () => {
+            onComplete: function() {
               // Update symbol when it's invisible
               const newSymbol = generateRandomSymbol();
-              this.currentGrid[rowIndex][colIndex] = newSymbol;
+              this.scene.currentGrid[rowIndex][colIndex] = newSymbol;
               symbol.setText(newSymbol);
               
               // Spin back
-              this.tweens.add({
+              this.scene.tweens.add({
                 targets: symbol,
                 scaleX: { from: 0, to: 1 },
                 duration: 300,
                 ease: 'Power1',
-                onComplete: resolve
+                onComplete: () => resolve()
               });
             }
           });
