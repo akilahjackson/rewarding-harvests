@@ -7,7 +7,7 @@ export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
-  private emitters: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
+  private spinPromises: Promise<void>[] = [];
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -21,6 +21,7 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private createWinAnimation(positions: number[][]) {
+    console.log('Creating win animation for positions:', positions);
     positions.forEach(([row, col]) => {
       const symbol = this.symbols[row][col];
       
@@ -48,26 +49,25 @@ export class SlotGameScene extends Phaser.Scene {
     this.isSpinning = true;
 
     // Stop any existing animations
-    this.symbols.flat().forEach(symbol => {
-      this.tweens.killTweensOf(symbol);
-    });
+    this.tweens.killAll();
 
-    // Create a sequence of promises for the spin animation
-    const spinPromises = this.symbols.map((row, rowIndex) => {
-      return Promise.all(row.map((symbol, colIndex) => {
-        return new Promise<void>((resolve) => {
-          const spinTween = this.tweens.add({
+    // Create spin animations for each symbol
+    const spinPromises = this.symbols.map((row, rowIndex) => 
+      row.map((symbol, colIndex) => 
+        new Promise<void>((resolve) => {
+          // First tween - spin out
+          this.tweens.add({
             targets: symbol,
             scaleX: { from: 1, to: 0 },
             duration: 300,
             ease: 'Power1',
             onComplete: () => {
-              // Update symbol when it's invisible
+              // Update symbol
               const newSymbol = generateRandomSymbol();
               this.currentGrid[rowIndex][colIndex] = newSymbol;
               symbol.setText(newSymbol);
               
-              // Spin back
+              // Second tween - spin in
               this.tweens.add({
                 targets: symbol,
                 scaleX: { from: 0, to: 1 },
@@ -77,39 +77,47 @@ export class SlotGameScene extends Phaser.Scene {
               });
             }
           });
+        })
+      )
+    );
+
+    try {
+      // Wait for all spin animations to complete
+      await Promise.all(spinPromises.flat());
+      console.log('All spin animations completed');
+
+      // Calculate winnings
+      const { winAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
+      
+      if (winningLines.length > 0) {
+        console.log('Creating win animations for winning lines');
+        winningLines.forEach(line => {
+          this.createWinAnimation(line.positions);
         });
-      }));
-    });
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
 
-    // Wait for all spin animations to complete
-    await Promise.all(spinPromises.flat());
-
-    // Calculate winnings and animate winning lines
-    const { winAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
-    
-    if (winningLines.length > 0) {
-      winningLines.forEach(line => {
-        this.createWinAnimation(line.positions);
+      // Restart floating animations
+      this.symbols.flat().forEach((symbol) => {
+        const baseY = symbol.y;
+        this.tweens.add({
+          targets: symbol,
+          y: baseY + 10,
+          duration: 2000 + Math.random() * 1000,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
       });
-      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      this.isSpinning = false;
+      console.log(`Spin completed. Win amount: ${winAmount}`);
+      return winAmount;
+    } catch (error) {
+      console.error('Error during spin:', error);
+      this.isSpinning = false;
+      return 0;
     }
-
-    // Restart floating animations
-    this.symbols.flat().forEach((symbol) => {
-      const baseY = symbol.y;
-      this.tweens.add({
-        targets: symbol,
-        y: baseY + 10,
-        duration: 2000 + Math.random() * 1000,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut'
-      });
-    });
-
-    this.isSpinning = false;
-    console.log(`Spin completed. Win amount: ${winAmount}`);
-    return winAmount;
   }
 
   private createGrid() {
