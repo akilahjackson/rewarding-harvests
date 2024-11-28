@@ -191,7 +191,6 @@ export class SlotGameScene extends Phaser.Scene {
     try {
       await this.messageManager.showMessage("Initiating crop analysis...");
       
-      // Play spin sound
       this.soundManager.playSpinSound();
       
       // Perform spin animation
@@ -237,8 +236,7 @@ export class SlotGameScene extends Phaser.Scene {
       const { totalWinAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
       
       if (winningLines.length > 0) {
-        // Play win sound
-        this.soundManager.playWinSound();
+        this.soundManager.playWinSound(totalWinAmount);
         
         for (const line of winningLines) {
           this.winAnimationManager.createWinAnimation(line.positions, this.symbols);
@@ -248,7 +246,6 @@ export class SlotGameScene extends Phaser.Scene {
         await this.messageManager.showMessage("Harvesting cosmic energy...");
         await new Promise(resolve => this.time.delayedCall(1000, resolve));
       } else {
-        // Play lose sound
         this.soundManager.playLoseSound();
         await this.messageManager.showMessage("Better luck next time...");
         await new Promise(resolve => this.time.delayedCall(1000, resolve));
