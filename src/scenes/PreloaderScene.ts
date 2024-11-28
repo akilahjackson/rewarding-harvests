@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
+import { LOADING_MESSAGES } from './constants/loadingMessages';
 
 export class PreloaderScene extends Phaser.Scene {
   private messageText?: Phaser.GameObjects.Text;
+  private loadingText?: Phaser.GameObjects.Text;
   private cropCircle?: Phaser.GameObjects.Arc;
   private loadingComplete: boolean = false;
   private bgMusic?: Phaser.Sound.BaseSound;
@@ -14,7 +16,10 @@ export class PreloaderScene extends Phaser.Scene {
   preload() {
     console.log('PreloaderScene: Starting preload');
     
-    // Load all audio assets with absolute paths
+    // Load background image
+    this.load.image('preloader-bg', '/images/neon-crop-circles.jpg');
+    
+    // Load all audio assets
     const audioFiles = [
       { key: 'background-music', path: '/sounds/background-music.mp3' },
       { key: 'spin-sound', path: '/sounds/spin.mp3' },
@@ -90,24 +95,48 @@ export class PreloaderScene extends Phaser.Scene {
     console.log('PreloaderScene: Starting create phase');
     const { width, height } = this.cameras.main;
 
-    // Create the crop circle
-    this.cropCircle = this.add.circle(width / 2, height / 2, 128, 0x000000, 0)
-      .setStrokeStyle(3, 0x39ff14);
-    
-    // Animate the crop circle
+    // Add background image
+    const background = this.add.image(width / 2, height / 2, 'preloader-bg')
+      .setDisplaySize(width, height);
+
+    // Create main loading text with neon effect
+    this.messageText = this.add.text(width / 2, height * 0.4, 'The Harvest Begins...', {
+      fontFamily: 'Space Grotesk',
+      fontSize: '32px',
+      color: '#4AE54A',
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 4,
+    })
+    .setOrigin(0.5)
+    .setAlpha(0);
+
+    // Create secondary loading message
+    this.loadingText = this.add.text(width / 2, height * 0.5, '', {
+      fontFamily: 'Space Grotesk',
+      fontSize: '24px',
+      color: '#FEC6A1',
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 3,
+    })
+    .setOrigin(0.5)
+    .setAlpha(0);
+
+    // Animate texts
     this.tweens.add({
-      targets: this.cropCircle,
-      scale: { from: 0, to: 1 },
-      alpha: { from: 0, to: 1 },
-      duration: 5000,
-      ease: 'Linear',
-      onComplete: () => {
-        setTimeout(() => {
-          this.loadingComplete = true;
-          console.log('PreloaderScene: Starting transition to SlotGameScene');
-          this.game.events.emit('sceneComplete');
-        }, 2000);
-      }
+      targets: [this.messageText, this.loadingText],
+      alpha: 1,
+      duration: 1000,
+      ease: 'Power2'
+    });
+
+    // Cycle through loading messages
+    this.time.addEvent({
+      delay: 2000,
+      callback: this.updateLoadingMessage,
+      callbackScope: this,
+      loop: true
     });
 
     // Add particles
@@ -124,6 +153,20 @@ export class PreloaderScene extends Phaser.Scene {
       frequency: 50
     });
 
+    // Transition to game after delay
+    this.time.delayedCall(6000, () => {
+      this.loadingComplete = true;
+      console.log('PreloaderScene: Starting transition to SlotGameScene');
+      this.game.events.emit('sceneComplete');
+    });
+
     console.log('PreloaderScene: Scene setup complete');
+  }
+
+  private updateLoadingMessage() {
+    if (this.loadingText && !this.loadingComplete) {
+      const randomMessage = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
+      this.loadingText.setText(randomMessage);
+    }
   }
 }
