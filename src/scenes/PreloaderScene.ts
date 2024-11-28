@@ -14,7 +14,7 @@ export class PreloaderScene extends Phaser.Scene {
     console.log('PreloaderScene: Starting preload');
     
     // Create a white pixel for particles
-    const whitePixel = this.make.graphics({ x: 0, y: 0, add: false })
+    const whitePixel = this.make.graphics({ x: 0, y: 0 })
       .fillStyle(0xFFFFFF)
       .fillRect(0, 0, 2, 2);
     
