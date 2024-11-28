@@ -3,7 +3,7 @@ import Phaser from 'phaser';
 export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private readonly GRID_SIZE = 6;
-  private particles: Phaser.GameObjects.Particles.ParticleEmitterManager | null = null;
+  private particles: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
   
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -19,35 +19,22 @@ export class SlotGameScene extends Phaser.Scene {
     console.log('SlotGameScene: Creating slot game grid');
     const { width, height } = this.cameras.main;
     
-    // Create particle system for crop circles
-    this.particles = this.add.particles('flares');
-    
-    // Create multiple emitters for different effects
-    this.particles.createEmitter({
-      frame: 'blue',
-      x: { min: 0, max: width },
-      y: { min: 0, max: height },
+    // Create particle emitter for ambient effects
+    const particleManager = this.add.particles(0, 0, 'flares', {
+      frame: ['blue', 'green'],
       lifespan: 4000,
+      speed: { min: 50, max: 100 },
       scale: { start: 0.4, end: 0 },
       alpha: { start: 0.3, end: 0 },
       blendMode: 'ADD',
       frequency: 500,
+      emitZone: {
+        type: 'random',
+        source: new Phaser.Geom.Rectangle(0, 0, width, height)
+      }
     });
-
-    // Crop circle effect emitter
-    const cropCircleEmitter = this.particles.createEmitter({
-      frame: 'green',
-      x: width / 2,
-      y: height / 2,
-      speed: { min: 100, max: 200 },
-      angle: { min: 0, max: 360 },
-      scale: { start: 0.2, end: 0 },
-      alpha: { start: 0.5, end: 0 },
-      lifespan: 3000,
-      blendMode: 'ADD',
-      frequency: 2000,
-      quantity: 20,
-    });
+    
+    this.particles = particleManager;
 
     // Calculate dynamic spacing
     const padding = Math.min(width, height) * 0.1;
@@ -126,14 +113,32 @@ export class SlotGameScene extends Phaser.Scene {
       }
     }
 
-    // Create random crop circle effects
+    // Create random crop circle effects periodically
     this.time.addEvent({
       delay: 5000,
       callback: () => {
         const x = Phaser.Math.Between(0, width);
         const y = Phaser.Math.Between(0, height);
-        cropCircleEmitter.setPosition(x, y);
-        cropCircleEmitter.explode(20);
+        
+        // Create a circular particle burst
+        const burstEmitter = this.add.particles(x, y, 'flares', {
+          frame: 'green',
+          lifespan: 1000,
+          speed: { min: 100, max: 200 },
+          scale: { start: 0.2, end: 0 },
+          alpha: { start: 0.5, end: 0 },
+          blendMode: 'ADD',
+          quantity: 20,
+          emitZone: {
+            type: 'random',
+            source: new Phaser.Geom.Circle(0, 0, 50)
+          }
+        });
+
+        // Stop emitting after burst
+        this.time.delayedCall(100, () => {
+          burstEmitter.stop();
+        });
       },
       loop: true
     });
@@ -142,9 +147,9 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   update() {
-    // Update particle effects and animations
+    // Update particle effects and animations if needed
     if (this.particles) {
-      // Add any additional particle updates here
+      // Add any additional particle updates here if needed
     }
   }
 }
