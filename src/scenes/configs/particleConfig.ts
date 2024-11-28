@@ -1,15 +1,13 @@
 import Phaser from 'phaser';
 
 export const createParticleConfig = (x: number, y: number): Phaser.Types.GameObjects.Particles.ParticleEmitterConfig => ({
-  lifespan: 2000,
-  speed: { min: 20, max: 50 },
-  scale: { start: 0.2, end: 0 },
+  scale: { start: 0.5, end: 0 },
   alpha: { start: 0.6, end: 0 },
-  blendMode: Phaser.BlendModes.ADD,
-  emitting: true,
+  speed: 100,
+  angle: { min: 0, max: 360 },
+  lifespan: 3000,
+  frequency: 100,
   quantity: 1,
-  emitZone: { 
-    type: 'random', 
-    source: new Phaser.Geom.Circle(x, y, 50)
-  }
+  blendMode: 'ADD',
+  tint: 0xff00ff
 });
