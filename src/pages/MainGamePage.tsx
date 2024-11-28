@@ -34,7 +34,9 @@ const MainGamePage = () => {
 
     try {
       if (gameSceneRef.current) {
-        const winAmount = await gameSceneRef.current.startSpin(betAmount, isAutoSpin);
+        // Pass 1 as the multiplier when not in auto spin, and 2 when in auto spin
+        const multiplier = isAutoSpin ? 2 : 1;
+        const winAmount = await gameSceneRef.current.startSpin(betAmount, multiplier);
         
         if (winAmount > 0) {
           setBalance(prev => prev + winAmount);
