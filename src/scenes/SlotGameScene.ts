@@ -4,6 +4,7 @@ export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private readonly GRID_SIZE = 6;
   private particles: Phaser.GameObjects.Particles.ParticleEmitter | null = null;
+  private isSpinning: boolean = false;
   
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -11,7 +12,6 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   preload() {
-    // Preload particle assets
     this.load.atlas('flares', 'https://labs.phaser.io/assets/particles/flares.png', 'https://labs.phaser.io/assets/particles/flares.json');
   }
 
@@ -36,7 +36,11 @@ export class SlotGameScene extends Phaser.Scene {
     
     this.particles = particleManager;
 
-    // Calculate dynamic spacing
+    this.createGrid();
+  }
+
+  private createGrid() {
+    const { width, height } = this.cameras.main;
     const padding = Math.min(width, height) * 0.1;
     const availableWidth = width - (padding * 2);
     const availableHeight = height - (padding * 2);
@@ -50,7 +54,6 @@ export class SlotGameScene extends Phaser.Scene {
     
     const symbolTypes = ['🌾', '🌽', '🎃', '🍎', '🍇', '🥕'];
 
-    // Create 6x6 grid with spread animation
     for (let row = 0; row < this.GRID_SIZE; row++) {
       this.symbols[row] = [];
       for (let col = 0; col < this.GRID_SIZE; col++) {
@@ -69,18 +72,15 @@ export class SlotGameScene extends Phaser.Scene {
         
         this.symbols[row][col] = symbol;
         
-        // Add spread animation with delay based on position
-        const delay = (row + col) * 100;
         this.tweens.add({
           targets: symbol,
           scale: 1,
           alpha: 1,
           y: y + 10,
           duration: 800,
-          delay: delay,
+          delay: (row + col) * 100,
           ease: 'Back.out',
           onComplete: () => {
-            // Add floating animation after spread
             this.tweens.add({
               targets: symbol,
               y: y + 10,
@@ -91,65 +91,67 @@ export class SlotGameScene extends Phaser.Scene {
             });
           }
         });
-        
-        // Add hover effects
-        symbol.on('pointerover', () => {
-          this.tweens.add({
-            targets: symbol,
-            scale: 1.1,
-            duration: 100,
-            ease: 'Power2'
-          });
-        });
-        
-        symbol.on('pointerout', () => {
-          this.tweens.add({
-            targets: symbol,
-            scale: 1,
-            duration: 100,
-            ease: 'Power2'
-          });
-        });
       }
     }
-
-    // Create random crop circle effects periodically
-    this.time.addEvent({
-      delay: 5000,
-      callback: () => {
-        const x = Phaser.Math.Between(0, width);
-        const y = Phaser.Math.Between(0, height);
-        
-        // Create a circular particle burst
-        const burstEmitter = this.add.particles(x, y, 'flares', {
-          frame: 'green',
-          lifespan: 1000,
-          speed: { min: 100, max: 200 },
-          scale: { start: 0.2, end: 0 },
-          alpha: { start: 0.5, end: 0 },
-          blendMode: 'ADD',
-          quantity: 20,
-          emitZone: {
-            type: 'random',
-            source: new Phaser.Geom.Circle(0, 0, 50)
-          }
-        });
-
-        // Stop emitting after burst
-        this.time.delayedCall(100, () => {
-          burstEmitter.stop();
-        });
-      },
-      loop: true
-    });
-
-    console.log('SlotGameScene: Grid creation complete');
   }
 
-  update() {
-    // Update particle effects and animations if needed
-    if (this.particles) {
-      // Add any additional particle updates here if needed
+  public startSpin(betAmount: number, multiplier: number): Promise<number> {
+    return new Promise((resolve) => {
+      if (this.isSpinning) return;
+      this.isSpinning = true;
+      console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
+
+      // Stop all current animations
+      this.symbols.flat().forEach(symbol => {
+        this.tweens.killTweensOf(symbol);
+      });
+
+      // Spin animation
+      const spinDuration = 2000;
+      const symbolTypes = ['🌾', '🌽', '🎃', '🍎', '🍇', '🥕'];
+
+      this.symbols.forEach((row, rowIndex) => {
+        row.forEach((symbol, colIndex) => {
+          // Spin out animation
+          this.tweens.add({
+            targets: symbol,
+            scale: 0,
+            alpha: 0,
+            duration: 300,
+            delay: (rowIndex + colIndex) * 50,
+            onComplete: () => {
+              // Change symbol
+              const newSymbol = symbolTypes[Phaser.Math.Between(0, symbolTypes.length - 1)];
+              symbol.setText(newSymbol);
+
+              // Spin in animation
+              this.tweens.add({
+                targets: symbol,
+                scale: 1,
+                alpha: 1,
+                duration: 300,
+                ease: 'Back.out',
+                onComplete: () => {
+                  if (rowIndex === this.GRID_SIZE - 1 && colIndex === this.GRID_SIZE - 1) {
+                    this.isSpinning = false;
+                    const winAmount = this.calculateWinnings(betAmount, multiplier);
+                    resolve(winAmount);
+                  }
+                }
+              });
+            }
+          });
+        });
+      });
+    });
+  }
+
+  private calculateWinnings(betAmount: number, multiplier: number): number {
+    // Simple random win calculation - replace with actual win logic
+    const randomWin = Math.random();
+    if (randomWin > 0.7) {
+      return betAmount * multiplier * (Math.floor(randomWin * 5) + 1);
     }
+    return 0;
   }
 }

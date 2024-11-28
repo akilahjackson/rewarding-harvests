@@ -4,7 +4,11 @@ import { SlotGameScene } from '@/scenes/SlotGameScene';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Loader2 } from "lucide-react";
 
-const GameCanvas = () => {
+interface GameCanvasProps {
+  onSceneCreated?: (scene: SlotGameScene) => void;
+}
+
+const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -35,8 +39,12 @@ const GameCanvas = () => {
         height: height,
       },
       callbacks: {
-        postBoot: () => {
+        postBoot: (game) => {
           console.log('Game loaded successfully');
+          const scene = game.scene.getScene('SlotGameScene') as SlotGameScene;
+          if (onSceneCreated) {
+            onSceneCreated(scene);
+          }
           setTimeout(() => setIsLoading(false), 1000);
         }
       }
@@ -57,7 +65,7 @@ const GameCanvas = () => {
       window.removeEventListener('resize', handleResize);
       game.destroy(true);
     };
-  }, [isMobile]);
+  }, [isMobile, onSceneCreated]);
 
   return (
     <div className="relative w-full h-full min-h-[50vh] md:min-h-[60vh] overflow-hidden rounded-xl">
