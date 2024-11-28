@@ -39,7 +39,8 @@ export class PreloaderScene extends Phaser.Scene {
       onComplete: () => {
         setTimeout(() => {
           this.loadingComplete = true;
-          this.game.events.emit('sceneComplete');
+          console.log('PreloaderScene: Starting transition to SlotGameScene');
+          this.scene.start('SlotGameScene');
         }, 2000);
       }
     });
