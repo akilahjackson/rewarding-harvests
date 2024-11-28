@@ -18,7 +18,8 @@ export class PreloaderScene extends Phaser.Scene {
     const audioFiles = [
       { key: 'background-music', path: '/sounds/background-music.mp3' },
       { key: 'spin-sound', path: '/sounds/spin.mp3' },
-      { key: 'win-sound', path: '/sounds/win.mp3' }
+      { key: 'win-sound', path: '/sounds/win.mp3' },
+      { key: 'lose-sound', path: '/sounds/lose.mp3' }
     ];
 
     audioFiles.forEach(audio => {

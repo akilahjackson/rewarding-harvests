@@ -247,6 +247,11 @@ export class SlotGameScene extends Phaser.Scene {
 
         await this.messageManager.showMessage("Harvesting cosmic energy...");
         await new Promise(resolve => this.time.delayedCall(1000, resolve));
+      } else {
+        // Play lose sound
+        this.soundManager.playLoseSound();
+        await this.messageManager.showMessage("Better luck next time...");
+        await new Promise(resolve => this.time.delayedCall(1000, resolve));
       }
 
       console.log(`SlotGameScene: Spin completed. Win amount: ${totalWinAmount}`);
