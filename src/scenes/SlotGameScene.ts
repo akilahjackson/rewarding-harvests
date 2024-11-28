@@ -2,14 +2,14 @@ import Phaser from 'phaser';
 import { GRID_SIZE, SYMBOL_SIZE, SPIN_DURATION } from './configs/symbolConfig';
 import { calculateWinnings } from './utils/winCalculator';
 import { createInitialGrid, generateRandomSymbol } from './utils/gridManager';
+import { WinAnimationManager } from './effects/WinAnimationManager';
 
 export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
   private floatingTweens: Phaser.Tweens.Tween[] = [];
-  private winCircles: Phaser.GameObjects.Graphics[] = [];
-  private particles: Phaser.GameObjects.Particles.ParticleEmitterManager | null = null;
+  private winAnimationManager: WinAnimationManager;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -19,163 +19,9 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game grid');
     this.currentGrid = createInitialGrid();
-    this.createParticleSystem();
+    this.winAnimationManager = new WinAnimationManager(this);
     this.createGrid();
     this.startFloatingAnimations();
-  }
-
-  private createParticleSystem() {
-    this.particles = this.add.particles('star');
-    // Will be used for win animations
-  }
-
-  private createWinAnimation(positions: number[][]) {
-    console.log('SlotGameScene: Creating win animation for positions:', positions);
-    
-    // Clear previous win circles
-    this.winCircles.forEach(circle => circle.destroy());
-    this.winCircles = [];
-
-    // Create crop circle effect for each winning position
-    positions.forEach(([row, col]) => {
-      const symbol = this.symbols[row][col];
-      const circle = this.add.graphics();
-      
-      // Set style for win highlight
-      circle.lineStyle(2, 0x4AE54A, 1);
-      circle.fillStyle(0x4AE54A, 0.3);
-      
-      // Create circle animation
-      const radius = 30;
-      const x = symbol.x;
-      const y = symbol.y;
-      
-      // Animate circle drawing
-      let progress = 0;
-      const circleAnim = this.tweens.add({
-        targets: { progress },
-        progress: 1,
-        duration: 1000,
-        onUpdate: (tween) => {
-          circle.clear();
-          const currentAngle = Math.PI * 2 * tween.getValue();
-          circle.beginPath();
-          circle.arc(x, y, radius, 0, currentAngle);
-          circle.strokePath();
-          circle.fillCircle(x, y, radius);
-        },
-        onComplete: () => {
-          // Add particle effect tracing the circle
-          if (this.particles) {
-            const emitter = this.particles.createEmitter({
-              x: x,
-              y: y,
-              speed: { min: 50, max: 100 },
-              scale: { start: 0.2, end: 0 },
-              alpha: { start: 1, end: 0 },
-              lifespan: 1000,
-              blendMode: Phaser.BlendModes.ADD,
-              tint: 0x4AE54A
-            });
-
-            // Make particles follow circle path
-            this.tweens.add({
-              targets: { angle: 0 },
-              angle: 360,
-              duration: 2000,
-              repeat: -1,
-              onUpdate: (tween) => {
-                const angle = Phaser.Math.DegToRad(tween.getValue());
-                emitter.setPosition(
-                  x + Math.cos(angle) * radius,
-                  y + Math.sin(angle) * radius
-                );
-              }
-            });
-          }
-        }
-      });
-
-      this.winCircles.push(circle);
-
-      // Make symbol pulse
-      this.tweens.add({
-        targets: symbol,
-        scale: 1.2,
-        duration: 200,
-        yoyo: true,
-        repeat: 2,
-        ease: 'Sine.easeInOut',
-        onComplete: () => {
-          symbol.setScale(1);
-        }
-      });
-    });
-
-    // Create connecting lines between winning positions
-    if (positions.length > 1) {
-      const graphics = this.add.graphics();
-      graphics.lineStyle(2, 0x4AE54A, 0.8);
-      
-      // Draw line animation
-      const points = positions.map(([row, col]) => ({
-        x: this.symbols[row][col].x,
-        y: this.symbols[row][col].y
-      }));
-
-      let progress = 0;
-      this.tweens.add({
-        targets: { progress },
-        progress: 1,
-        duration: 1000,
-        onUpdate: (tween) => {
-          graphics.clear();
-          const currentProgress = tween.getValue();
-          
-          for (let i = 0; i < points.length - 1; i++) {
-            const start = points[i];
-            const end = points[i + 1];
-            const x = Phaser.Math.Linear(start.x, end.x, currentProgress);
-            const y = Phaser.Math.Linear(start.y, end.y, currentProgress);
-            
-            if (i === 0) graphics.moveTo(start.x, start.y);
-            graphics.lineTo(x, y);
-          }
-          graphics.strokePath();
-        },
-        onComplete: () => {
-          // Add floating particles along the win line
-          if (this.particles) {
-            points.forEach((point, i) => {
-              if (i < points.length - 1) {
-                const emitter = this.particles.createEmitter({
-                  x: point.x,
-                  y: point.y,
-                  speed: { min: 20, max: 50 },
-                  scale: { start: 0.1, end: 0 },
-                  alpha: { start: 0.6, end: 0 },
-                  lifespan: 1000,
-                  blendMode: Phaser.BlendModes.ADD,
-                  tint: 0x4AE54A
-                });
-
-                // Make particles float towards next point
-                this.tweens.add({
-                  targets: emitter,
-                  x: points[i + 1].x,
-                  y: points[i + 1].y,
-                  duration: 2000,
-                  repeat: -1,
-                  ease: 'Linear'
-                });
-              }
-            });
-          }
-        }
-      });
-
-      this.winCircles.push(graphics);
-    }
   }
 
   private stopFloatingAnimations() {
@@ -218,6 +64,7 @@ export class SlotGameScene extends Phaser.Scene {
     console.log(`SlotGameScene: Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
     this.isSpinning = true;
     this.stopFloatingAnimations();
+    this.winAnimationManager.clearPreviousAnimations();
 
     try {
       await new Promise<void>((resolve) => {
@@ -261,7 +108,9 @@ export class SlotGameScene extends Phaser.Scene {
       
       if (winningLines.length > 0) {
         console.log('SlotGameScene: Win detected! Creating win animations');
-        winningLines.forEach(line => this.createWinAnimation(line.positions));
+        winningLines.forEach(line => {
+          this.winAnimationManager.createWinAnimation(line.positions, this.symbols);
+        });
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
