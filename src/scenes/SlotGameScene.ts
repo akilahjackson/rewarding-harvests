@@ -22,7 +22,6 @@ export class SlotGameScene extends Phaser.Scene {
   }
 
   private setupParticles() {
-    // Initialize empty emitters array
     this.emitters = [];
   }
 
@@ -30,7 +29,6 @@ export class SlotGameScene extends Phaser.Scene {
     positions.forEach(([row, col]) => {
       const symbol = this.symbols[row][col];
       
-      // Create a new particle emitter for the winning position
       const particles = this.add.particles(symbol.x, symbol.y, 'particle', {
         speed: { min: 50, max: 100 },
         angle: { min: 0, max: 360 },
@@ -41,10 +39,8 @@ export class SlotGameScene extends Phaser.Scene {
         gravityY: 0
       });
 
-      // Store the emitter reference
       this.emitters.push(particles);
 
-      // Stop and destroy the emitter after animation
       this.time.delayedCall(1000, () => {
         particles.destroy();
         const index = this.emitters.indexOf(particles);
@@ -53,7 +49,6 @@ export class SlotGameScene extends Phaser.Scene {
         }
       });
 
-      // Create glowing effect
       this.tweens.add({
         targets: symbol,
         alpha: 0.5,
@@ -76,23 +71,43 @@ export class SlotGameScene extends Phaser.Scene {
     console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
     this.isSpinning = true;
 
-    // Stop all current animations
+    // Stop any existing animations
     this.symbols.flat().forEach(symbol => {
       this.tweens.killTweensOf(symbol);
     });
 
-    // Spin animation
-    await this.animateSpinSequence();
+    // Create a sequence of promises for the spin animation
+    const spinPromises = this.symbols.map((row, rowIndex) => {
+      return Promise.all(row.map((symbol, colIndex) => {
+        return new Promise<void>((resolve) => {
+          // Create a spinning effect
+          this.tweens.add({
+            targets: symbol,
+            scaleX: { from: 1, to: 0 },
+            duration: 300,
+            ease: 'Power1',
+            onComplete: () => {
+              // Update symbol when it's invisible
+              const newSymbol = generateRandomSymbol();
+              this.currentGrid[rowIndex][colIndex] = newSymbol;
+              symbol.setText(newSymbol);
+              
+              // Spin back
+              this.tweens.add({
+                targets: symbol,
+                scaleX: { from: 0, to: 1 },
+                duration: 300,
+                ease: 'Power1',
+                onComplete: resolve
+              });
+            }
+          });
+        });
+      }));
+    });
 
-    // Update grid with new symbols
-    this.currentGrid = createInitialGrid();
-    
-    // Update symbols with new values
-    for (let row = 0; row < GRID_SIZE; row++) {
-      for (let col = 0; col < GRID_SIZE; col++) {
-        this.symbols[row][col].setText(this.currentGrid[row][col]);
-      }
-    }
+    // Wait for all spin animations to complete
+    await Promise.all(spinPromises.flat());
 
     // Calculate winnings and animate winning lines
     const { winAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
@@ -101,7 +116,7 @@ export class SlotGameScene extends Phaser.Scene {
       winningLines.forEach(line => {
         this.createWinAnimation(line.positions);
       });
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Wait for animations
+      await new Promise(resolve => setTimeout(resolve, 2000));
     }
 
     // Restart floating animations
@@ -150,7 +165,6 @@ export class SlotGameScene extends Phaser.Scene {
         
         this.symbols[row][col] = symbol;
         
-        // Add floating animation
         this.tweens.add({
           targets: symbol,
           y: y + 10,
@@ -161,36 +175,5 @@ export class SlotGameScene extends Phaser.Scene {
         });
       }
     }
-  }
-
-  private async animateSpinSequence(): Promise<void> {
-    return new Promise((resolve) => {
-      // Create spin out animation
-      const spinOutTween = this.tweens.add({
-        targets: this.symbols.flat(),
-        scale: 0,
-        alpha: 0,
-        duration: 300,
-        ease: 'Back.easeIn',
-        onComplete: () => {
-          // Update symbols during invisible state
-          this.symbols.flat().forEach(symbol => {
-            symbol.setText(generateRandomSymbol());
-          });
-          
-          // Create spin in animation
-          this.tweens.add({
-            targets: this.symbols.flat(),
-            scale: 1,
-            alpha: 1,
-            duration: 300,
-            ease: 'Back.easeOut',
-            onComplete: () => {
-              resolve();
-            }
-          });
-        }
-      });
-    });
   }
 }
