@@ -13,14 +13,18 @@ export class SlotGameScene extends Phaser.Scene {
     console.log('SlotGameScene: Creating slot game grid');
     const { width, height } = this.cameras.main;
     
-    // Calculate dynamic spacing based on screen size
-    const minDimension = Math.min(width, height);
-    const spacing = minDimension / (this.GRID_SIZE + 1);
-    const symbolSize = spacing * 0.8;
+    // Calculate dynamic spacing to fill the container
+    const padding = Math.min(width, height) * 0.1; // 10% padding
+    const availableWidth = width - (padding * 2);
+    const availableHeight = height - (padding * 2);
+    const cellSize = Math.min(
+      availableWidth / this.GRID_SIZE,
+      availableHeight / this.GRID_SIZE
+    );
     
-    // Calculate grid positioning
-    const startX = (width - (spacing * (this.GRID_SIZE - 1))) / 2;
-    const startY = (height - (spacing * (this.GRID_SIZE - 1))) / 2;
+    // Calculate starting position to center the grid
+    const startX = (width - (cellSize * (this.GRID_SIZE - 1))) / 2;
+    const startY = (height - (cellSize * (this.GRID_SIZE - 1))) / 2;
     
     const symbolTypes = [
       '🌾', // wheat
@@ -31,32 +35,47 @@ export class SlotGameScene extends Phaser.Scene {
       '🥕'  // carrot
     ];
 
-    // Create 6x6 grid with floating animation
+    // Create 6x6 grid with spread animation
     for (let row = 0; row < this.GRID_SIZE; row++) {
       this.symbols[row] = [];
       for (let col = 0; col < this.GRID_SIZE; col++) {
         const randomSymbol = symbolTypes[Phaser.Math.Between(0, symbolTypes.length - 1)];
-        const x = startX + col * spacing;
-        const y = startY + row * spacing;
+        const x = startX + col * cellSize;
+        const y = startY + row * cellSize;
         
         const symbol = this.add.text(x, y, randomSymbol, {
-          fontSize: `${symbolSize}px`,
+          fontSize: `${cellSize * 0.6}px`,
           backgroundColor: '#ffffff11',
-          padding: { x: symbolSize * 0.2, y: symbolSize * 0.2 },
+          padding: { x: cellSize * 0.15, y: cellSize * 0.15 },
         })
         .setOrigin(0.5)
         .setInteractive();
         
         this.symbols[row][col] = symbol;
         
-        // Add floating animation
+        // Add spread animation with delay based on position
+        const delay = (row + col) * 100; // Stagger the animations
+        symbol.setScale(0.3).setAlpha(0);
+        
         this.tweens.add({
           targets: symbol,
+          scale: 1,
+          alpha: 1,
           y: y + 10,
-          duration: 2000 + Math.random() * 1000,
-          yoyo: true,
-          repeat: -1,
-          ease: 'Sine.easeInOut'
+          duration: 800,
+          delay: delay,
+          ease: 'Back.out',
+          onComplete: () => {
+            // Add floating animation after spread
+            this.tweens.add({
+              targets: symbol,
+              y: y + 10,
+              duration: 2000 + Math.random() * 1000,
+              yoyo: true,
+              repeat: -1,
+              ease: 'Sine.easeInOut'
+            });
+          }
         });
         
         // Add hover effect

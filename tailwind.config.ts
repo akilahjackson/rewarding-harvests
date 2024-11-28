@@ -54,10 +54,21 @@ export default {
           "0%, 100%": { transform: "translateY(0)" },
           "50%": { transform: "translateY(-10px)" },
         },
+        "spread-grid": {
+          "0%": { 
+            transform: "scale(0.3) translateY(50%)",
+            opacity: "0"
+          },
+          "100%": { 
+            transform: "scale(1) translateY(0)",
+            opacity: "1"
+          }
+        }
       },
       animation: {
         "glow-pulse": "glow-pulse 2s ease-in-out infinite",
         "float": "float 3s ease-in-out infinite",
+        "spread-grid": "spread-grid 0.8s ease-out forwards",
       },
     },
   },
