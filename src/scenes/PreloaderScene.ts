@@ -14,7 +14,7 @@ export class PreloaderScene extends Phaser.Scene {
     console.log('PreloaderScene: Starting preload');
     
     // Create a white pixel for particles
-    const whitePixel = this.make.graphics({ x: 0, y: 0 })
+    const whitePixel = this.make.graphics({ x: 0, y: 0, add: false })
       .fillStyle(0xFFFFFF)
       .fillRect(0, 0, 2, 2);
     
@@ -40,42 +40,23 @@ export class PreloaderScene extends Phaser.Scene {
         setTimeout(() => {
           this.loadingComplete = true;
           console.log('PreloaderScene: Starting transition to SlotGameScene');
-          this.scene.start('SlotGameScene');
+          this.game.events.emit('sceneComplete');
         }, 2000);
       }
     });
 
-    // Create neon text
-    this.messageText = this.add.text(width / 2, height * 0.75, 'The Harvest Begins...', {
-      fontFamily: 'Arial',
-      fontSize: '24px',
-      color: '#39ff14',
-      align: 'center'
-    })
-    .setOrigin(0.5);
-
-    // Add text glow effect
-    this.tweens.add({
-      targets: this.messageText,
-      alpha: 0.5,
-      duration: 1000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
-
-    // Add particles using the new particle system
-    const emitter = this.add.particles(0, 0, 'pixel', {
+    // Add particles
+    const particles = this.add.particles(0, 0, 'pixel', {
       x: width / 2,
       y: height / 2,
+      lifespan: 3000,
       speed: { min: 50, max: 100 },
       scale: { start: 0.5, end: 0 },
       alpha: { start: 0.6, end: 0 },
-      lifespan: 3000,
-      frequency: 50,
-      quantity: 2,
       blendMode: Phaser.BlendModes.ADD,
-      tint: 0xff00ff
+      emitting: true,
+      quantity: 2,
+      frequency: 50
     });
 
     console.log('PreloaderScene: Scene setup complete');
