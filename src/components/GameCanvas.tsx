@@ -11,8 +11,15 @@ const GameCanvas = () => {
   useEffect(() => {
     console.log('Initializing GameCanvas with responsive config');
     const container = document.getElementById('game-container');
-    const width = container?.clientWidth || window.innerWidth;
-    const height = container?.clientHeight || window.innerHeight;
+    if (!container) return;
+
+    const updateDimensions = () => {
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+      return { width, height };
+    };
+
+    const { width, height } = updateDimensions();
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -39,8 +46,7 @@ const GameCanvas = () => {
 
     const handleResize = () => {
       console.log('Window resized, updating game size');
-      const newWidth = container?.clientWidth || window.innerWidth;
-      const newHeight = container?.clientHeight || window.innerHeight;
+      const { width: newWidth, height: newHeight } = updateDimensions();
       game.scale.resize(newWidth, newHeight);
     };
 
@@ -54,7 +60,7 @@ const GameCanvas = () => {
   }, [isMobile]);
 
   return (
-    <div className="relative w-full h-full min-h-[80vh] overflow-hidden rounded-xl transition-all duration-300 ease-in-out">
+    <div className="relative w-full h-full min-h-[50vh] md:min-h-[60vh] overflow-hidden rounded-xl">
       {/* Loading overlay */}
       {isLoading && (
         <div className="absolute inset-0 bg-nightsky/80 flex items-center justify-center z-50 animate-fade-in">
@@ -65,7 +71,7 @@ const GameCanvas = () => {
         </div>
       )}
       
-      {/* Game container with transparent background */}
+      {/* Game container */}
       <div 
         id="game-container" 
         className={`relative w-full h-full flex items-center justify-center backdrop-blur-sm bg-transparent rounded-xl shadow-lg border border-neongreen/20 transition-opacity duration-500 ${
