@@ -3,22 +3,15 @@ import { GRID_SIZE, SYMBOL_SIZE, SPIN_DURATION } from './configs/symbolConfig';
 import { calculateWinnings } from './utils/winCalculator';
 import { createInitialGrid, generateRandomSymbol } from './utils/gridManager';
 import { WinAnimationManager } from './effects/WinAnimationManager';
-
-const ALIEN_MESSAGES = [
-  "Analyzing crop patterns...",
-  "Exceptional specimens detected!",
-  "Harvesting energy signatures...",
-  "Cosmic alignment confirmed!",
-  "Initiating specimen collection..."
-];
+import { MessageManager } from './effects/MessageManager';
 
 export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
   private winAnimationManager: WinAnimationManager;
+  private messageManager: MessageManager;
   private baseScale: number = 1;
-  private alienMessage: Phaser.GameObjects.Text | null = null;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -50,26 +43,11 @@ export class SlotGameScene extends Phaser.Scene {
 
     this.currentGrid = createInitialGrid();
     this.winAnimationManager = new WinAnimationManager(this);
+    this.messageManager = new MessageManager(this);
     this.createGrid();
     this.startFloatingAnimations();
 
-    // Create alien message text
-    this.alienMessage = this.add.text(
-      this.cameras.main.width / 2,
-      50,
-      '',
-      {
-        fontSize: '24px',
-        color: '#4AE54A',
-        fontFamily: 'monospace',
-        stroke: '#000',
-        strokeThickness: 4,
-        shadow: { blur: 10, color: '#4AE54A', fill: true }
-      }
-    )
-    .setOrigin(0.5)
-    .setAlpha(0)
-    .setDepth(100);
+    console.log('SlotGameScene: Initial setup complete');
   }
 
   private showAlienMessage(message: string) {
@@ -200,6 +178,9 @@ export class SlotGameScene extends Phaser.Scene {
     this.winAnimationManager.clearPreviousAnimations();
 
     try {
+      await this.messageManager.showMessage("Initiating crop analysis...");
+      
+      // Perform spin animation
       await new Promise<void>((resolve) => {
         let completedSpins = 0;
         const totalSpins = GRID_SIZE * GRID_SIZE;
@@ -236,23 +217,20 @@ export class SlotGameScene extends Phaser.Scene {
         }
       });
 
-      // Show initial alien message
-      this.showAlienMessage(ALIEN_MESSAGES[0]);
+      await this.messageManager.showMessage("Analyzing energy patterns...");
       await new Promise(resolve => this.time.delayedCall(1000, resolve));
 
       const { totalWinAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
       
       if (winningLines.length > 0) {
-        console.log('SlotGameScene: Win detected! Creating win animations');
-        this.showAlienMessage(ALIEN_MESSAGES[1]);
+        await this.messageManager.showMessage("Exceptional specimens detected!");
         
-        // Process each winning line sequentially
         for (const line of winningLines) {
           this.winAnimationManager.createWinAnimation(line.positions, this.symbols);
           await new Promise(resolve => this.time.delayedCall(500, resolve));
         }
 
-        this.showAlienMessage(ALIEN_MESSAGES[2]);
+        await this.messageManager.showMessage("Harvesting cosmic energy...");
         await new Promise(resolve => this.time.delayedCall(1000, resolve));
       }
 
