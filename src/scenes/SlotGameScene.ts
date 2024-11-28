@@ -7,7 +7,6 @@ export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
-  private spinPromises: Promise<void>[] = [];
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -48,42 +47,50 @@ export class SlotGameScene extends Phaser.Scene {
     console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
     this.isSpinning = true;
 
-    // Stop any existing animations
+    // Kill all existing tweens
     this.tweens.killAll();
 
-    // Create spin animations for each symbol
-    const spinPromises = this.symbols.map((row, rowIndex) => 
-      row.map((symbol, colIndex) => 
-        new Promise<void>((resolve) => {
-          // First tween - spin out
-          this.tweens.add({
-            targets: symbol,
-            scaleX: { from: 1, to: 0 },
-            duration: 300,
-            ease: 'Power1',
-            onComplete: () => {
-              // Update symbol
-              const newSymbol = generateRandomSymbol();
-              this.currentGrid[rowIndex][colIndex] = newSymbol;
-              symbol.setText(newSymbol);
-              
-              // Second tween - spin in
-              this.tweens.add({
-                targets: symbol,
-                scaleX: { from: 0, to: 1 },
-                duration: 300,
-                ease: 'Power1',
-                onComplete: () => resolve()
-              });
-            }
-          });
-        })
-      )
-    );
-
     try {
+      // Create and collect all spin promises
+      const spinPromises: Promise<void>[] = [];
+
+      // Create spin animations for each symbol
+      for (let rowIndex = 0; rowIndex < GRID_SIZE; rowIndex++) {
+        for (let colIndex = 0; colIndex < GRID_SIZE; colIndex++) {
+          const symbol = this.symbols[rowIndex][colIndex];
+          
+          const spinPromise = new Promise<void>((resolve) => {
+            // First tween - spin out
+            this.tweens.add({
+              targets: symbol,
+              scaleX: 0,
+              duration: 300,
+              ease: 'Power1',
+              onComplete: () => {
+                // Update symbol
+                const newSymbol = generateRandomSymbol();
+                this.currentGrid[rowIndex][colIndex] = newSymbol;
+                symbol.setText(newSymbol);
+                
+                // Second tween - spin in
+                this.tweens.add({
+                  targets: symbol,
+                  scaleX: 1,
+                  duration: 300,
+                  ease: 'Power1',
+                  onComplete: () => resolve()
+                });
+              }
+            });
+          });
+          
+          spinPromises.push(spinPromise);
+        }
+      }
+
       // Wait for all spin animations to complete
-      await Promise.all(spinPromises.flat());
+      console.log('Waiting for all spin animations to complete...');
+      await Promise.all(spinPromises);
       console.log('All spin animations completed');
 
       // Calculate winnings
