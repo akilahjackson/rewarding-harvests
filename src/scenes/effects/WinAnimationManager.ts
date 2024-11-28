@@ -40,11 +40,10 @@ export class WinAnimationManager {
           circle.lineStyle(3, COLORS.neonGreen, 0.8);
           circle.strokeCircle(symbol.x, symbol.y, target.radius);
           
-          // Add inner glow using multiple circles with decreasing alpha
+          // Add inner glow using 3 circles with decreasing alpha
           const glowSteps = [
             { alpha: 0.2, scale: 1 },
-            { alpha: 0.15, scale: 0.8 },
-            { alpha: 0.1, scale: 0.6 },
+            { alpha: 0.1, scale: 0.7 },
             { alpha: 0.05, scale: 0.4 }
           ];
 
@@ -59,6 +58,8 @@ export class WinAnimationManager {
         }
       });
 
+      // Ensure circle is behind the symbol
+      circle.setDepth(symbol.depth - 1);
       this.winCircles.push(circle);
       this.particleManager.createWinParticles(symbol.x, symbol.y, radius);
     });

@@ -20,10 +20,12 @@ export class ParticleManager {
       blendMode: Phaser.BlendModes.ADD,
       emitting: true,
       quantity: 1,
-      frequency: 100,
+      frequency: 150, // Reduced frequency for fewer particles
       rotate: { min: 0, max: 360 }
     });
 
+    // Set particle depth to be behind symbols
+    particles.setDepth(-1);
     this.particleSystems.push(particles);
   }
 
@@ -42,10 +44,12 @@ export class ParticleManager {
           blendMode: Phaser.BlendModes.ADD,
           emitting: true,
           quantity: 1,
-          frequency: 150,
+          frequency: 200, // Reduced frequency for fewer particles
           rotate: { min: 0, max: 360 }
         });
 
+        // Set particle depth to be behind symbols
+        particles.setDepth(-1);
         this.particleSystems.push(particles);
 
         this.scene.tweens.add({
