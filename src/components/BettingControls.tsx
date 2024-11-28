@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,9 @@ const BettingControls: React.FC<BettingControlsProps> = ({
   isAutoSpin,
   onAutoSpinToggle
 }) => {
-  console.log('Rendering BettingControls with bet amount:', betAmount);
+  const handleSliderChange = useCallback((value: number[]) => {
+    setBetAmount(value[0]);
+  }, [setBetAmount]);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 w-full bg-nightsky/50 backdrop-blur-sm border-t border-neongreen/20 p-4">
@@ -35,12 +37,12 @@ const BettingControls: React.FC<BettingControlsProps> = ({
             <span className="text-neongreen font-space whitespace-nowrap min-w-[80px]">Bet (SOL):</span>
             <div className="flex-1">
               <Slider
-                defaultValue={[0.001]}
+                defaultValue={[betAmount]}
                 max={1}
                 min={0.001}
                 step={0.001}
                 value={[betAmount]}
-                onValueChange={(value) => setBetAmount(value[0])}
+                onValueChange={handleSliderChange}
                 className="w-full"
               />
             </div>

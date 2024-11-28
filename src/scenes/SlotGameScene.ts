@@ -70,10 +70,9 @@ export class SlotGameScene extends Phaser.Scene {
     console.log(`Starting spin with bet: ${betAmount} and multiplier: ${multiplier}`);
     this.isSpinning = true;
     this.stopFloatingAnimations();
+    this.tweens.killAll();
 
     try {
-      this.tweens.killAll();
-
       const spinPromises: Promise<void>[] = [];
       const spinDuration = 300;
 
@@ -100,7 +99,9 @@ export class SlotGameScene extends Phaser.Scene {
                     scaleX: 1,
                     duration: spinDuration,
                     ease: 'Power1',
-                    onComplete: () => resolve()
+                    onComplete: function() {
+                      resolve();
+                    }
                   });
                 }
               });

@@ -17,13 +17,14 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
     const container = document.getElementById('game-container');
     if (!container) return;
 
-    const updateDimensions = () => {
+    const getGameDimensions = () => {
+      const maxHeight = window.innerHeight * 0.6;
       const width = container.clientWidth;
-      const height = container.clientHeight;
+      const height = Math.min(container.clientHeight, maxHeight);
       return { width, height };
     };
 
-    const { width, height } = updateDimensions();
+    const { width, height } = getGameDimensions();
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -53,22 +54,20 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
     const game = new Phaser.Game(config);
 
     const handleResize = () => {
-      console.log('Window resized, updating game size');
-      const { width: newWidth, height: newHeight } = updateDimensions();
+      const { width: newWidth, height: newHeight } = getGameDimensions();
       game.scale.resize(newWidth, newHeight);
     };
 
     window.addEventListener('resize', handleResize);
 
     return () => {
-      console.log('Cleaning up GameCanvas');
       window.removeEventListener('resize', handleResize);
       game.destroy(true);
     };
   }, [isMobile, onSceneCreated]);
 
   return (
-    <div className="relative w-full h-full min-h-[60vh] md:min-h-[70vh] overflow-hidden rounded-xl">
+    <div className="relative w-full h-[60vh] overflow-hidden rounded-xl">
       {isLoading && (
         <div className="absolute inset-0 bg-nightsky/80 flex items-center justify-center z-50 animate-fade-in">
           <div className="text-center space-y-4">
@@ -80,9 +79,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       
       <div 
         id="game-container" 
-        className={`relative w-full h-full flex items-center justify-center backdrop-blur-sm bg-transparent rounded-xl shadow-lg border border-neongreen/20 transition-opacity duration-500 ${
-          isLoading ? 'opacity-0' : 'opacity-100'
-        }`}
+        className="relative w-full h-full flex items-center justify-center backdrop-blur-sm bg-transparent rounded-xl shadow-lg border border-neongreen/20 transition-opacity duration-500"
       />
     </div>
   );
