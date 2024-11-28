@@ -13,15 +13,39 @@ export class SoundManager {
       // Check if audio is loaded in registry
       const audioLoaded = this.scene.registry.get('audioLoaded');
       if (!audioLoaded) {
-        console.error('SoundManager: Audio not preloaded in PreloaderScene');
+        console.warn('SoundManager: Audio not preloaded in PreloaderScene, attempting to load now');
+        this.loadSoundEffects();
+      } else {
+        this.initializeSounds();
       }
-      
+    } catch (error) {
+      console.error('SoundManager: Error in constructor:', error);
+      this.spinSound = this.createDummySound();
+      this.winSound = this.createDummySound();
+    }
+  }
+
+  private loadSoundEffects() {
+    try {
+      this.scene.load.audio('spin-sound', '/sounds/spin.mp3');
+      this.scene.load.audio('win-sound', '/sounds/win.mp3');
+      this.scene.load.once('complete', () => {
+        console.log('SoundManager: Sound effects loaded successfully');
+        this.initializeSounds();
+      });
+      this.scene.load.start();
+    } catch (error) {
+      console.error('SoundManager: Error loading sound effects:', error);
+    }
+  }
+
+  private initializeSounds() {
+    try {
       this.spinSound = this.scene.sound.add('spin-sound', { volume: 0.5 });
       this.winSound = this.scene.sound.add('win-sound', { volume: 0.7 });
-      console.log('SoundManager: Sound effects initialized successfully');
+      console.log('SoundManager: Sounds initialized successfully');
     } catch (error) {
       console.error('SoundManager: Error initializing sounds:', error);
-      // Create dummy sound objects if loading fails
       this.spinSound = this.createDummySound();
       this.winSound = this.createDummySound();
     }
@@ -37,8 +61,15 @@ export class SoundManager {
 
   playSpinSound() {
     try {
-      this.spinSound.play();
-      console.log('SoundManager: Playing spin sound');
+      if (this.scene.sound.locked) {
+        console.log('SoundManager: Audio locked, waiting for unlock');
+        this.scene.sound.once('unlocked', () => {
+          this.spinSound.play();
+        });
+      } else {
+        this.spinSound.play();
+        console.log('SoundManager: Playing spin sound');
+      }
     } catch (error) {
       console.error('SoundManager: Error playing spin sound:', error);
     }
@@ -46,8 +77,15 @@ export class SoundManager {
 
   playWinSound() {
     try {
-      this.winSound.play();
-      console.log('SoundManager: Playing win sound');
+      if (this.scene.sound.locked) {
+        console.log('SoundManager: Audio locked, waiting for unlock');
+        this.scene.sound.once('unlocked', () => {
+          this.winSound.play();
+        });
+      } else {
+        this.winSound.play();
+        console.log('SoundManager: Playing win sound');
+      }
     } catch (error) {
       console.error('SoundManager: Error playing win sound:', error);
     }
