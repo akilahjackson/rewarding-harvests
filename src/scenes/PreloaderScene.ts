@@ -3,7 +3,6 @@ import Phaser from 'phaser';
 export class PreloaderScene extends Phaser.Scene {
   private messageText?: Phaser.GameObjects.Text;
   private cropCircle?: Phaser.GameObjects.Arc;
-  private particles: Phaser.GameObjects.Particles.ParticleEmitter[] = [];
   private loadingComplete: boolean = false;
 
   constructor() {
@@ -15,7 +14,7 @@ export class PreloaderScene extends Phaser.Scene {
     console.log('PreloaderScene: Starting preload');
     
     // Create a white pixel for particles
-    const whitePixel = this.make.graphics({ x: 0, y: 0, add: false })
+    const whitePixel = this.make.graphics({ x: 0, y: 0 })
       .fillStyle(0xFFFFFF)
       .fillRect(0, 0, 2, 2)
       .generateTexture('pixel', 2, 2);
@@ -51,43 +50,31 @@ export class PreloaderScene extends Phaser.Scene {
       color: '#39ff14',
       align: 'center'
     })
-    .setOrigin(0.5)
-    .setPipeline('Light2D');
+    .setOrigin(0.5);
 
     // Add text glow effect
-    const light = this.lights.addLight(0, 0, 200, 0x39ff14, 1);
-    this.lights.enable().setAmbientColor(0x000000);
-    
-    // Create particle emitters
-    const particlePositions = [
-      { x: width * 0.5, y: height * 0.5 },
-      { x: width * 0.55, y: height * 0.45 },
-      { x: width * 0.6, y: height * 0.4 }
-    ];
-
-    particlePositions.forEach((pos, index) => {
-      const emitter = this.add.particles(pos.x, pos.y, 'pixel', {
-        scale: { start: 0.5, end: 0 },
-        alpha: { start: 0.6, end: 0 },
-        speed: 100,
-        angle: { min: 0, max: 360 },
-        lifespan: 3000,
-        frequency: 100,
-        quantity: 1,
-        blendMode: 'ADD',
-        tint: 0xff00ff
-      });
-      this.particles.push(emitter);
-    });
-
-    // Add text fade animation
     this.tweens.add({
       targets: this.messageText,
-      alpha: 0,
+      alpha: 0.5,
       duration: 1000,
       yoyo: true,
       repeat: -1,
       ease: 'Sine.easeInOut'
+    });
+
+    // Add particles
+    const particles = this.add.particles('pixel');
+    
+    particles.createEmitter({
+      x: width / 2,
+      y: height / 2,
+      speed: { min: 50, max: 100 },
+      scale: { start: 0.5, end: 0 },
+      alpha: { start: 0.6, end: 0 },
+      lifespan: 3000,
+      quantity: 2,
+      blendMode: 'ADD',
+      tint: 0xff00ff
     });
 
     console.log('PreloaderScene: Scene setup complete');
