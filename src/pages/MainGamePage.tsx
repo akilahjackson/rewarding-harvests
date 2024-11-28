@@ -7,7 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SlotGameScene } from '@/scenes/SlotGameScene';
 
 const MainGamePage = () => {
-  const [balance, setBalance] = useState(1.0); // Starting balance in SOL
+  const [balance, setBalance] = useState(1.0);
   const [betAmount, setBetAmount] = useState(0.001);
   const [totalWinnings, setTotalWinnings] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -34,7 +34,7 @@ const MainGamePage = () => {
 
     try {
       if (gameSceneRef.current) {
-        const winAmount = await gameSceneRef.current.startSpin(betAmount);
+        const winAmount = await gameSceneRef.current.startSpin(betAmount, isAutoSpin);
         
         if (winAmount > 0) {
           setBalance(prev => prev + winAmount);
