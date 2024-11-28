@@ -17,17 +17,22 @@ export class ParticleManager {
     const numOrbs = Phaser.Math.Between(1, 3);
     
     for (let i = 0; i < numOrbs; i++) {
-      const emitter = this.scene.add.particles(x, y, {
-        speed: { min: 20, max: 40 },
-        scale: { start: 0.4, end: 0.1 },
-        alpha: { start: 0.8, end: 0 },
-        lifespan: 2000,
+      const particles = this.scene.add.particles(0, 0, {
+        emitting: true,
+        follow: null,
+        gravityY: 0,
         quantity: 1,
         frequency: 500,
+        lifespan: 2000,
+        scale: { start: 0.4, end: 0.1 },
+        alpha: { start: 0.8, end: 0 },
+        speedX: { min: -20, max: 20 },
+        speedY: { min: -20, max: 20 },
         blendMode: Phaser.BlendModes.ADD,
         tint: 0x4AE54A // Neon green
       });
 
+      const emitter = particles.createEmitter();
       this.emitters.push(emitter);
       
       // Create circular motion for each orb
@@ -53,17 +58,22 @@ export class ParticleManager {
       if (i < points.length - 1) {
         const nextPoint = points[i + 1];
         
-        const emitter = this.scene.add.particles(point.x, point.y, {
-          speed: { min: 10, max: 20 },
+        const particles = this.scene.add.particles(0, 0, {
+          emitting: true,
+          follow: null,
+          gravityY: 0,
+          quantity: 1,
+          frequency: 200,
+          lifespan: 1500,
           scale: { start: 0.3, end: 0 },
           alpha: { start: 0.6, end: 0 },
-          lifespan: 1500,
-          frequency: 200,
-          quantity: 1,
+          speedX: { min: -10, max: 10 },
+          speedY: { min: -10, max: 10 },
           blendMode: Phaser.BlendModes.ADD,
           tint: 0x4AE54A
         });
 
+        const emitter = particles.createEmitter();
         this.emitters.push(emitter);
 
         this.scene.tweens.add({
@@ -80,7 +90,8 @@ export class ParticleManager {
   clearParticles(): void {
     console.log('ParticleManager: Clearing all particles');
     this.emitters.forEach(emitter => {
-      emitter.destroy();
+      emitter.stop();
+      emitter.remove();
     });
     this.emitters = [];
   }
