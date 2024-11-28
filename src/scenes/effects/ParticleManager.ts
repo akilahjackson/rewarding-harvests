@@ -17,40 +17,39 @@ export class ParticleManager {
     const numOrbs = Phaser.Math.Between(1, 3);
     
     for (let i = 0; i < numOrbs; i++) {
-      const particles = this.scene.add.particles(x, y, 'particle');
-      
-      const emitter = particles.createEmitter({
-        x: 0,
-        y: 0,
+      const particleManager = this.scene.add.particles(0, 0, 'particle', {
+        x: x,
+        y: y,
         gravityY: 0,
         quantity: 1,
         frequency: 500,
         lifespan: 2000,
         scale: { start: 0.4, end: 0.1 },
         alpha: { start: 0.8, end: 0 },
-        speed: {
-          min: -20,
-          max: 20
-        },
+        speedX: { min: -20, max: 20 },
+        speedY: { min: -20, max: 20 },
         blendMode: Phaser.BlendModes.ADD,
         tint: 0x4AE54A // Neon green
       });
 
-      this.emitters.push(emitter);
-      
-      // Create circular motion for each orb
-      const angle = (i * 360 / numOrbs) * (Math.PI / 180);
-      const orbitRadius = radius * 0.8;
-      
-      this.scene.tweens.add({
-        targets: emitter,
-        x: x + Math.cos(angle) * orbitRadius,
-        y: y + Math.sin(angle) * orbitRadius,
-        duration: 2000,
-        ease: 'Sine.easeInOut',
-        yoyo: true,
-        repeat: -1
-      });
+      const emitter = particleManager.emitters.first;
+      if (emitter) {
+        this.emitters.push(emitter);
+        
+        // Create circular motion for each orb
+        const angle = (i * 360 / numOrbs) * (Math.PI / 180);
+        const orbitRadius = radius * 0.8;
+        
+        this.scene.tweens.add({
+          targets: emitter,
+          x: x + Math.cos(angle) * orbitRadius,
+          y: y + Math.sin(angle) * orbitRadius,
+          duration: 2000,
+          ease: 'Sine.easeInOut',
+          yoyo: true,
+          repeat: -1
+        });
+      }
     }
   }
 
@@ -61,34 +60,33 @@ export class ParticleManager {
       if (i < points.length - 1) {
         const nextPoint = points[i + 1];
         
-        const particles = this.scene.add.particles(point.x, point.y, 'particle');
-        
-        const emitter = particles.createEmitter({
-          x: 0,
-          y: 0,
+        const particleManager = this.scene.add.particles(0, 0, 'particle', {
+          x: point.x,
+          y: point.y,
           gravityY: 0,
           quantity: 1,
           frequency: 200,
           lifespan: 1500,
           scale: { start: 0.3, end: 0 },
           alpha: { start: 0.6, end: 0 },
-          speed: {
-            min: -10,
-            max: 10
-          },
+          speedX: { min: -10, max: 10 },
+          speedY: { min: -10, max: 10 },
           blendMode: Phaser.BlendModes.ADD,
           tint: 0x4AE54A
         });
 
-        this.emitters.push(emitter);
+        const emitter = particleManager.emitters.first;
+        if (emitter) {
+          this.emitters.push(emitter);
 
-        this.scene.tweens.add({
-          targets: emitter,
-          x: nextPoint.x,
-          y: nextPoint.y,
-          duration: 2000,
-          repeat: -1
-        });
+          this.scene.tweens.add({
+            targets: emitter,
+            x: nextPoint.x,
+            y: nextPoint.y,
+            duration: 2000,
+            repeat: -1
+          });
+        }
       }
     });
   }
@@ -97,8 +95,9 @@ export class ParticleManager {
     console.log('ParticleManager: Clearing all particles');
     this.emitters.forEach(emitter => {
       emitter.stop();
-      if (emitter.manager) {
-        emitter.manager.destroy();
+      const particleManager = emitter.manager;
+      if (particleManager) {
+        particleManager.destroy();
       }
     });
     this.emitters = [];
