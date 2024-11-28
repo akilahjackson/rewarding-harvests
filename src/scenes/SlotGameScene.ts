@@ -1,24 +1,14 @@
 import Phaser from 'phaser';
 
 export class SlotGameScene extends Phaser.Scene {
-  private symbols: Phaser.GameObjects.Image[][] = [];
+  private symbols: Phaser.GameObjects.Text[][] = [];
   private readonly GRID_SIZE = 6;
   private readonly SYMBOL_SPACING = 80;
+  private readonly SYMBOL_SCALE = 1.5;
   
   constructor() {
     super({ key: 'SlotGameScene' });
     console.log('SlotGameScene: Constructor initialized');
-  }
-
-  preload() {
-    console.log('SlotGameScene: Loading harvest symbols');
-    // Load harvest-themed symbols
-    this.load.image('harvest-corn', 'https://placekitten.com/80/80'); // Temporary placeholder
-    this.load.image('harvest-wheat', 'https://placekitten.com/81/81'); // Temporary placeholder
-    this.load.image('harvest-apple', 'https://placekitten.com/82/82'); // Temporary placeholder
-    this.load.image('harvest-pumpkin', 'https://placekitten.com/83/83'); // Temporary placeholder
-    this.load.image('harvest-grape', 'https://placekitten.com/84/84'); // Temporary placeholder
-    this.load.image('harvest-carrot', 'https://placekitten.com/85/85'); // Temporary placeholder
   }
 
   create() {
@@ -30,12 +20,12 @@ export class SlotGameScene extends Phaser.Scene {
     const startY = height / 2 - (this.GRID_SIZE * this.SYMBOL_SPACING) / 2 + this.SYMBOL_SPACING / 2;
     
     const symbolTypes = [
-      'harvest-corn',
-      'harvest-wheat',
-      'harvest-apple',
-      'harvest-pumpkin',
-      'harvest-grape',
-      'harvest-carrot'
+      '🌾', // wheat
+      '🌽', // corn
+      '🎃', // pumpkin
+      '🍎', // apple
+      '🍇', // grapes
+      '🥕'  // carrot
     ];
 
     // Create 6x6 grid
@@ -46,9 +36,14 @@ export class SlotGameScene extends Phaser.Scene {
         const x = startX + col * this.SYMBOL_SPACING;
         const y = startY + row * this.SYMBOL_SPACING;
         
-        const symbol = this.add.image(x, y, randomSymbol)
-          .setScale(0.8)
-          .setInteractive();
+        const symbol = this.add.text(x, y, randomSymbol, {
+          fontSize: '48px',
+          backgroundColor: '#ffffff33',
+          padding: { x: 10, y: 10 },
+        })
+        .setOrigin(0.5)
+        .setScale(this.SYMBOL_SCALE)
+        .setInteractive();
         
         this.symbols[row][col] = symbol;
         
@@ -56,7 +51,7 @@ export class SlotGameScene extends Phaser.Scene {
         symbol.on('pointerover', () => {
           this.tweens.add({
             targets: symbol,
-            scale: 0.9,
+            scale: this.SYMBOL_SCALE * 1.1,
             duration: 100
           });
         });
@@ -64,7 +59,7 @@ export class SlotGameScene extends Phaser.Scene {
         symbol.on('pointerout', () => {
           this.tweens.add({
             targets: symbol,
-            scale: 0.8,
+            scale: this.SYMBOL_SCALE,
             duration: 100
           });
         });
