@@ -7,6 +7,7 @@ export class WinAnimationManager {
   private particleManager: ParticleManager;
   private winCircles: Phaser.GameObjects.Graphics[];
   private symbolScale: number = 1.05;
+  private flashTweens: Phaser.Tweens.Tween[] = [];
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
@@ -20,16 +21,15 @@ export class WinAnimationManager {
     
     this.clearPreviousAnimations();
 
-    // Calculate required space for animations
     const maxRadius = Math.max(...positions.map(([row, col]) => {
       const symbol = symbols[row][col];
       return Math.max(symbol.width, symbol.height) * this.symbolScale;
     }));
 
-    // Scale winning symbols
     positions.forEach(([row, col]) => {
       const symbol = symbols[row][col];
       this.createWinningSymbolAnimation(symbol, maxRadius);
+      this.createAlienFlashEffect(symbol);
     });
 
     if (positions.length > 1) {
@@ -37,20 +37,42 @@ export class WinAnimationManager {
     }
   }
 
+  private createAlienFlashEffect(symbol: Phaser.GameObjects.Text): void {
+    // Create alien-like flashing background
+    const flashTween = this.scene.tweens.add({
+      targets: symbol,
+      alpha: 0.7,
+      duration: 500,
+      yoyo: true,
+      repeat: -1,
+      ease: 'Sine.easeInOut',
+      onUpdate: () => {
+        symbol.setShadow(
+          2 + Math.random() * 2,
+          2 + Math.random() * 2,
+          '#4AE54A',
+          5 + Math.random() * 5
+        );
+      }
+    });
+    
+    this.flashTweens.push(flashTween);
+  }
+
   private createWinningSymbolAnimation(symbol: Phaser.GameObjects.Text, radius: number): void {
     const circle = this.scene.add.graphics();
     
-    // Scale up the symbol
+    // Scale up the symbol with alien effect
     this.scene.tweens.add({
       targets: symbol,
-      scale: this.symbolScale,
+      scale: this.symbolScale * 1.05, // Additional 5% scale for winning symbols
       duration: 200,
       ease: 'Power2',
       yoyo: true,
       repeat: -1
     });
     
-    // Draw crop circle effect
+    // Draw alien crop circle effect
     circle.lineStyle(2, COLORS.neonGreen, 1);
     circle.fillStyle(COLORS.neonGreen, 0.3);
     
@@ -63,9 +85,9 @@ export class WinAnimationManager {
         const progress = tween.getValue();
         const currentRadius = radius * progress;
         
-        // Draw multiple circles for crop circle effect
-        for (let i = 0; i < 3; i++) {
-          const circleRadius = currentRadius * (0.6 + (i * 0.2));
+        // Draw multiple circles for enhanced crop circle effect
+        for (let i = 0; i < 4; i++) {
+          const circleRadius = currentRadius * (0.6 + (i * 0.15));
           circle.beginPath();
           circle.arc(symbol.x, symbol.y, circleRadius, 0, Math.PI * 2);
           circle.strokePath();
@@ -121,6 +143,8 @@ export class WinAnimationManager {
     console.log('WinAnimationManager: Clearing previous animations');
     this.winCircles.forEach(circle => circle.destroy());
     this.winCircles = [];
+    this.flashTweens.forEach(tween => tween.stop());
+    this.flashTweens = [];
     this.particleManager.clearParticles();
   }
 }

@@ -68,6 +68,55 @@ export class SlotGameScene extends Phaser.Scene {
     });
   }
 
+  private createGrid() {
+    const { width, height } = this.cameras.main;
+    const padding = Math.min(width, height) * 0.15;
+    const availableWidth = width - (padding * 2);
+    const availableHeight = height - (padding * 2);
+    const cellSize = Math.min(
+      availableWidth / GRID_SIZE,
+      availableHeight / GRID_SIZE
+    );
+
+    const startX = (width - (cellSize * (GRID_SIZE - 1))) / 2;
+    const startY = (height - (cellSize * (GRID_SIZE - 1))) / 2;
+    this.baseScale = cellSize / SYMBOL_SIZE;
+
+    console.log('SlotGameScene: Creating grid with dimensions:', {
+      width,
+      height,
+      cellSize,
+      startX,
+      startY,
+      baseScale: this.baseScale
+    });
+
+    for (let row = 0; row < GRID_SIZE; row++) {
+      this.symbols[row] = [];
+      for (let col = 0; col < GRID_SIZE; col++) {
+        const x = startX + col * cellSize;
+        const y = startY + row * cellSize;
+        
+        const symbol = this.add.text(x, y, this.currentGrid[row][col], {
+          fontSize: `${SYMBOL_SIZE}px`,
+          padding: { x: SYMBOL_SIZE * 0.02, y: SYMBOL_SIZE * 0.02 }, // 2% padding
+          shadow: {
+            offsetX: 2,
+            offsetY: 2,
+            color: '#000000',
+            blur: 5,
+            fill: true
+          }
+        })
+        .setOrigin(0.5)
+        .setScale(this.baseScale)
+        .setInteractive();
+        
+        this.symbols[row][col] = symbol;
+      }
+    }
+  }
+
   public async startSpin(betAmount: number, multiplier: number): Promise<number> {
     if (this.isSpinning) {
       console.log('SlotGameScene: Spin already in progress, ignoring new spin request');
@@ -139,48 +188,6 @@ export class SlotGameScene extends Phaser.Scene {
       this.isSpinning = false;
       this.startFloatingAnimations();
       return 0;
-    }
-  }
-
-  private createGrid() {
-    const { width, height } = this.cameras.main;
-    const padding = Math.min(width, height) * 0.15; // Increased padding for animations
-    const availableWidth = width - (padding * 2);
-    const availableHeight = height - (padding * 2);
-    const cellSize = Math.min(
-      availableWidth / GRID_SIZE,
-      availableHeight / GRID_SIZE
-    );
-
-    const startX = (width - (cellSize * (GRID_SIZE - 1))) / 2;
-    const startY = (height - (cellSize * (GRID_SIZE - 1))) / 2;
-    this.baseScale = cellSize / SYMBOL_SIZE;
-
-    console.log('SlotGameScene: Creating grid with dimensions:', {
-      width,
-      height,
-      cellSize,
-      startX,
-      startY,
-      baseScale: this.baseScale
-    });
-
-    for (let row = 0; row < GRID_SIZE; row++) {
-      this.symbols[row] = [];
-      for (let col = 0; col < GRID_SIZE; col++) {
-        const x = startX + col * cellSize;
-        const y = startY + row * cellSize;
-        
-        const symbol = this.add.text(x, y, this.currentGrid[row][col], {
-          fontSize: `${SYMBOL_SIZE}px`,
-          padding: { x: SYMBOL_SIZE * 0.15, y: SYMBOL_SIZE * 0.15 },
-        })
-        .setOrigin(0.5)
-        .setScale(this.baseScale)
-        .setInteractive();
-        
-        this.symbols[row][col] = symbol;
-      }
     }
   }
 }
