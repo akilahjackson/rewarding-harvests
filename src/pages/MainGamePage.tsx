@@ -7,9 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { SlotGameScene } from '@/scenes/SlotGameScene';
 
 const MainGamePage = () => {
-  const [balance, setBalance] = useState(1000);
-  const [betAmount, setBetAmount] = useState(10);
-  const [multiplier, setMultiplier] = useState(1);
+  const [balance, setBalance] = useState(1.0); // Starting balance in SOL
+  const [betAmount, setBetAmount] = useState(0.001);
   const [totalWinnings, setTotalWinnings] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isAutoSpin, setIsAutoSpin] = useState(false);
@@ -17,13 +16,10 @@ const MainGamePage = () => {
   const { toast } = useToast();
   const autoSpinIntervalRef = useRef<NodeJS.Timeout>();
 
-  const calculateTotalBet = () => betAmount * multiplier;
-
   const handleSpin = async () => {
     if (isSpinning) return;
     
-    const totalBet = calculateTotalBet();
-    if (totalBet > balance) {
+    if (betAmount > balance) {
       toast({
         title: "Insufficient Balance",
         description: "You don't have enough balance for this bet.",
@@ -33,19 +29,19 @@ const MainGamePage = () => {
     }
 
     setIsSpinning(true);
-    setBalance(prev => prev - totalBet);
-    console.log('Starting spin with bet:', totalBet);
+    setBalance(prev => prev - betAmount);
+    console.log('Starting spin with bet:', betAmount);
 
     try {
       if (gameSceneRef.current) {
-        const winAmount = await gameSceneRef.current.startSpin(betAmount, multiplier);
+        const winAmount = await gameSceneRef.current.startSpin(betAmount);
         
         if (winAmount > 0) {
           setBalance(prev => prev + winAmount);
           setTotalWinnings(prev => prev + winAmount);
           toast({
             title: "Winner!",
-            description: `You won ${winAmount.toFixed(2)} coins!`,
+            description: `You won ${winAmount.toFixed(3)} SOL!`,
           });
         } else {
           toast({
@@ -74,7 +70,7 @@ const MainGamePage = () => {
       }
     } else {
       autoSpinIntervalRef.current = setInterval(() => {
-        if (!isSpinning && calculateTotalBet() <= balance) {
+        if (!isSpinning && betAmount <= balance) {
           handleSpin();
         } else {
           if (autoSpinIntervalRef.current) {
@@ -85,7 +81,7 @@ const MainGamePage = () => {
       }, 3000);
     }
     setIsAutoSpin(!isAutoSpin);
-  }, [isAutoSpin, isSpinning, balance, betAmount, multiplier]);
+  }, [isAutoSpin, isSpinning, balance, betAmount]);
 
   useEffect(() => {
     return () => {
@@ -99,23 +95,23 @@ const MainGamePage = () => {
     <div className="relative w-full h-screen bg-nightsky overflow-hidden">
       <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1500382017468-9049fed747ef')] bg-cover bg-center opacity-30" />
       
-      <div className="relative w-full h-full flex flex-col items-center justify-between p-4 gap-4">
-        <div className="w-full max-w-7xl flex flex-wrap justify-between items-center p-4 bg-nightsky/50 backdrop-blur-sm rounded-xl border border-neongreen/20">
+      <div className="relative w-full h-full flex flex-col">
+        <div className="w-full flex flex-wrap justify-between items-center p-4 bg-nightsky/50 backdrop-blur-sm border-b border-neongreen/20">
           <div className="flex flex-wrap gap-4">
             <Badge variant="outline" className="bg-harvestorange/20 text-harvestorange border-harvestorange">
               <Coins className="w-4 h-4 mr-1" />
-              Balance: {balance.toFixed(2)}
+              Balance: {balance.toFixed(3)} SOL
             </Badge>
             <Badge variant="outline" className="bg-neongreen/20 text-neongreen border-neongreen">
-              Total Winnings: {totalWinnings.toFixed(2)}
+              Total Winnings: {totalWinnings.toFixed(3)} SOL
             </Badge>
           </div>
           <Badge variant="outline" className="bg-harvestpeach/20 text-harvestpeach border-harvestpeach">
-            Current Bet: {calculateTotalBet()}
+            Current Bet: {betAmount.toFixed(3)} SOL
           </Badge>
         </div>
 
-        <div className="flex-1 w-full max-w-7xl">
+        <div className="flex-1 w-full">
           <GameCanvas onSceneCreated={(scene) => gameSceneRef.current = scene} />
         </div>
 
@@ -123,8 +119,6 @@ const MainGamePage = () => {
           balance={balance}
           betAmount={betAmount}
           setBetAmount={setBetAmount}
-          multiplier={multiplier}
-          setMultiplier={setMultiplier}
           totalWinnings={totalWinnings}
           isSpinning={isSpinning}
           onSpin={handleSpin}
