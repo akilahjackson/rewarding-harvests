@@ -4,6 +4,7 @@ class AudioManager {
   private spinSound: HTMLAudioElement;
   private winSound: HTMLAudioElement;
   private isMuted: boolean = false;
+  private isInitialized: boolean = false;
 
   private constructor() {
     this.bgMusic = new Audio('/sounds/background-music.mp3');
@@ -19,30 +20,68 @@ class AudioManager {
     return AudioManager.instance;
   }
 
-  playBackgroundMusic() {
-    if (!this.isMuted) {
-      this.bgMusic.play();
+  async initializeAudio() {
+    if (this.isInitialized) return;
+    
+    try {
+      // Create a short silent audio context to initialize audio
+      const audioContext = new AudioContext();
+      await audioContext.resume();
+      this.isInitialized = true;
+      
+      if (!this.isMuted) {
+        await this.bgMusic.play();
+      }
+    } catch (error) {
+      console.log('Audio initialization failed:', error);
     }
   }
 
-  playSpinSound() {
-    if (!this.isMuted) {
-      this.spinSound.play();
+  async playBackgroundMusic() {
+    if (!this.isInitialized) {
+      console.log('Audio not initialized yet. Waiting for user interaction.');
+      return;
+    }
+
+    try {
+      if (!this.isMuted) {
+        await this.bgMusic.play();
+      }
+    } catch (error) {
+      console.log('Failed to play background music:', error);
     }
   }
 
-  playWinSound() {
-    if (!this.isMuted) {
-      this.winSound.play();
+  async playSpinSound() {
+    if (!this.isMuted && this.isInitialized) {
+      try {
+        await this.spinSound.play();
+      } catch (error) {
+        console.log('Failed to play spin sound:', error);
+      }
     }
   }
 
-  toggleMute() {
+  async playWinSound() {
+    if (!this.isMuted && this.isInitialized) {
+      try {
+        await this.winSound.play();
+      } catch (error) {
+        console.log('Failed to play win sound:', error);
+      }
+    }
+  }
+
+  async toggleMute() {
     this.isMuted = !this.isMuted;
     if (this.isMuted) {
       this.bgMusic.pause();
-    } else {
-      this.bgMusic.play();
+    } else if (this.isInitialized) {
+      try {
+        await this.bgMusic.play();
+      } catch (error) {
+        console.log('Failed to resume background music:', error);
+      }
     }
     return this.isMuted;
   }

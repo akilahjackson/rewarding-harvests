@@ -22,17 +22,24 @@ const MainGamePage = () => {
   const audioManager = AudioManager.getInstance();
 
   useEffect(() => {
-    // Start background music when component mounts
-    audioManager.playBackgroundMusic();
+    const initAudio = async () => {
+      // We'll initialize audio on first user interaction instead
+      console.log('Audio manager ready for initialization');
+    };
+    initAudio();
   }, []);
 
-  const toggleMute = () => {
-    const newMutedState = audioManager.toggleMute();
+  const toggleMute = async () => {
+    await audioManager.initializeAudio(); // Ensure audio is initialized
+    const newMutedState = await audioManager.toggleMute();
     setIsMuted(newMutedState);
   };
 
   const handleSpin = useCallback(async () => {
     if (isSpinning || !gameSceneRef.current) return;
+    
+    // Initialize audio on first spin
+    await audioManager.initializeAudio();
     
     if (betAmount > balance) {
       toast({
@@ -46,33 +53,32 @@ const MainGamePage = () => {
     try {
       setIsSpinning(true);
       setBalance(prev => prev - betAmount);
-      console.log('MainGamePage: Starting spin with bet:', betAmount);
-
-      audioManager.playSpinSound();
+      
+      await audioManager.playSpinSound();
       
       const multiplier = isAutoSpin ? 2 : 1;
       const { totalWinAmount, winningLines } = await gameSceneRef.current.startSpin(betAmount, multiplier);
       
       if (totalWinAmount > 0) {
-        audioManager.playWinSound();
+        await audioManager.playWinSound();
         const hrvestTokens = totalWinAmount * 1000;
         setTotalWinnings(prev => prev + hrvestTokens);
         setBalance(prev => prev + totalWinAmount);
 
         toast({
-          title: "🛸 Cosmic Win!",
-          description: `Total Win: ${hrvestTokens.toFixed(0)} HRVST`,
-          duration: 3000,
+          title: "Win!",
+          description: `${hrvestTokens.toFixed(0)} HRVST`,
+          duration: 2000,
         });
       } else {
         toast({
-          title: "👽 No Win",
-          description: "Better luck next harvest!",
-          duration: 2000,
+          title: "No Win",
+          description: "Try again!",
+          duration: 1000,
         });
       }
     } catch (error) {
-      console.error('MainGamePage: Spin error:', error);
+      console.error('Spin error:', error);
       toast({
         title: "Error",
         description: "Something went wrong during the spin.",
