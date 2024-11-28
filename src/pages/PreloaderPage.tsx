@@ -31,6 +31,7 @@ const PreloaderPage = () => {
       navigate('/game');
     };
 
+    // Listen for the custom event from PreloaderScene
     game.events.on('sceneComplete', handleSceneComplete);
 
     return () => {
