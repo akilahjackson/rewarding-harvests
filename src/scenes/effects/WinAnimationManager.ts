@@ -12,7 +12,6 @@ export class WinAnimationManager {
     this.particleManager = new ParticleManager(scene);
     console.log('WinAnimationManager: Initialized');
     
-    // Add scene cleanup listener
     this.scene.events.on('shutdown', this.clearPreviousAnimations, this);
     this.scene.events.on('destroy', this.clearPreviousAnimations, this);
   }
@@ -23,6 +22,7 @@ export class WinAnimationManager {
     // Clear any existing animations before creating new ones
     this.clearPreviousAnimations();
     
+    // Create animations for each winning position
     positions.forEach(([row, col]) => {
       const symbol = symbols[row][col];
       
