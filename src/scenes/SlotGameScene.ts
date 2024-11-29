@@ -107,7 +107,7 @@ export class SlotGameScene extends Phaser.Scene {
     console.log('SlotGameScene: Starting floating animations');
     this.symbols.flat().forEach((symbol) => {
       const baseY = symbol.y;
-      const tween = this.tweens.add({
+      this.tweens.add({
         targets: symbol,
         y: baseY + 10,
         duration: 2000 + Math.random() * 1000,

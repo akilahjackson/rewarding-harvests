@@ -1,11 +1,14 @@
 import Phaser from 'phaser';
+import { ParticleManager } from './ParticleManager';
 
 export class WinAnimationManager {
   private scene: Phaser.Scene;
   private activeEffects: Phaser.GameObjects.GameObject[] = [];
+  private particleManager: ParticleManager;
 
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
+    this.particleManager = new ParticleManager(scene);
     console.log('WinAnimationManager: Initialized');
   }
 
@@ -15,22 +18,6 @@ export class WinAnimationManager {
     positions.forEach(([row, col]) => {
       const symbol = symbols[row][col];
       
-      // Create particle effect
-      const particles = this.scene.add.particles(symbol.x, symbol.y, 'particle', {
-        lifespan: 2000,
-        speed: { min: 50, max: 100 },
-        scale: { start: 0.4, end: 0 },
-        alpha: { start: 0.6, end: 0 },
-        blendMode: Phaser.BlendModes.ADD,
-        emitting: true,
-        quantity: 1,
-        frequency: 150,
-        rotate: { min: 0, max: 360 }
-      });
-
-      particles.setDepth(symbol.depth - 2);
-      this.activeEffects.push(particles);
-
       // Create highlight effect
       const highlight = this.scene.add.rectangle(
         symbol.x,
@@ -42,6 +29,9 @@ export class WinAnimationManager {
       );
       highlight.setDepth(symbol.depth - 1);
       this.activeEffects.push(highlight);
+
+      // Create particle effect
+      this.particleManager.createWinParticles(symbol.x, symbol.y, symbol.width / 2);
 
       // Pulse animation for highlight
       this.scene.tweens.add({
@@ -56,12 +46,18 @@ export class WinAnimationManager {
 
   clearPreviousAnimations(): void {
     console.log('WinAnimationManager: Clearing previous animations');
+    
+    // Clear particle effects first
+    this.particleManager.clearParticles();
+    
+    // Clear other active effects
     this.activeEffects.forEach(effect => {
-      if (effect && effect.active) {
+      if (effect.active) {
         effect.destroy();
       }
     });
-    // Clear the array after destroying all effects
+    
+    // Reset the active effects array
     this.activeEffects = [];
   }
 }
