@@ -28,6 +28,7 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game scene');
     
+    // Clear any existing game objects
     this.children.removeAll(true);
     this.add.graphics().clear();
     
@@ -37,11 +38,21 @@ export class SlotGameScene extends Phaser.Scene {
     this.createGrid();
     this.startFloatingAnimations();
     
+    // Setup scene cleanup
+    this.events.on('shutdown', this.cleanup, this);
+    
     const bgMusic = this.game.registry.get('bgMusic') as Phaser.Sound.BaseSound;
     if (bgMusic && !bgMusic.isPlaying) {
       console.log('SlotGameScene: Restarting background music');
       bgMusic.play({ volume: 0.5, loop: true });
     }
+  }
+
+  private cleanup(): void {
+    console.log('SlotGameScene: Cleaning up scene');
+    this.winAnimationManager.clearPreviousAnimations();
+    this.stopFloatingAnimations();
+    this.events.off('shutdown', this.cleanup, this);
   }
 
   private initializeManagers() {

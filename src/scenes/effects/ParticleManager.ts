@@ -7,6 +7,10 @@ export class ParticleManager {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     console.log('ParticleManager: Initialized');
+    
+    // Add scene cleanup listener
+    this.scene.events.on('shutdown', this.clearParticles, this);
+    this.scene.events.on('destroy', this.clearParticles, this);
   }
 
   createWinParticles(x: number, y: number, radius: number): void {
@@ -18,21 +22,23 @@ export class ParticleManager {
       scale: { start: 0.4, end: 0 },
       alpha: { start: 0.6, end: 0 },
       blendMode: Phaser.BlendModes.ADD,
-      emitting: false, // Start with particles disabled
+      emitting: false,
       quantity: 1,
       frequency: 150,
       rotate: { min: 0, max: 360 }
     });
 
-    particles.setDepth(-1);
+    // Set proper depth to avoid rendering issues
+    particles.setDepth(1);
     this.particleSystems.push(particles);
 
-    // Only start emitting when explicitly needed
+    // Only start emitting when explicitly called
     particles.start();
 
     // Auto cleanup after animation duration
     this.scene.time.delayedCall(2000, () => {
       if (particles && particles.active) {
+        console.log('ParticleManager: Cleaning up particle system');
         particles.stop();
         const index = this.particleSystems.indexOf(particles);
         if (index > -1) {
@@ -52,5 +58,11 @@ export class ParticleManager {
       }
     });
     this.particleSystems = [];
+  }
+
+  destroy(): void {
+    this.clearParticles();
+    this.scene.events.off('shutdown', this.clearParticles, this);
+    this.scene.events.off('destroy', this.clearParticles, this);
   }
 }
