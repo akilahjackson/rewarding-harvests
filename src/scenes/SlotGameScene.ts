@@ -1,11 +1,11 @@
 import Phaser from 'phaser';
-import { GRID_SIZE, SYMBOL_SIZE, SPIN_DURATION } from './configs/symbolConfig';
-import { calculateWinnings } from './utils/winCalculator';
-import { createInitialGrid, generateRandomSymbol } from './utils/gridManager';
+import { GRID_SIZE, SYMBOL_SIZE } from './configs/symbolConfig';
+import { createInitialGrid } from './utils/gridManager';
 import { WinAnimationManager } from './effects/WinAnimationManager';
 import { MessageManager } from './effects/MessageManager';
 import { SoundManager } from './effects/SoundManager';
 import { GridManager } from './managers/GridManager';
+import { SpinManager } from './managers/SpinManager';
 
 export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
@@ -15,6 +15,7 @@ export class SlotGameScene extends Phaser.Scene {
   private messageManager: MessageManager;
   private soundManager: SoundManager;
   private gridManager: GridManager;
+  private spinManager: SpinManager;
   private baseScale: number = 1;
   private bgImage?: Phaser.GameObjects.Image;
   private alienMessage?: Phaser.GameObjects.Text;
@@ -27,29 +28,28 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game scene');
     
-    // Clear any existing game objects and graphics
     this.children.removeAll(true);
     this.add.graphics().clear();
     
-    // Initialize managers
-    this.soundManager = new SoundManager(this);
-    this.currentGrid = createInitialGrid();
-    this.winAnimationManager = new WinAnimationManager(this);
-    this.messageManager = new MessageManager(this);
-    this.gridManager = new GridManager(this);
-    
-    // Setup scene
+    this.initializeManagers();
     this.setupBackground();
     this.setupAlienMessage();
     this.createGrid();
     this.startFloatingAnimations();
     
-    // Continue background music if it exists
     const bgMusic = this.game.registry.get('bgMusic') as Phaser.Sound.BaseSound;
     if (bgMusic && !bgMusic.isPlaying) {
       console.log('SlotGameScene: Restarting background music');
       bgMusic.play({ volume: 0.5, loop: true });
     }
+  }
+
+  private initializeManagers() {
+    this.soundManager = new SoundManager(this);
+    this.currentGrid = createInitialGrid();
+    this.winAnimationManager = new WinAnimationManager(this);
+    this.messageManager = new MessageManager(this);
+    this.gridManager = new GridManager(this);
   }
 
   private setupBackground() {
@@ -83,16 +83,42 @@ export class SlotGameScene extends Phaser.Scene {
     .setDepth(1000);
   }
 
-  private adjustGridScale(hasWinningLines: boolean) {
-    const scale = hasWinningLines ? 0.9 : 1;
-    this.symbols.flat().forEach(symbol => {
-      this.tweens.add({
-        targets: symbol,
-        scale: this.baseScale * scale,
-        duration: 200,
-        ease: 'Power2'
-      });
-    });
+  private createGrid() {
+    const { width, height } = this.cameras.main;
+    const gridDimensions = this.gridManager.calculateGridDimensions(width, height);
+    this.baseScale = gridDimensions.baseScale;
+
+    console.log('SlotGameScene: Creating grid with dimensions:', gridDimensions);
+
+    for (let row = 0; row < GRID_SIZE; row++) {
+      this.symbols[row] = [];
+      for (let col = 0; col < GRID_SIZE; col++) {
+        const x = gridDimensions.startX + col * (gridDimensions.cellSize + gridDimensions.gridPadding);
+        const y = gridDimensions.startY + row * (gridDimensions.cellSize + gridDimensions.gridPadding);
+        
+        const symbol = this.add.text(x, y, this.currentGrid[row][col], {
+          fontSize: `${SYMBOL_SIZE}px`,
+          padding: { x: SYMBOL_SIZE * 0.02, y: SYMBOL_SIZE * 0.02 },
+        })
+        .setOrigin(0.5)
+        .setScale(this.baseScale)
+        .setInteractive();
+        
+        symbol.setData('originalY', y);
+        symbol.setData('isFloating', true);
+        this.symbols[row][col] = symbol;
+      }
+    }
+
+    this.spinManager = new SpinManager(
+      this,
+      this.symbols,
+      this.currentGrid,
+      this.baseScale,
+      this.messageManager,
+      this.soundManager,
+      this.winAnimationManager
+    );
   }
 
   private stopFloatingAnimations() {
@@ -122,34 +148,6 @@ export class SlotGameScene extends Phaser.Scene {
     });
   }
 
-  private createGrid() {
-    const { width, height } = this.cameras.main;
-    const gridDimensions = this.gridManager.calculateGridDimensions(width, height);
-    this.baseScale = gridDimensions.baseScale;
-
-    console.log('SlotGameScene: Creating grid with dimensions:', gridDimensions);
-
-    for (let row = 0; row < GRID_SIZE; row++) {
-      this.symbols[row] = [];
-      for (let col = 0; col < GRID_SIZE; col++) {
-        const x = gridDimensions.startX + col * (gridDimensions.cellSize + gridDimensions.gridPadding);
-        const y = gridDimensions.startY + row * (gridDimensions.cellSize + gridDimensions.gridPadding);
-        
-        const symbol = this.add.text(x, y, this.currentGrid[row][col], {
-          fontSize: `${SYMBOL_SIZE}px`,
-          padding: { x: SYMBOL_SIZE * 0.02, y: SYMBOL_SIZE * 0.02 },
-        })
-        .setOrigin(0.5)
-        .setScale(this.baseScale)
-        .setInteractive();
-        
-        symbol.setData('originalY', y);
-        symbol.setData('isFloating', true);
-        this.symbols[row][col] = symbol;
-      }
-    }
-  }
-
   public async startSpin(betAmount: number, multiplier: number): Promise<{ totalWinAmount: number; winningLines: any[] }> {
     if (this.isSpinning) {
       console.log('SlotGameScene: Spin already in progress, ignoring new spin request');
@@ -162,72 +160,9 @@ export class SlotGameScene extends Phaser.Scene {
     this.winAnimationManager.clearPreviousAnimations();
 
     try {
-      await this.messageManager.showMessage("Initiating crop analysis...", 1000);
-      
-      this.soundManager.playSpinSound();
-      
-      // Perform spin animation
-      await new Promise<void>((resolve) => {
-        let completedSpins = 0;
-        const totalSpins = GRID_SIZE * GRID_SIZE;
-
-        for (let rowIndex = 0; rowIndex < GRID_SIZE; rowIndex++) {
-          for (let colIndex = 0; colIndex < GRID_SIZE; colIndex++) {
-            const symbol = this.symbols[rowIndex][colIndex];
-            
-            this.tweens.add({
-              targets: symbol,
-              scaleX: 0,
-              duration: 300,
-              ease: 'Power1',
-              onComplete: () => {
-                const newSymbol = generateRandomSymbol();
-                this.currentGrid[rowIndex][colIndex] = newSymbol;
-                symbol.setText(newSymbol);
-                
-                this.tweens.add({
-                  targets: symbol,
-                  scaleX: this.baseScale,
-                  duration: 300,
-                  ease: 'Power1',
-                  onComplete: () => {
-                    completedSpins++;
-                    if (completedSpins === totalSpins) {
-                      resolve();
-                    }
-                  }
-                });
-              }
-            });
-          }
-        }
-      });
-
-      await this.messageManager.showMessage("Analyzing energy patterns...", 1000);
-      await new Promise(resolve => this.time.delayedCall(1000, resolve));
-
-      const { totalWinAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
-      
-      if (winningLines.length > 0) {
-        this.soundManager.playWinSound(totalWinAmount);
-        
-        for (const line of winningLines) {
-          this.winAnimationManager.createWinAnimation(line.positions, this.symbols);
-          await new Promise(resolve => this.time.delayedCall(500, resolve));
-        }
-
-        await this.messageManager.showMessage("Harvesting cosmic energy...", 1000);
-        await new Promise(resolve => this.time.delayedCall(1000, resolve));
-      } else {
-        this.soundManager.playLoseSound();
-        await this.messageManager.showMessage("Better luck next time...", 1000);
-        await new Promise(resolve => this.time.delayedCall(1000, resolve));
-      }
-
-      console.log(`SlotGameScene: Spin completed. Win amount: ${totalWinAmount}`);
+      const result = await this.spinManager.performSpin(betAmount, multiplier);
       this.isSpinning = false;
-      return { totalWinAmount, winningLines };
-
+      return result;
     } catch (error) {
       console.error('SlotGameScene: Error during spin:', error);
       this.isSpinning = false;

@@ -10,8 +10,8 @@ export class MessageManager {
     console.log('MessageManager: Initialized');
   }
 
-  async showMessage(message: string, duration: number = 2000): Promise<void> {
-    console.log('MessageManager: Showing message:', message);
+  async showMessage(message: string, duration: number): Promise<void> {
+    console.log('MessageManager: Showing message:', message, 'duration:', duration);
     
     if (this.messageText) {
       this.messageText.destroy();
