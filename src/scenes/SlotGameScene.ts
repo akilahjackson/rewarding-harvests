@@ -162,7 +162,7 @@ export class SlotGameScene extends Phaser.Scene {
     this.winAnimationManager.clearPreviousAnimations();
 
     try {
-      await this.messageManager.showMessage("Initiating crop analysis...");
+      await this.messageManager.showMessage("Initiating crop analysis...", 1000);
       
       this.soundManager.playSpinSound();
       
@@ -203,7 +203,7 @@ export class SlotGameScene extends Phaser.Scene {
         }
       });
 
-      await this.messageManager.showMessage("Analyzing energy patterns...");
+      await this.messageManager.showMessage("Analyzing energy patterns...", 1000);
       await new Promise(resolve => this.time.delayedCall(1000, resolve));
 
       const { totalWinAmount, winningLines } = calculateWinnings(this.currentGrid, betAmount, multiplier);
@@ -216,11 +216,11 @@ export class SlotGameScene extends Phaser.Scene {
           await new Promise(resolve => this.time.delayedCall(500, resolve));
         }
 
-        await this.messageManager.showMessage("Harvesting cosmic energy...");
+        await this.messageManager.showMessage("Harvesting cosmic energy...", 1000);
         await new Promise(resolve => this.time.delayedCall(1000, resolve));
       } else {
         this.soundManager.playLoseSound();
-        await this.messageManager.showMessage("Better luck next time...");
+        await this.messageManager.showMessage("Better luck next time...", 1000);
         await new Promise(resolve => this.time.delayedCall(1000, resolve));
       }
 
