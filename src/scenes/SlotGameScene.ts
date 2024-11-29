@@ -57,15 +57,6 @@ export class SlotGameScene extends Phaser.Scene {
     this.bgImage = this.add.image(width / 2, height / 2, 'preloader-bg')
       .setDisplaySize(width, height)
       .setAlpha(0.3);
-
-    this.tweens.add({
-      targets: this.bgImage,
-      y: height / 2 - 10,
-      duration: 2000,
-      yoyo: true,
-      repeat: -1,
-      ease: 'Sine.easeInOut'
-    });
   }
 
   private setupAlienMessage() {
