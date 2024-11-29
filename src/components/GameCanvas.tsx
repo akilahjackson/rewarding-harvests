@@ -46,6 +46,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
         width: width,
         height: height,
       },
+      dom: {
+        createContainer: true
+      },
       callbacks: {
         postBoot: (game) => {
           console.log('GameCanvas: Game loaded successfully');
@@ -87,7 +90,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
   }, [isMobile, onSceneCreated]);
 
   return (
-    <div className="w-full h-[60vh] relative">
+    <div className="w-full h-[60vh] relative bg-nightsky">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center z-10">
           <div className="text-center space-y-4">
@@ -99,6 +102,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       <div 
         ref={containerRef}
         className="w-full h-full flex items-center justify-center"
+        style={{ outline: 'none' }}
       />
     </div>
   );
