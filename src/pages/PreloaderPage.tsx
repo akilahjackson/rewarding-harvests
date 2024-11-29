@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PreloaderScene } from '@/scenes/PreloaderScene';
+import { SlotGameScene } from '@/scenes/SlotGameScene';
 import Phaser from 'phaser';
 
 const PreloaderPage = () => {
@@ -18,23 +19,28 @@ const PreloaderPage = () => {
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
       backgroundColor: '#000000',
-      scene: PreloaderScene
+      scene: [PreloaderScene, SlotGameScene] // Register both scenes
     };
 
-    const game = new Phaser.Game(config);
+    try {
+      console.log('PreloaderPage: Creating new Phaser game instance');
+      const game = new Phaser.Game(config);
 
-    const handleSceneComplete = () => {
-      console.log('Preloader complete, navigating to game');
-      game.destroy(true);
-      navigate('/game');
-    };
+      const handleSceneComplete = () => {
+        console.log('Preloader complete, navigating to game');
+        game.destroy(true);
+        navigate('/game');
+      };
 
-    game.events.on('sceneComplete', handleSceneComplete);
+      game.events.on('sceneComplete', handleSceneComplete);
 
-    return () => {
-      game.events.off('sceneComplete', handleSceneComplete);
-      game.destroy(true);
-    };
+      return () => {
+        game.events.off('sceneComplete', handleSceneComplete);
+        game.destroy(true);
+      };
+    } catch (error) {
+      console.error('PreloaderPage: Error creating Phaser game instance:', error);
+    }
   }, [navigate]);
 
   return (

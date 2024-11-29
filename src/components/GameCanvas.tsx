@@ -34,7 +34,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       width: width,
       height: height,
       transparent: true,
-      scene: [SlotGameScene],
+      scene: SlotGameScene, // Register scene directly
       scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -53,7 +53,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       }
     };
 
-    gameRef.current = new Phaser.Game(config);
+    try {
+      console.log('GameCanvas: Attempting to create new Phaser game instance');
+      gameRef.current = new Phaser.Game(config);
+      console.log('GameCanvas: Successfully created Phaser game instance');
+    } catch (error) {
+      console.error('GameCanvas: Error creating Phaser game instance:', error);
+    }
 
     const handleResize = () => {
       if (!gameRef.current) return;
