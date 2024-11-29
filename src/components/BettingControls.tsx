@@ -73,9 +73,8 @@ const BettingControls: React.FC<BettingControlsProps> = ({
         <div className="flex items-center gap-4">
           <Button
             variant="outline"
-            size="icon"
+            className="h-16 w-16 bg-nightsky/50 border-neongreen"
             onClick={onMuteToggle}
-            className="h-16 bg-nightsky/50 border-neongreen"
           >
             {isMuted ? (
               <VolumeX className="h-6 w-6 text-neongreen" />
