@@ -25,6 +25,16 @@ export class SlotGameScene extends Phaser.Scene {
     console.log('SlotGameScene: Constructor initialized');
   }
 
+  preload() {
+    console.log('SlotGameScene: Preloading assets');
+    // Load audio assets
+    this.load.audio('background-music', '/sounds/background-music.mp3');
+    this.load.audio('spin-sound', '/sounds/spin.mp3');
+    this.load.audio('win-sound', '/sounds/win.mp3');
+    this.load.audio('big-win-sound', '/sounds/big-win.mp3');
+    this.load.audio('lose-sound', '/sounds/lose.mp3');
+  }
+
   create() {
     console.log('SlotGameScene: Creating game scene');
     
