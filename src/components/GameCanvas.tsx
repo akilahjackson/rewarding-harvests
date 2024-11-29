@@ -38,6 +38,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       width: width,
       height: height,
       transparent: true,
+      backgroundColor: '#000000',
       scene: SlotGameScene,
       scale: {
         mode: Phaser.Scale.RESIZE,
@@ -52,7 +53,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
           if (onSceneCreated) {
             onSceneCreated(scene);
           }
-          // Remove loading state immediately after game loads
           setIsLoading(false);
         }
       }
@@ -64,7 +64,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       console.log('GameCanvas: Successfully created Phaser game instance');
     } catch (error) {
       console.error('GameCanvas: Error creating Phaser game instance:', error);
-      setIsLoading(false); // Ensure loading state is cleared even on error
+      setIsLoading(false);
     }
 
     const handleResize = () => {
@@ -96,10 +96,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
           </div>
         </div>
       )}
-      
       <div 
         ref={containerRef}
-        className="w-full h-full flex items-center justify-center bg-transparent"
+        className="w-full h-full flex items-center justify-center"
       />
     </div>
   );

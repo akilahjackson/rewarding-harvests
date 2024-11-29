@@ -149,6 +149,8 @@ export class PreloaderScene extends Phaser.Scene {
           volume: 0.5,
           loop: true
         });
+        // Store music reference in registry so other scenes can access it
+        this.game.registry.set('bgMusic', this.bgMusic);
       }
     } catch (error) {
       console.error('PreloaderScene: Error initializing background music:', error);
@@ -159,8 +161,14 @@ export class PreloaderScene extends Phaser.Scene {
     if (this.bgMusic && !this.bgMusic.isPlaying) {
       console.log('PreloaderScene: Starting background music');
       this.bgMusic.play();
-      this.game.registry.set('bgMusic', this.bgMusic);
       this.game.registry.set('audioLoaded', true);
+      
+      // Don't stop music when transitioning scenes
+      this.events.on('shutdown', () => {
+        if (this.bgMusic && this.bgMusic.isPlaying) {
+          this.game.registry.set('bgMusicPlaying', true);
+        }
+      });
       
       // Transition to game after wallet connection
       this.time.delayedCall(2000, () => {
