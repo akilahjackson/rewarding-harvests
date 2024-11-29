@@ -10,20 +10,22 @@ export class WinAnimationManager {
   }
 
   createWinAnimation(positions: number[][], symbols: Phaser.GameObjects.Text[][]): void {
-    console.log('WinAnimationManager: Creating win animation for positions:', positions);
     this.clearPreviousAnimations();
     
     positions.forEach(([row, col]) => {
       const symbol = symbols[row][col];
+      
+      // Create particle effect
       const particles = this.scene.add.particles(symbol.x, symbol.y, 'particle', {
         lifespan: 2000,
         speed: { min: 50, max: 100 },
-        scale: { start: 0.1, end: 0 },
+        scale: { start: 0.4, end: 0 },
         alpha: { start: 0.6, end: 0 },
         blendMode: Phaser.BlendModes.ADD,
         emitting: true,
         quantity: 1,
-        frequency: 500
+        frequency: 150,
+        rotate: { min: 0, max: 360 }
       });
 
       particles.setDepth(symbol.depth - 2);
@@ -55,10 +57,11 @@ export class WinAnimationManager {
   clearPreviousAnimations(): void {
     console.log('WinAnimationManager: Clearing previous animations');
     this.activeEffects.forEach(effect => {
-      if (effect && !effect.active) {
+      if (effect && effect.active) {
         effect.destroy();
       }
     });
+    // Clear the array after destroying all effects
     this.activeEffects = [];
   }
 }
