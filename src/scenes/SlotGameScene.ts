@@ -25,6 +25,9 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game scene');
     
+    // Clear any existing game objects
+    this.children.removeAll();
+    
     // Fade in camera
     this.cameras.main.fadeIn(1000, 0, 0, 0);
     
@@ -73,11 +76,7 @@ export class SlotGameScene extends Phaser.Scene {
           volume: 0.5,
           loop: true
         });
-      } else {
-        console.log('SlotGameScene: Background music already playing');
       }
-    } else {
-      console.warn('SlotGameScene: Background music not found in registry');
     }
 
     this.createGrid();
@@ -150,7 +149,7 @@ export class SlotGameScene extends Phaser.Scene {
   private createGrid() {
     const { width, height } = this.cameras.main;
     const padding = Math.min(width, height) * 0.15;
-    const gridPadding = Math.min(width, height) * 0.04; // 4% padding between pieces
+    const gridPadding = Math.min(width, height) * 0.04;
     const availableWidth = width - (padding * 2);
     const availableHeight = height - (padding * 2);
     const cellSize = Math.min(
