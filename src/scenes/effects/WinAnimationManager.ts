@@ -35,7 +35,7 @@ export class WinAnimationManager {
       
       rings.forEach((ring, index) => {
         const graphics = this.scene.add.graphics();
-        graphics.setDepth(100); // Set depth to be above symbols but below messages
+        graphics.setDepth(90); // Set depth to be above symbols but below messages
         this.activeCircles.push(graphics);
         
         // Draw initial circle
@@ -55,14 +55,6 @@ export class WinAnimationManager {
             graphics.clear();
             graphics.lineStyle(ring.lineWidth, COLORS.neonGreen, graphics.alpha);
             graphics.strokeCircle(symbol.x, symbol.y, ring.radius);
-          },
-          onComplete: () => {
-            graphics.clear();
-            graphics.destroy();
-            const index = this.activeCircles.indexOf(graphics);
-            if (index > -1) {
-              this.activeCircles.splice(index, 1);
-            }
           }
         });
       });
@@ -75,7 +67,7 @@ export class WinAnimationManager {
     this.activeCircles.forEach(circle => {
       if (circle && circle.active) {
         this.scene.tweens.killTweensOf(circle);
-        circle.clear(); // Clear the graphics before destroying
+        circle.clear();
         circle.destroy();
       }
     });
