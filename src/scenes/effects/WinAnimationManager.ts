@@ -34,7 +34,25 @@ export class WinAnimationManager {
       this.activeEffects.push(highlight);
 
       // Create concentric circles effect
-      this.createConcentricCircles(symbol.x, symbol.y);
+      const graphics = this.scene.add.graphics();
+      this.circles.push(graphics);
+      
+      // Draw three concentric circles
+      [30, 40, 50].forEach((radius, index) => {
+        graphics.lineStyle(2, COLORS.neonGreen, 1);
+        graphics.strokeCircle(symbol.x, symbol.y, radius);
+        
+        // Animate each circle with a pulse effect
+        this.scene.tweens.add({
+          targets: graphics,
+          alpha: 0.2,
+          duration: 1000,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+          delay: index * 200
+        });
+      });
 
       // Create particle effect
       this.particleManager.createWinParticles(symbol.x, symbol.y, symbol.width / 2);
@@ -46,32 +64,6 @@ export class WinAnimationManager {
         duration: 600,
         yoyo: true,
         repeat: -1
-      });
-    });
-  }
-
-  private createConcentricCircles(x: number, y: number): void {
-    const graphics = this.scene.add.graphics();
-    this.circles.push(graphics);
-
-    const radiusSizes = [20, 30, 40];
-    radiusSizes.forEach((baseRadius, index) => {
-      const circle = graphics.lineStyle(2, COLORS.neonGreen, 1);
-      circle.strokeCircle(x, y, baseRadius);
-
-      // Animate each circle
-      this.scene.tweens.add({
-        targets: circle,
-        scaleX: 1.5,
-        scaleY: 1.5,
-        alpha: 0,
-        duration: 1000 + (index * 200),
-        repeat: -1,
-        onUpdate: () => {
-          graphics.clear();
-          graphics.lineStyle(2, COLORS.neonGreen, circle.alpha);
-          graphics.strokeCircle(x, y, baseRadius * circle.scaleX);
-        }
       });
     });
   }
