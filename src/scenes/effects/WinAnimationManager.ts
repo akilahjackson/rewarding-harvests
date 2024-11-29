@@ -31,7 +31,7 @@ export class WinAnimationManager {
       particles.setDepth(symbol.depth - 2);
       this.activeEffects.push(particles);
 
-      // Create symbol highlight effect
+      // Create highlight effect
       const highlight = this.scene.add.rectangle(
         symbol.x,
         symbol.y,

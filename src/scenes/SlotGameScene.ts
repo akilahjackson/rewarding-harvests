@@ -5,6 +5,7 @@ import { createInitialGrid, generateRandomSymbol } from './utils/gridManager';
 import { WinAnimationManager } from './effects/WinAnimationManager';
 import { MessageManager } from './effects/MessageManager';
 import { SoundManager } from './effects/SoundManager';
+import { GridManager } from './managers/GridManager';
 
 export class SlotGameScene extends Phaser.Scene {
   private symbols: Phaser.GameObjects.Text[][] = [];
@@ -13,6 +14,7 @@ export class SlotGameScene extends Phaser.Scene {
   private winAnimationManager: WinAnimationManager;
   private messageManager: MessageManager;
   private soundManager: SoundManager;
+  private gridManager: GridManager;
   private baseScale: number = 1;
   private bgImage?: Phaser.GameObjects.Image;
   private alienMessage?: Phaser.GameObjects.Text;
@@ -25,14 +27,12 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game scene');
     
-    // Destroy all existing game objects
-    this.children.removeAll();
-    
     // Initialize managers
     this.soundManager = new SoundManager(this);
     this.currentGrid = createInitialGrid();
     this.winAnimationManager = new WinAnimationManager(this);
     this.messageManager = new MessageManager(this);
+    this.gridManager = new GridManager(this);
     
     // Setup scene
     this.setupBackground();
@@ -79,30 +79,6 @@ export class SlotGameScene extends Phaser.Scene {
     .setDepth(1000);
   }
 
-  private showAlienMessage(message: string) {
-    if (this.alienMessage) {
-      this.alienMessage.setText(message);
-      this.tweens.add({
-        targets: this.alienMessage,
-        alpha: 1,
-        y: 70,
-        duration: 500,
-        ease: 'Power2',
-        onComplete: () => {
-          this.time.delayedCall(2000, () => {
-            this.tweens.add({
-              targets: this.alienMessage,
-              alpha: 0,
-              y: 50,
-              duration: 500,
-              ease: 'Power2'
-            });
-          });
-        }
-      });
-    }
-  }
-
   private adjustGridScale(hasWinningLines: boolean) {
     const scale = hasWinningLines ? 0.9 : 1;
     this.symbols.flat().forEach(symbol => {
@@ -144,34 +120,16 @@ export class SlotGameScene extends Phaser.Scene {
 
   private createGrid() {
     const { width, height } = this.cameras.main;
-    const padding = Math.min(width, height) * 0.15;
-    const gridPadding = Math.min(width, height) * 0.04;
-    const availableWidth = width - (padding * 2);
-    const availableHeight = height - (padding * 2);
-    const cellSize = Math.min(
-      (availableWidth - (gridPadding * (GRID_SIZE - 1))) / GRID_SIZE,
-      (availableHeight - (gridPadding * (GRID_SIZE - 1))) / GRID_SIZE
-    );
+    const gridDimensions = this.gridManager.calculateGridDimensions(width, height);
+    this.baseScale = gridDimensions.baseScale;
 
-    const startX = (width - ((cellSize + gridPadding) * (GRID_SIZE - 1))) / 2;
-    const startY = (height - ((cellSize + gridPadding) * (GRID_SIZE - 1))) / 2;
-    this.baseScale = cellSize / SYMBOL_SIZE;
-
-    console.log('SlotGameScene: Creating grid with dimensions:', {
-      width,
-      height,
-      cellSize,
-      startX,
-      startY,
-      baseScale: this.baseScale,
-      gridPadding
-    });
+    console.log('SlotGameScene: Creating grid with dimensions:', gridDimensions);
 
     for (let row = 0; row < GRID_SIZE; row++) {
       this.symbols[row] = [];
       for (let col = 0; col < GRID_SIZE; col++) {
-        const x = startX + col * (cellSize + gridPadding);
-        const y = startY + row * (cellSize + gridPadding);
+        const x = gridDimensions.startX + col * (gridDimensions.cellSize + gridDimensions.gridPadding);
+        const y = gridDimensions.startY + row * (gridDimensions.cellSize + gridDimensions.gridPadding);
         
         const symbol = this.add.text(x, y, this.currentGrid[row][col], {
           fontSize: `${SYMBOL_SIZE}px`,
