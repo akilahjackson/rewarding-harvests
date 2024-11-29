@@ -19,10 +19,7 @@ export class WinAnimationManager {
   createWinAnimation(positions: number[][], symbols: Phaser.GameObjects.Text[][]): void {
     console.log('WinAnimationManager: Creating win animations for positions:', positions);
     
-    // Clear any existing animations before creating new ones
-    this.clearPreviousAnimations();
-    
-    // Create animations for each winning position
+    // Create animations for each winning position without clearing previous ones
     positions.forEach(([row, col]) => {
       const symbol = symbols[row][col];
       
@@ -35,7 +32,7 @@ export class WinAnimationManager {
       
       rings.forEach((ring, index) => {
         const graphics = this.scene.add.graphics();
-        graphics.setDepth(90); // Set depth to be above symbols but below messages
+        graphics.setDepth(90);
         this.activeCircles.push(graphics);
         
         // Draw initial circle
