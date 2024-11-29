@@ -26,37 +26,16 @@ export class ParticleManager {
 
     particles.setDepth(-1);
     this.particleSystems.push(particles);
-  }
 
-  createPaylineParticles(points: { x: number, y: number }[]): void {
-    console.log('ParticleManager: Creating payline particles');
-    
-    points.forEach((point, i) => {
-      if (i < points.length - 1) {
-        const nextPoint = points[i + 1];
-        
-        const particles = this.scene.add.particles(point.x, point.y, 'particle', {
-          lifespan: 1500,
-          speed: { min: 30, max: 60 },
-          scale: { start: 0.3, end: 0 },
-          alpha: { start: 0.6, end: 0 },
-          blendMode: Phaser.BlendModes.ADD,
-          emitting: true,
-          quantity: 1,
-          frequency: 200,
-          rotate: { min: 0, max: 360 }
-        });
-
-        particles.setDepth(-1);
-        this.particleSystems.push(particles);
-
-        this.scene.tweens.add({
-          targets: particles,
-          x: nextPoint.x,
-          y: nextPoint.y,
-          duration: 2000,
-          repeat: -1
-        });
+    // Auto cleanup after animation duration
+    this.scene.time.delayedCall(2000, () => {
+      if (particles && !particles.destroyed) {
+        particles.stop();
+        const index = this.particleSystems.indexOf(particles);
+        if (index > -1) {
+          this.particleSystems.splice(index, 1);
+          particles.destroy();
+        }
       }
     });
   }
@@ -64,8 +43,10 @@ export class ParticleManager {
   clearParticles(): void {
     console.log('ParticleManager: Clearing all particles');
     this.particleSystems.forEach(particles => {
-      particles.stop();
-      particles.destroy();
+      if (particles && !particles.destroyed) {
+        particles.stop();
+        particles.destroy();
+      }
     });
     this.particleSystems = [];
   }
