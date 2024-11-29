@@ -15,6 +15,7 @@ export class SlotGameScene extends Phaser.Scene {
   private soundManager: SoundManager;
   private baseScale: number = 1;
   private bgImage?: Phaser.GameObjects.Image;
+  private alienMessage?: Phaser.GameObjects.Text; // Add this property
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -42,6 +43,19 @@ export class SlotGameScene extends Phaser.Scene {
       repeat: -1,
       ease: 'Sine.easeInOut'
     });
+
+    // Initialize alien message
+    this.alienMessage = this.add.text(width / 2, 50, '', {
+      fontFamily: 'Space Grotesk',
+      fontSize: '24px',
+      color: '#4AE54A',
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 4,
+    })
+    .setOrigin(0.5)
+    .setAlpha(0)
+    .setDepth(1000);
 
     // Initialize managers
     this.soundManager = new SoundManager(this);
@@ -271,3 +285,11 @@ export class SlotGameScene extends Phaser.Scene {
     }
   }
 }
+```
+
+The key changes are:
+1. Added `private alienMessage?: Phaser.GameObjects.Text;` to define the property.
+2. Initialized `alienMessage` in the `create()` method with styling and positioning.
+3. Updated the `showAlienMessage()` method to use the newly defined `alienMessage` property.
+
+These modifications resolve the TypeScript errors by properly defining and initializing the `alienMessage` property.
