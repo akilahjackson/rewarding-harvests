@@ -38,7 +38,6 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       width: width,
       height: height,
       transparent: true,
-      backgroundColor: '#000000',
       scene: SlotGameScene,
       scale: {
         mode: Phaser.Scale.RESIZE,
@@ -90,7 +89,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
   }, [isMobile, onSceneCreated]);
 
   return (
-    <div className="w-full h-[60vh] relative bg-nightsky">
+    <div className="w-full h-[60vh] relative">
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center z-10">
           <div className="text-center space-y-4">
@@ -102,7 +101,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       <div 
         ref={containerRef}
         className="w-full h-full flex items-center justify-center"
-        style={{ outline: 'none' }}
+        style={{ border: 'none', outline: 'none' }}
       />
     </div>
   );
