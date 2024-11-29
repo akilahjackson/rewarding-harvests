@@ -41,11 +41,15 @@ export class SlotGameScene extends Phaser.Scene {
     // Setup scene cleanup
     this.events.on('shutdown', this.cleanup, this);
     
-    const bgMusic = this.game.registry.get('bgMusic') as Phaser.Sound.BaseSound;
-    if (bgMusic && !bgMusic.isPlaying) {
-      console.log('SlotGameScene: Restarting background music');
-      bgMusic.play({ volume: 0.5, loop: true });
-    }
+    // Start background music
+    const bgMusic = this.sound.add('background-music', {
+      volume: 0.5,
+      loop: true
+    });
+    bgMusic.play();
+    this.game.registry.set('bgMusic', bgMusic);
+    
+    console.log('SlotGameScene: Background music started');
   }
 
   private cleanup(): void {

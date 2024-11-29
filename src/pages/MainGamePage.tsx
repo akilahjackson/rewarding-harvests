@@ -181,8 +181,8 @@ export const MainGamePage = () => {
       />
       
       <div className="relative w-full h-full flex flex-col">
-        <div className="w-full flex flex-wrap justify-between items-center p-4 bg-nightsky/50 backdrop-blur-sm border-b border-neongreen/20">
-          <div className="flex flex-wrap gap-4">
+        <div className="w-full flex justify-between items-center p-4 bg-nightsky/50 backdrop-blur-sm border-b border-neongreen/20">
+          <div className="flex gap-4">
             <Badge variant="outline" className="bg-harvestorange/20 text-harvestorange border-harvestorange">
               <Coins className="w-4 h-4 mr-1" />
               Balance: {balance.toFixed(3)} SOL
@@ -190,21 +190,6 @@ export const MainGamePage = () => {
             <Badge variant="outline" className="bg-neongreen/20 text-neongreen border-neongreen">
               Total Winnings: {totalWinnings.toFixed(0)} HRVST
             </Badge>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={toggleMute}
-              className="bg-nightsky/50 border-neongreen"
-            >
-              {isMuted ? (
-                <VolumeX className="h-5 w-5 text-neongreen" />
-              ) : (
-                <Volume2 className="h-5 w-5 text-neongreen" />
-              )}
-            </Button>
-            <HowToPlay />
           </div>
         </div>
 
@@ -221,6 +206,9 @@ export const MainGamePage = () => {
           onSpin={handleSpin}
           isAutoSpin={isAutoSpin}
           onAutoSpinToggle={toggleAutoSpin}
+          isMuted={isMuted}
+          onMuteToggle={toggleMute}
+          helpButton={<HowToPlay />}
         />
       </div>
     </div>

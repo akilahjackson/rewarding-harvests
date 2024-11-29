@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Coins, RotateCw } from "lucide-react";
+import { Loader2, Coins, RotateCw, Volume2, VolumeX } from "lucide-react";
 
 interface BettingControlsProps {
   balance: number;
@@ -13,6 +13,9 @@ interface BettingControlsProps {
   onSpin: () => void;
   isAutoSpin: boolean;
   onAutoSpinToggle: () => void;
+  isMuted: boolean;
+  onMuteToggle: () => void;
+  helpButton: React.ReactNode;
 }
 
 const BettingControls: React.FC<BettingControlsProps> = ({
@@ -23,13 +26,17 @@ const BettingControls: React.FC<BettingControlsProps> = ({
   isSpinning,
   onSpin,
   isAutoSpin,
-  onAutoSpinToggle
+  onAutoSpinToggle,
+  isMuted,
+  onMuteToggle,
+  helpButton
 }) => {
   console.log('BettingControls: Rendering with props:', {
     balance,
     betAmount,
     isSpinning,
-    isAutoSpin
+    isAutoSpin,
+    isMuted
   });
 
   useEffect(() => {
@@ -63,7 +70,24 @@ const BettingControls: React.FC<BettingControlsProps> = ({
           </div>
         </div>
         
-        <div className="flex gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onMuteToggle}
+            className="h-16 bg-nightsky/50 border-neongreen"
+          >
+            {isMuted ? (
+              <VolumeX className="h-6 w-6 text-neongreen" />
+            ) : (
+              <Volume2 className="h-6 w-6 text-neongreen" />
+            )}
+          </Button>
+          
+          <div className="h-16 flex items-center">
+            {helpButton}
+          </div>
+
           <Button
             className="min-w-[200px] h-16 bg-neongreen text-nightsky hover:bg-neongreen/80 font-space text-lg"
             onClick={onSpin}
