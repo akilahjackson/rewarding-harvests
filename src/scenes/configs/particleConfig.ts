@@ -9,5 +9,6 @@ export const createParticleConfig = (x: number, y: number): Phaser.Types.GameObj
   frequency: 100,
   quantity: 1,
   blendMode: 'ADD',
-  tint: 0xff00ff
+  tint: 0xff00ff,
+  emitting: false // Ensure particles are not emitting by default
 });

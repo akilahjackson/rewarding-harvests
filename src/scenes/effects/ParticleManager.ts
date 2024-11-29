@@ -18,7 +18,7 @@ export class ParticleManager {
       scale: { start: 0.4, end: 0 },
       alpha: { start: 0.6, end: 0 },
       blendMode: Phaser.BlendModes.ADD,
-      emitting: true,
+      emitting: false, // Start with particles disabled
       quantity: 1,
       frequency: 150,
       rotate: { min: 0, max: 360 }
@@ -26,6 +26,9 @@ export class ParticleManager {
 
     particles.setDepth(-1);
     this.particleSystems.push(particles);
+
+    // Only start emitting when explicitly needed
+    particles.start();
 
     // Auto cleanup after animation duration
     this.scene.time.delayedCall(2000, () => {
