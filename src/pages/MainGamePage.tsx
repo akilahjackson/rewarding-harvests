@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { SlotGameScene } from '@/scenes/SlotGameScene';
 import HowToPlay from '@/components/HowToPlay';
 
-const MainGamePage = () => {
+export const MainGamePage = () => {
   console.log('MainGamePage: Component mounting');
   const [balance, setBalance] = useState(1.0);
   const [betAmount, setBetAmount] = useState(0.001);

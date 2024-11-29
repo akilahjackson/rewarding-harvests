@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import PreloaderPage from './pages/PreloaderPage';
-import MainGamePage from './pages/MainGamePage';
+import { MainGamePage } from './pages/MainGamePage';
 import { Toaster } from "@/components/ui/toaster";
 import './App.css';
 
