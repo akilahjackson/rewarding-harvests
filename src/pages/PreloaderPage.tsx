@@ -13,7 +13,6 @@ const PreloaderPage = () => {
   
   const handleConnect = () => {
     console.log('PreloaderPage: Connecting wallet');
-    // Simulating wallet connection for now
     setIsConnected(true);
     toast({
       title: "Wallet Connected",
@@ -25,7 +24,7 @@ const PreloaderPage = () => {
   useEffect(() => {
     if (!isConnected) return;
 
-    console.log('Initializing PreloaderPage');
+    console.log('PreloaderPage: Initializing game after wallet connection');
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       parent: 'game-container',
@@ -44,7 +43,7 @@ const PreloaderPage = () => {
       const game = new Phaser.Game(config);
 
       const handleSceneComplete = () => {
-        console.log('Preloader complete, navigating to game');
+        console.log('PreloaderPage: Preloader complete, navigating to game');
         game.destroy(true);
         navigate('/game');
       };
@@ -61,16 +60,11 @@ const PreloaderPage = () => {
   }, [navigate, isConnected]);
 
   return (
-    <div className="w-full min-h-screen bg-nightsky relative">
-      <div id="game-container" className="w-full h-full" />
-      {!isConnected && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="text-center space-y-4">
-            <h2 className="text-2xl font-bold text-white mb-4">Welcome to Harvest Slots</h2>
-            <WalletConnect onConnect={handleConnect} isConnected={isConnected} />
-          </div>
-        </div>
-      )}
+    <div className="w-full min-h-screen bg-nightsky relative flex items-center justify-center">
+      <div id="game-container" className="w-full h-full absolute inset-0" />
+      <div className="relative z-10">
+        <WalletConnect onConnect={handleConnect} isConnected={isConnected} />
+      </div>
     </div>
   );
 };
