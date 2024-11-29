@@ -52,7 +52,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
           if (onSceneCreated) {
             onSceneCreated(scene);
           }
-          setTimeout(() => setIsLoading(false), 1000);
+          // Remove loading state immediately after game loads
+          setIsLoading(false);
         }
       }
     };
@@ -63,6 +64,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       console.log('GameCanvas: Successfully created Phaser game instance');
     } catch (error) {
       console.error('GameCanvas: Error creating Phaser game instance:', error);
+      setIsLoading(false); // Ensure loading state is cleared even on error
     }
 
     const handleResize = () => {
@@ -87,7 +89,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
   return (
     <div className="w-full h-[60vh] relative">
       {isLoading && (
-        <div className="absolute inset-0 bg-nightsky/80 flex items-center justify-center z-50 animate-fade-in">
+        <div className="absolute inset-0 flex items-center justify-center z-10">
           <div className="text-center space-y-4">
             <Loader2 className="w-12 h-12 animate-spin text-neongreen mx-auto" />
             <p className="text-neongreen font-space animate-pulse">Loading Harvest Slots...</p>
