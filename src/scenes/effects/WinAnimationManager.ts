@@ -19,48 +19,36 @@ export class WinAnimationManager {
     positions.forEach(([row, col]) => {
       const symbol = symbols[row][col];
       
-      // Create tight circle effect around symbol
-      const graphics = this.scene.add.graphics();
-      this.activeCircles.push(graphics);
+      // Create three concentric rings with different sizes and alphas
+      const rings = [
+        { radius: 45, alpha: 0.8, lineWidth: 3 },
+        { radius: 35, alpha: 0.6, lineWidth: 2 },
+        { radius: 25, alpha: 0.4, lineWidth: 2 }
+      ];
       
-      // Initial circle properties
-      const radius = 35; // Tighter radius
-      
-      // Draw initial circle
-      graphics.lineStyle(3, COLORS.neonGreen, 0.8);
-      graphics.strokeCircle(symbol.x, symbol.y, radius);
-      
-      // Create rapid flash animation
-      this.scene.tweens.add({
-        targets: graphics,
-        alpha: { from: 0.8, to: 0.2 },
-        duration: 400,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut',
-        onUpdate: () => {
-          graphics.clear();
-          graphics.lineStyle(3, COLORS.neonGreen, graphics.alpha);
-          graphics.strokeCircle(symbol.x, symbol.y, radius);
-        }
-      });
-
-      // Add subtle glow effect
-      const glowGraphics = this.scene.add.graphics();
-      this.activeCircles.push(glowGraphics);
-      
-      this.scene.tweens.add({
-        targets: glowGraphics,
-        alpha: { from: 0.4, to: 0.1 },
-        duration: 600,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut',
-        onUpdate: () => {
-          glowGraphics.clear();
-          glowGraphics.lineStyle(6, COLORS.neonGreen, glowGraphics.alpha);
-          glowGraphics.strokeCircle(symbol.x, symbol.y, radius + 5);
-        }
+      rings.forEach((ring, index) => {
+        const graphics = this.scene.add.graphics();
+        this.activeCircles.push(graphics);
+        
+        // Draw initial circle
+        graphics.lineStyle(ring.lineWidth, COLORS.neonGreen, ring.alpha);
+        graphics.strokeCircle(symbol.x, symbol.y, ring.radius);
+        
+        // Create slower flash animation with phase delay
+        this.scene.tweens.add({
+          targets: graphics,
+          alpha: { from: ring.alpha, to: 0.1 },
+          duration: 800 + (index * 200), // Slower animation with staggered timing
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+          delay: index * 200, // Stagger the start of each ring's animation
+          onUpdate: () => {
+            graphics.clear();
+            graphics.lineStyle(ring.lineWidth, COLORS.neonGreen, graphics.alpha);
+            graphics.strokeCircle(symbol.x, symbol.y, ring.radius);
+          }
+        });
       });
     });
   }
