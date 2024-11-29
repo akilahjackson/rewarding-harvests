@@ -60,11 +60,9 @@ const PreloaderPage = () => {
   }, [navigate, isConnected]);
 
   return (
-    <div className="w-full min-h-screen bg-nightsky relative flex items-center justify-center">
-      <div id="game-container" className="w-full h-full absolute inset-0" />
-      <div className="relative z-10">
-        <WalletConnect onConnect={handleConnect} isConnected={isConnected} />
-      </div>
+    <div className="w-full min-h-screen bg-nightsky flex items-center justify-center">
+      <div id="game-container" className="w-full h-full" />
+      <WalletConnect onConnect={handleConnect} isConnected={isConnected} />
     </div>
   );
 };
