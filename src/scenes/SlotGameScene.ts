@@ -25,8 +25,9 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game scene');
     
-    // Clear any existing game objects
+    // Clear any existing game objects and graphics
     this.children.removeAll();
+    this.game.debug.reset();
     
     // Fade in camera
     this.cameras.main.fadeIn(1000, 0, 0, 0);
@@ -68,15 +69,12 @@ export class SlotGameScene extends Phaser.Scene {
     
     // Continue background music
     const bgMusic = this.game.registry.get('bgMusic') as Phaser.Sound.BaseSound;
-    if (bgMusic) {
-      console.log('SlotGameScene: Checking background music status');
-      if (!bgMusic.isPlaying) {
-        console.log('SlotGameScene: Restarting background music');
-        bgMusic.play({
-          volume: 0.5,
-          loop: true
-        });
-      }
+    if (bgMusic && !bgMusic.isPlaying) {
+      console.log('SlotGameScene: Restarting background music');
+      bgMusic.play({
+        volume: 0.5,
+        loop: true
+      });
     }
 
     this.createGrid();
@@ -180,13 +178,6 @@ export class SlotGameScene extends Phaser.Scene {
         const symbol = this.add.text(x, y, this.currentGrid[row][col], {
           fontSize: `${SYMBOL_SIZE}px`,
           padding: { x: SYMBOL_SIZE * 0.02, y: SYMBOL_SIZE * 0.02 },
-          shadow: {
-            offsetX: 2,
-            offsetY: 2,
-            color: '#000000',
-            blur: 5,
-            fill: true
-          }
         })
         .setOrigin(0.5)
         .setScale(this.baseScale)
