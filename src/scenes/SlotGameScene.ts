@@ -25,9 +25,8 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game scene');
     
-    // Clear any existing game objects and graphics
+    // Clear any existing game objects
     this.children.removeAll();
-    this.game.debug.reset();
     
     // Fade in camera
     this.cameras.main.fadeIn(1000, 0, 0, 0);
