@@ -24,7 +24,7 @@ export class WinAnimationManager {
       this.activeCircles.push(graphics);
       
       // Draw circle with constant visibility
-      graphics.lineStyle(2, COLORS.neongreen, 1);
+      graphics.lineStyle(2, COLORS.neonGreen, 1);
       graphics.strokeCircle(symbol.x, symbol.y, 40);
       
       // Gentle pulse animation that maintains visibility

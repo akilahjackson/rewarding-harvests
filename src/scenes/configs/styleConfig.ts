@@ -1,5 +1,5 @@
 export const COLORS = {
-  neonGreen: 0x39ff14,
+  neonGreen: 0x39ff14,  // Ensure this matches the usage in WinAnimationManager
   neonPink: 0xff00ff,
   background: 0x000000
 };
