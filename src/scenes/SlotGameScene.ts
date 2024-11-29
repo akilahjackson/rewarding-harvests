@@ -25,19 +25,35 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game scene');
     
-    // Clear any existing game objects
+    // Destroy all existing game objects
     this.children.removeAll();
     
-    // Fade in camera
-    this.cameras.main.fadeIn(1000, 0, 0, 0);
+    // Initialize managers
+    this.soundManager = new SoundManager(this);
+    this.currentGrid = createInitialGrid();
+    this.winAnimationManager = new WinAnimationManager(this);
+    this.messageManager = new MessageManager(this);
     
-    // Add background image
+    // Setup scene
+    this.setupBackground();
+    this.setupAlienMessage();
+    this.createGrid();
+    this.startFloatingAnimations();
+    
+    // Continue background music if it exists
+    const bgMusic = this.game.registry.get('bgMusic') as Phaser.Sound.BaseSound;
+    if (bgMusic && !bgMusic.isPlaying) {
+      console.log('SlotGameScene: Restarting background music');
+      bgMusic.play({ volume: 0.5, loop: true });
+    }
+  }
+
+  private setupBackground() {
     const { width, height } = this.cameras.main;
     this.bgImage = this.add.image(width / 2, height / 2, 'preloader-bg')
       .setDisplaySize(width, height)
       .setAlpha(0.3);
 
-    // Add floating animation to background
     this.tweens.add({
       targets: this.bgImage,
       y: height / 2 - 10,
@@ -46,8 +62,10 @@ export class SlotGameScene extends Phaser.Scene {
       repeat: -1,
       ease: 'Sine.easeInOut'
     });
+  }
 
-    // Initialize alien message
+  private setupAlienMessage() {
+    const { width } = this.cameras.main;
     this.alienMessage = this.add.text(width / 2, 50, '', {
       fontFamily: 'Space Grotesk',
       fontSize: '24px',
@@ -59,25 +77,6 @@ export class SlotGameScene extends Phaser.Scene {
     .setOrigin(0.5)
     .setAlpha(0)
     .setDepth(1000);
-
-    // Initialize managers
-    this.soundManager = new SoundManager(this);
-    this.currentGrid = createInitialGrid();
-    this.winAnimationManager = new WinAnimationManager(this);
-    this.messageManager = new MessageManager(this);
-    
-    // Continue background music
-    const bgMusic = this.game.registry.get('bgMusic') as Phaser.Sound.BaseSound;
-    if (bgMusic && !bgMusic.isPlaying) {
-      console.log('SlotGameScene: Restarting background music');
-      bgMusic.play({
-        volume: 0.5,
-        loop: true
-      });
-    }
-
-    this.createGrid();
-    this.startFloatingAnimations();
   }
 
   private showAlienMessage(message: string) {
