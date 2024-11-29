@@ -102,9 +102,8 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
         ref={containerRef}
         className="w-full h-full"
         style={{ 
-          border: 'none', 
-          outline: 'none',
-          background: 'transparent'
+          background: 'transparent',
+          outline: 'none'
         }}
       />
     </div>
