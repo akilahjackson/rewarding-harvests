@@ -137,7 +137,10 @@ const MainGamePage = () => {
 
   return (
     <div className="relative w-full h-screen bg-nightsky overflow-hidden">
-      <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1500382017468-9049fed747ef')] bg-cover bg-center opacity-30" />
+      <div 
+        className="absolute inset-0 bg-[url('/images/neon-crop-circles.WEBP')] bg-cover bg-center opacity-30"
+        style={{ backgroundBlendMode: 'overlay' }}
+      />
       
       <div className="relative w-full h-full flex flex-col">
         <div className="w-full flex flex-wrap justify-between items-center p-4 bg-nightsky/50 backdrop-blur-sm border-b border-neongreen/20">
