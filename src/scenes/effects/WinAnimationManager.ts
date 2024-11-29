@@ -21,47 +21,26 @@ export class WinAnimationManager {
     positions.forEach(([row, col]) => {
       const symbol = symbols[row][col];
       
-      // Create highlight effect
-      const highlight = this.scene.add.rectangle(
-        symbol.x,
-        symbol.y,
-        symbol.width * 1.2,
-        symbol.height * 1.2,
-        COLORS.neonGreen,
-        0.2
-      );
-      highlight.setDepth(symbol.depth - 1);
-      this.activeEffects.push(highlight);
-
       // Create single circle effect
       const graphics = this.scene.add.graphics();
       this.circles.push(graphics);
       
-      // Draw and animate a single circle
+      // Draw circle with constant visibility
       graphics.lineStyle(2, COLORS.neonGreen, 1);
       graphics.strokeCircle(symbol.x, symbol.y, 40);
       
-      // Animate the circle with a pulse effect
+      // Gentle pulse animation that maintains visibility
       this.scene.tweens.add({
         targets: graphics,
-        alpha: 0.2,
-        duration: 1000,
+        alpha: { from: 0.8, to: 1 },
+        duration: 1500,
         yoyo: true,
         repeat: -1,
         ease: 'Sine.easeInOut'
       });
 
-      // Create particle effect
+      // Create particle effect without background highlight
       this.particleManager.createWinParticles(symbol.x, symbol.y, symbol.width / 2);
-
-      // Pulse animation for highlight
-      this.scene.tweens.add({
-        targets: highlight,
-        alpha: 0.4,
-        duration: 600,
-        yoyo: true,
-        repeat: -1
-      });
     });
   }
 
@@ -74,6 +53,7 @@ export class WinAnimationManager {
     // Clear circles
     this.circles.forEach(circle => {
       if (circle && circle.active) {
+        this.scene.tweens.killTweensOf(circle);
         circle.destroy();
       }
     });
