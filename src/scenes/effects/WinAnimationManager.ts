@@ -33,25 +33,22 @@ export class WinAnimationManager {
       highlight.setDepth(symbol.depth - 1);
       this.activeEffects.push(highlight);
 
-      // Create concentric circles effect
+      // Create single circle effect
       const graphics = this.scene.add.graphics();
       this.circles.push(graphics);
       
-      // Draw three concentric circles
-      [30, 40, 50].forEach((radius, index) => {
-        graphics.lineStyle(2, COLORS.neonGreen, 1);
-        graphics.strokeCircle(symbol.x, symbol.y, radius);
-        
-        // Animate each circle with a pulse effect
-        this.scene.tweens.add({
-          targets: graphics,
-          alpha: 0.2,
-          duration: 1000,
-          yoyo: true,
-          repeat: -1,
-          ease: 'Sine.easeInOut',
-          delay: index * 200
-        });
+      // Draw and animate a single circle
+      graphics.lineStyle(2, COLORS.neonGreen, 1);
+      graphics.strokeCircle(symbol.x, symbol.y, 40);
+      
+      // Animate the circle with a pulse effect
+      this.scene.tweens.add({
+        targets: graphics,
+        alpha: 0.2,
+        duration: 1000,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut'
       });
 
       // Create particle effect
