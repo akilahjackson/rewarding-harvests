@@ -55,7 +55,7 @@ export class WinAnimationManager {
   clearPreviousAnimations(): void {
     console.log('WinAnimationManager: Clearing previous animations');
     this.activeEffects.forEach(effect => {
-      if (effect && !effect.destroyed) {
+      if (effect && !effect.active) {
         effect.destroy();
       }
     });
