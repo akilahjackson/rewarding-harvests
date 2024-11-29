@@ -29,7 +29,7 @@ export class ParticleManager {
 
     // Auto cleanup after animation duration
     this.scene.time.delayedCall(2000, () => {
-      if (particles && !particles.destroyed) {
+      if (particles && particles.active) {
         particles.stop();
         const index = this.particleSystems.indexOf(particles);
         if (index > -1) {
@@ -43,7 +43,7 @@ export class ParticleManager {
   clearParticles(): void {
     console.log('ParticleManager: Clearing all particles');
     this.particleSystems.forEach(particles => {
-      if (particles && !particles.destroyed) {
+      if (particles && particles.active) {
         particles.stop();
         particles.destroy();
       }
