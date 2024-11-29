@@ -20,7 +20,18 @@ const MainGamePage = () => {
   const { toast } = useToast();
   const autoSpinIntervalRef = useRef<NodeJS.Timeout>();
 
+  useEffect(() => {
+    console.log('MainGamePage: Component mounted, initializing game UI');
+    return () => {
+      console.log('MainGamePage: Component unmounting');
+      if (autoSpinIntervalRef.current) {
+        clearInterval(autoSpinIntervalRef.current);
+      }
+    };
+  }, []);
+
   const toggleMute = () => {
+    console.log('MainGamePage: Toggling mute state');
     if (gameSceneRef.current) {
       const scene = gameSceneRef.current;
       const newMutedState = !isMuted;
@@ -115,6 +126,14 @@ const MainGamePage = () => {
     console.log('MainGamePage: Game scene created and ready');
     gameSceneRef.current = scene;
   }, []);
+
+  console.log('MainGamePage: Rendering component with state:', {
+    balance,
+    betAmount,
+    isSpinning,
+    isAutoSpin,
+    isMuted
+  });
 
   return (
     <div className="relative w-full h-screen bg-nightsky overflow-hidden">

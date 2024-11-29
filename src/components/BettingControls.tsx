@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +25,20 @@ const BettingControls: React.FC<BettingControlsProps> = ({
   isAutoSpin,
   onAutoSpinToggle
 }) => {
+  console.log('BettingControls: Rendering with props:', {
+    balance,
+    betAmount,
+    isSpinning,
+    isAutoSpin
+  });
+
+  useEffect(() => {
+    console.log('BettingControls: Component mounted');
+    return () => console.log('BettingControls: Component unmounting');
+  }, []);
+
   const handleSliderChange = useCallback((value: number[]) => {
+    console.log('BettingControls: Slider value changed:', value[0]);
     setBetAmount(value[0]);
   }, [setBetAmount]);
 

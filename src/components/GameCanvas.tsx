@@ -9,6 +9,7 @@ interface GameCanvasProps {
 }
 
 const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
+  console.log('GameCanvas: Component mounting');
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(true);
   const gameRef = useRef<Phaser.Game | null>(null);
@@ -16,7 +17,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
 
   useEffect(() => {
     console.log('GameCanvas: Initial mount');
-    if (!containerRef.current || gameRef.current) return;
+    if (!containerRef.current || gameRef.current) {
+      console.log('GameCanvas: Container not ready or game already initialized');
+      return;
+    }
 
     const getGameDimensions = () => {
       const maxHeight = window.innerHeight * 0.6;
@@ -34,7 +38,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       width: width,
       height: height,
       transparent: true,
-      scene: SlotGameScene, // Register scene directly
+      scene: SlotGameScene,
       scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
