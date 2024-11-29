@@ -19,13 +19,25 @@ const MainGamePage = () => {
   const gameSceneRef = useRef<SlotGameScene | null>(null);
   const { toast } = useToast();
   const autoSpinIntervalRef = useRef<NodeJS.Timeout>();
+  const bgMusicRef = useRef<Phaser.Sound.BaseSound>();
 
   useEffect(() => {
     console.log('MainGamePage: Component mounted, initializing game UI');
+    // Start background music when component mounts
+    if (gameSceneRef.current) {
+      bgMusicRef.current = gameSceneRef.current.sound.add('background-music', {
+        volume: 0.5,
+        loop: true
+      });
+      bgMusicRef.current.play();
+    }
     return () => {
       console.log('MainGamePage: Component unmounting');
       if (autoSpinIntervalRef.current) {
         clearInterval(autoSpinIntervalRef.current);
+      }
+      if (bgMusicRef.current) {
+        bgMusicRef.current.stop();
       }
     };
   }, []);
@@ -64,11 +76,37 @@ const MainGamePage = () => {
         setTotalWinnings(prev => prev + hrvestTokens);
         setBalance(prev => prev + totalWinAmount);
 
-        toast({
-          title: "Win!",
-          description: `${hrvestTokens.toFixed(0)} HRVST`,
-          duration: 2000,
-        });
+        // Check if it's a big win (50x or more)
+        const isBigWin = totalWinAmount >= betAmount * 50;
+        
+        if (isBigWin) {
+          // Pause background music
+          if (bgMusicRef.current?.isPlaying) {
+            bgMusicRef.current.pause();
+          }
+          
+          // Play big win sound
+          const bigWinSound = gameSceneRef.current.sound.add('big-win-sound', { volume: 0.8 });
+          bigWinSound.play();
+          bigWinSound.once('complete', () => {
+            // Resume background music after big win sound
+            if (bgMusicRef.current && !isMuted) {
+              bgMusicRef.current.resume();
+            }
+          });
+
+          toast({
+            title: "🎉 BIG WIN! 🎉",
+            description: `${hrvestTokens.toFixed(0)} HRVST`,
+            duration: 5000,
+          });
+        } else {
+          toast({
+            title: "Win!",
+            description: `${hrvestTokens.toFixed(0)} HRVST`,
+            duration: 2000,
+          });
+        }
       } else {
         toast({
           title: "No Win",
@@ -86,7 +124,7 @@ const MainGamePage = () => {
     } finally {
       setIsSpinning(false);
     }
-  }, [betAmount, balance, isAutoSpin, toast, isSpinning]);
+  }, [betAmount, balance, isAutoSpin, toast, isSpinning, isMuted]);
 
   const toggleAutoSpin = useCallback(() => {
     console.log('MainGamePage: Toggling auto-spin. Current state:', isAutoSpin);
@@ -188,5 +226,3 @@ const MainGamePage = () => {
     </div>
   );
 };
-
-export default MainGamePage;

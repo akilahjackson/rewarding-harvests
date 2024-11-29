@@ -6,6 +6,7 @@ export class SoundManager {
   private winSound: Phaser.Sound.BaseSound;
   private bigWinSound: Phaser.Sound.BaseSound;
   private loseSound: Phaser.Sound.BaseSound;
+  private bgMusic: Phaser.Sound.BaseSound;
 
   constructor(scene: Phaser.Scene) {
     console.log('SoundManager: Initializing');
@@ -21,10 +22,7 @@ export class SoundManager {
       }
     } catch (error) {
       console.error('SoundManager: Error in constructor:', error);
-      this.spinSound = this.createDummySound();
-      this.winSound = this.createDummySound();
-      this.bigWinSound = this.createDummySound();
-      this.loseSound = this.createDummySound();
+      this.createDummySounds();
     }
   }
 
@@ -34,6 +32,7 @@ export class SoundManager {
       this.scene.load.audio('win-sound', '/sounds/win.mp3');
       this.scene.load.audio('big-win-sound', '/sounds/big-win.mp3');
       this.scene.load.audio('lose-sound', '/sounds/lose.mp3');
+      this.scene.load.audio('background-music', '/sounds/background-music.mp3');
       this.scene.load.once('complete', () => {
         console.log('SoundManager: Sound effects loaded successfully');
         this.initializeSounds();
@@ -50,14 +49,24 @@ export class SoundManager {
       this.winSound = this.scene.sound.add('win-sound', { volume: 0.7 });
       this.bigWinSound = this.scene.sound.add('big-win-sound', { volume: 0.8 });
       this.loseSound = this.scene.sound.add('lose-sound', { volume: 0.5 });
+      this.bgMusic = this.scene.sound.add('background-music', { 
+        volume: 0.5,
+        loop: true
+      });
       console.log('SoundManager: Sounds initialized successfully');
     } catch (error) {
       console.error('SoundManager: Error initializing sounds:', error);
-      this.spinSound = this.createDummySound();
-      this.winSound = this.createDummySound();
-      this.bigWinSound = this.createDummySound();
-      this.loseSound = this.createDummySound();
+      this.createDummySounds();
     }
+  }
+
+  private createDummySounds() {
+    const dummySound = this.createDummySound();
+    this.spinSound = dummySound;
+    this.winSound = dummySound;
+    this.bigWinSound = dummySound;
+    this.loseSound = dummySound;
+    this.bgMusic = dummySound;
   }
 
   private createDummySound(): Phaser.Sound.BaseSound {
@@ -65,6 +74,8 @@ export class SoundManager {
       play: () => {},
       stop: () => {},
       destroy: () => {},
+      pause: () => {},
+      resume: () => {},
     } as unknown as Phaser.Sound.BaseSound;
   }
 
@@ -84,20 +95,31 @@ export class SoundManager {
     }
   }
 
-  playWinSound(winAmount: number) {
+  playWinSound(winAmount: number, betAmount: number) {
     try {
-      // Consider it a big win if it's more than 5x the bet amount
-      const isBigWin = winAmount >= 0.005;
+      const isBigWin = winAmount >= betAmount * 50;
       const soundToPlay = isBigWin ? this.bigWinSound : this.winSound;
 
       if (this.scene.sound.locked) {
         console.log('SoundManager: Audio locked, waiting for unlock');
         this.scene.sound.once('unlocked', () => {
+          if (isBigWin) {
+            this.bgMusic.pause();
+          }
           soundToPlay.play();
         });
       } else {
+        if (isBigWin) {
+          this.bgMusic.pause();
+        }
         soundToPlay.play();
         console.log(`SoundManager: Playing ${isBigWin ? 'big win' : 'win'} sound`);
+      }
+
+      if (isBigWin) {
+        soundToPlay.once('complete', () => {
+          this.bgMusic.resume();
+        });
       }
     } catch (error) {
       console.error('SoundManager: Error playing win sound:', error);
@@ -123,5 +145,17 @@ export class SoundManager {
   toggleMute(isMuted: boolean) {
     this.scene.sound.mute = isMuted;
     console.log('SoundManager: Mute toggled:', isMuted);
+  }
+
+  startBackgroundMusic() {
+    if (!this.bgMusic.isPlaying) {
+      this.bgMusic.play();
+    }
+  }
+
+  stopBackgroundMusic() {
+    if (this.bgMusic.isPlaying) {
+      this.bgMusic.stop();
+    }
   }
 }
