@@ -9,6 +9,7 @@ import { SlotGameScene } from '@/scenes/SlotGameScene';
 import HowToPlay from '@/components/HowToPlay';
 
 const MainGamePage = () => {
+  console.log('MainGamePage: Component mounting');
   const [balance, setBalance] = useState(1.0);
   const [betAmount, setBetAmount] = useState(0.001);
   const [totalWinnings, setTotalWinnings] = useState(0);
