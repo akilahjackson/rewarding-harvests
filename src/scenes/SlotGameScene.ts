@@ -27,6 +27,9 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game scene');
     
+    // Clear any existing game objects
+    this.children.removeAll(true);
+    
     // Initialize managers
     this.soundManager = new SoundManager(this);
     this.currentGrid = createInitialGrid();
