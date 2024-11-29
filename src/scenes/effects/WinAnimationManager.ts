@@ -11,10 +11,17 @@ export class WinAnimationManager {
     this.scene = scene;
     this.particleManager = new ParticleManager(scene);
     console.log('WinAnimationManager: Initialized');
+    
+    // Add scene cleanup listener
+    this.scene.events.on('shutdown', this.clearPreviousAnimations, this);
+    this.scene.events.on('destroy', this.clearPreviousAnimations, this);
   }
 
   createWinAnimation(positions: number[][], symbols: Phaser.GameObjects.Text[][]): void {
     console.log('WinAnimationManager: Creating win animations for positions:', positions);
+    
+    // Clear any existing animations before creating new ones
+    this.clearPreviousAnimations();
     
     positions.forEach(([row, col]) => {
       const symbol = symbols[row][col];
@@ -28,6 +35,7 @@ export class WinAnimationManager {
       
       rings.forEach((ring, index) => {
         const graphics = this.scene.add.graphics();
+        graphics.setDepth(100); // Set depth to be above symbols but below messages
         this.activeCircles.push(graphics);
         
         // Draw initial circle
@@ -38,15 +46,23 @@ export class WinAnimationManager {
         this.scene.tweens.add({
           targets: graphics,
           alpha: { from: ring.alpha, to: 0.1 },
-          duration: 800 + (index * 200), // Slower animation with staggered timing
+          duration: 800 + (index * 200),
           yoyo: true,
           repeat: -1,
           ease: 'Sine.easeInOut',
-          delay: index * 200, // Stagger the start of each ring's animation
+          delay: index * 200,
           onUpdate: () => {
             graphics.clear();
             graphics.lineStyle(ring.lineWidth, COLORS.neonGreen, graphics.alpha);
             graphics.strokeCircle(symbol.x, symbol.y, ring.radius);
+          },
+          onComplete: () => {
+            graphics.clear();
+            graphics.destroy();
+            const index = this.activeCircles.indexOf(graphics);
+            if (index > -1) {
+              this.activeCircles.splice(index, 1);
+            }
           }
         });
       });
@@ -59,10 +75,18 @@ export class WinAnimationManager {
     this.activeCircles.forEach(circle => {
       if (circle && circle.active) {
         this.scene.tweens.killTweensOf(circle);
+        circle.clear(); // Clear the graphics before destroying
         circle.destroy();
       }
     });
     this.activeCircles = [];
     this.particleManager.clearParticles();
+  }
+
+  destroy(): void {
+    this.clearPreviousAnimations();
+    this.scene.events.off('shutdown', this.clearPreviousAnimations, this);
+    this.scene.events.off('destroy', this.clearPreviousAnimations, this);
+    this.particleManager.destroy();
   }
 }
