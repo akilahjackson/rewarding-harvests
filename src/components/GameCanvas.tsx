@@ -48,6 +48,9 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       dom: {
         createContainer: true
       },
+      audio: {
+        disableWebAudio: false
+      },
       callbacks: {
         postBoot: (game) => {
           console.log('GameCanvas: Game loaded successfully');

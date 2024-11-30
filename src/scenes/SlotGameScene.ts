@@ -19,6 +19,7 @@ export class SlotGameScene extends Phaser.Scene {
   private baseScale: number = 1;
   private bgImage?: Phaser.GameObjects.Image;
   private alienMessage?: Phaser.GameObjects.Text;
+  private assetsLoaded: boolean = false;
 
   constructor() {
     super({ key: 'SlotGameScene' });
@@ -33,6 +34,11 @@ export class SlotGameScene extends Phaser.Scene {
     this.load.audio('win-sound', '/sounds/win.mp3');
     this.load.audio('big-win-sound', '/sounds/big-win.mp3');
     this.load.audio('lose-sound', '/sounds/lose.mp3');
+
+    this.load.on('complete', () => {
+      console.log('SlotGameScene: Assets loaded successfully');
+      this.assetsLoaded = true;
+    });
   }
 
   create() {
@@ -51,15 +57,7 @@ export class SlotGameScene extends Phaser.Scene {
     // Setup scene cleanup
     this.events.on('shutdown', this.cleanup, this);
     
-    // Start background music
-    const bgMusic = this.sound.add('background-music', {
-      volume: 0.5,
-      loop: true
-    });
-    bgMusic.play();
-    this.game.registry.set('bgMusic', bgMusic);
-    
-    console.log('SlotGameScene: Background music started');
+    console.log('SlotGameScene: Scene setup complete');
   }
 
   private cleanup(): void {
