@@ -149,12 +149,15 @@ export const MainGamePage = () => {
     console.log('MainGamePage: Game scene created and ready');
     gameSceneRef.current = scene;
     
-    // Initialize background music after scene is created
-    bgMusicRef.current = scene.sound.add('background-music', {
-      volume: 0.5,
-      loop: true
+    // Wait for assets to be loaded before initializing background music
+    scene.events.once('assetsLoaded', () => {
+      console.log('MainGamePage: Assets loaded, initializing background music');
+      bgMusicRef.current = scene.sound.add('background-music', {
+        volume: 0.5,
+        loop: true
+      });
+      bgMusicRef.current.play();
     });
-    bgMusicRef.current.play();
   }, []);
 
   return (

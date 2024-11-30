@@ -38,6 +38,7 @@ export class SlotGameScene extends Phaser.Scene {
     this.load.on('complete', () => {
       console.log('SlotGameScene: Assets loaded successfully');
       this.assetsLoaded = true;
+      this.events.emit('assetsLoaded');
     });
   }
 
