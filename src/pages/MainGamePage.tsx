@@ -6,6 +6,7 @@ import { Coins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SlotGameScene } from '@/scenes/SlotGameScene';
 import HowToPlay from '@/components/HowToPlay';
+import { getWinToastMessage, getLoseToastMessage } from '@/utils/toastMessages';
 
 export const MainGamePage = () => {
   console.log('MainGamePage: Component mounting');
@@ -51,7 +52,7 @@ export const MainGamePage = () => {
     }
     
     if (betAmount > balance) {
-      console.log('MainGamePage: Insufficient balance for spin');
+      console.log('MainGamePage: Insufficient balance');
       toast({
         title: "Insufficient Balance",
         description: "You don't have enough balance for this bet.",
@@ -77,10 +78,8 @@ export const MainGamePage = () => {
 
         const isBigWin = totalWinAmount >= betAmount * 50;
         
-        if (isBigWin) {
-          if (bgMusicRef.current?.isPlaying) {
-            bgMusicRef.current.pause();
-          }
+        if (isBigWin && bgMusicRef.current?.isPlaying) {
+          bgMusicRef.current.pause();
           
           const bigWinSound = gameSceneRef.current.sound.add('big-win-sound', { volume: 0.8 });
           bigWinSound.play();
@@ -89,25 +88,11 @@ export const MainGamePage = () => {
               bgMusicRef.current.resume();
             }
           });
-
-          toast({
-            title: "🎉 BIG WIN! 🎉",
-            description: `${hrvestTokens.toFixed(0)} HRVST`,
-            duration: 5000,
-          });
-        } else {
-          toast({
-            title: "Win!",
-            description: `${hrvestTokens.toFixed(0)} HRVST`,
-            duration: 2000,
-          });
         }
+
+        toast(getWinToastMessage(hrvestTokens, isBigWin));
       } else {
-        toast({
-          title: "No Win",
-          description: "Try again!",
-          duration: 1000,
-        });
+        toast(getLoseToastMessage());
       }
     } catch (error) {
       console.error('MainGamePage: Spin error:', error);
