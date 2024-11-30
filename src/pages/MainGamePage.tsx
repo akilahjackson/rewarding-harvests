@@ -2,8 +2,7 @@ import React, { useRef, useState, useCallback, useEffect } from 'react';
 import GameCanvas from '@/components/GameCanvas';
 import BettingControls from '@/components/BettingControls';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Coins, Volume2, VolumeX } from "lucide-react";
+import { Coins } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SlotGameScene } from '@/scenes/SlotGameScene';
 import HowToPlay from '@/components/HowToPlay';
@@ -23,14 +22,6 @@ export const MainGamePage = () => {
 
   useEffect(() => {
     console.log('MainGamePage: Component mounted, initializing game UI');
-    // Start background music when component mounts
-    if (gameSceneRef.current) {
-      bgMusicRef.current = gameSceneRef.current.sound.add('background-music', {
-        volume: 0.5,
-        loop: true
-      });
-      bgMusicRef.current.play();
-    }
     return () => {
       console.log('MainGamePage: Component unmounting');
       if (autoSpinIntervalRef.current) {
@@ -42,7 +33,7 @@ export const MainGamePage = () => {
     };
   }, []);
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     console.log('MainGamePage: Toggling mute state');
     if (gameSceneRef.current) {
       const scene = gameSceneRef.current;
@@ -50,12 +41,17 @@ export const MainGamePage = () => {
       scene.sound.mute = newMutedState;
       setIsMuted(newMutedState);
     }
-  };
+  }, [isMuted]);
 
   const handleSpin = useCallback(async () => {
-    if (isSpinning || !gameSceneRef.current) return;
+    console.log('MainGamePage: handleSpin called');
+    if (isSpinning || !gameSceneRef.current) {
+      console.log('MainGamePage: Spin blocked - already spinning or no game scene');
+      return;
+    }
     
     if (betAmount > balance) {
+      console.log('MainGamePage: Insufficient balance for spin');
       toast({
         title: "Insufficient Balance",
         description: "You don't have enough balance for this bet.",
@@ -65,31 +61,30 @@ export const MainGamePage = () => {
     }
 
     try {
+      console.log('MainGamePage: Starting spin sequence');
       setIsSpinning(true);
       setBalance(prev => prev - betAmount);
       
       const multiplier = isAutoSpin ? 2 : 1;
+      console.log('MainGamePage: Calling game scene startSpin');
       const { totalWinAmount, winningLines } = await gameSceneRef.current.startSpin(betAmount, multiplier);
+      console.log('MainGamePage: Spin complete, processing results:', { totalWinAmount, winningLines });
       
       if (totalWinAmount > 0) {
         const hrvestTokens = totalWinAmount * 1000;
         setTotalWinnings(prev => prev + hrvestTokens);
         setBalance(prev => prev + totalWinAmount);
 
-        // Check if it's a big win (50x or more)
         const isBigWin = totalWinAmount >= betAmount * 50;
         
         if (isBigWin) {
-          // Pause background music
           if (bgMusicRef.current?.isPlaying) {
             bgMusicRef.current.pause();
           }
           
-          // Play big win sound
           const bigWinSound = gameSceneRef.current.sound.add('big-win-sound', { volume: 0.8 });
           bigWinSound.play();
           bigWinSound.once('complete', () => {
-            // Resume background music after big win sound
             if (bgMusicRef.current && !isMuted) {
               bgMusicRef.current.resume();
             }
@@ -115,13 +110,14 @@ export const MainGamePage = () => {
         });
       }
     } catch (error) {
-      console.error('Spin error:', error);
+      console.error('MainGamePage: Spin error:', error);
       toast({
         title: "Error",
         description: "Something went wrong during the spin.",
         variant: "destructive",
       });
     } finally {
+      console.log('MainGamePage: Spin sequence complete');
       setIsSpinning(false);
     }
   }, [betAmount, balance, isAutoSpin, toast, isSpinning, isMuted]);
@@ -135,10 +131,8 @@ export const MainGamePage = () => {
         autoSpinIntervalRef.current = undefined;
       }
       setIsAutoSpin(false);
-      console.log('MainGamePage: Auto-spin stopped');
     } else {
       setIsAutoSpin(true);
-      console.log('MainGamePage: Auto-spin started');
       autoSpinIntervalRef.current = setInterval(() => {
         if (!isSpinning && betAmount <= balance) {
           handleSpin();
@@ -146,32 +140,22 @@ export const MainGamePage = () => {
           clearInterval(autoSpinIntervalRef.current);
           autoSpinIntervalRef.current = undefined;
           setIsAutoSpin(false);
-          console.log('MainGamePage: Auto-spin stopped due to insufficient balance');
         }
       }, 3000);
     }
   }, [isAutoSpin, isSpinning, balance, betAmount, handleSpin]);
 
-  useEffect(() => {
-    return () => {
-      if (autoSpinIntervalRef.current) {
-        clearInterval(autoSpinIntervalRef.current);
-      }
-    };
-  }, []);
-
   const handleSceneCreated = useCallback((scene: SlotGameScene) => {
     console.log('MainGamePage: Game scene created and ready');
     gameSceneRef.current = scene;
+    
+    // Initialize background music after scene is created
+    bgMusicRef.current = scene.sound.add('background-music', {
+      volume: 0.5,
+      loop: true
+    });
+    bgMusicRef.current.play();
   }, []);
-
-  console.log('MainGamePage: Rendering component with state:', {
-    balance,
-    betAmount,
-    isSpinning,
-    isAutoSpin,
-    isMuted
-  });
 
   return (
     <div className="relative w-full h-screen bg-nightsky overflow-hidden">

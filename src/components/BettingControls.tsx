@@ -49,6 +49,11 @@ const BettingControls: React.FC<BettingControlsProps> = ({
     setBetAmount(value[0]);
   }, [setBetAmount]);
 
+  const handleSpinClick = () => {
+    console.log('BettingControls: Spin button clicked');
+    onSpin();
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 w-full bg-nightsky/50 backdrop-blur-sm border-t border-neongreen/20 p-4">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
@@ -90,7 +95,7 @@ const BettingControls: React.FC<BettingControlsProps> = ({
 
           <Button
             className="min-w-[200px] h-16 bg-neongreen text-nightsky hover:bg-neongreen/80 font-space text-lg"
-            onClick={onSpin}
+            onClick={handleSpinClick}
             disabled={isSpinning || betAmount > balance}
           >
             {isSpinning ? (
