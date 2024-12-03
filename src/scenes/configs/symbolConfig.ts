@@ -23,7 +23,7 @@ export const ALL_SYMBOLS = {
 const allSymbolKeys = Object.keys(ALL_SYMBOLS);
 const selectedKeys = [...allSymbolKeys]
   .sort(() => Math.random() - 0.5)
-  .slice(0, 6);
+  .slice(0, 10);
 
 export const SYMBOLS = Object.fromEntries(
   selectedKeys.map(key => [key, ALL_SYMBOLS[key as keyof typeof ALL_SYMBOLS]])
