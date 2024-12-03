@@ -19,7 +19,7 @@ export const ALL_SYMBOLS = {
   WATERMELON: 'watermelon'
 };
 
-// Randomly select 6 symbols for the current game session
+// Randomly select 10 symbols for the current game session
 const allSymbolKeys = Object.keys(ALL_SYMBOLS);
 const selectedKeys = [...allSymbolKeys]
   .sort(() => Math.random() - 0.5)
