@@ -92,7 +92,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       window.removeEventListener('resize', handleResize);
       if (gameRef.current) {
         gameRef.current.destroy(true);
-        gameRef.current = null;
+       // gameRef.current = null;
       }
     };
   }, [isMobile, onSceneCreated]);
