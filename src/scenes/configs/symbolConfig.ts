@@ -35,5 +35,5 @@ export const SYMBOL_VALUES = Object.fromEntries(
 );
 
 export const GRID_SIZE = 6;
-export const SYMBOL_SIZE = 256;
+export const SYMBOL_SIZE = 128;
 export const SPIN_DURATION = 2000;
