@@ -42,12 +42,7 @@ export class PreloaderScene extends Phaser.Scene {
       console.log(`PreloaderScene: Loading audio - ${audio.key}`);
       this.load.audio(audio.key, audio.path);
     });
-
-    const whitePixel = this.make.graphics({ x: 0, y: 0 })
-      .fillStyle(0xFFFFFF)
-      .fillRect(0, 0, 2, 2);
-    whitePixel.generateTexture('pixel', 2, 2);
-
+    
     this.load.on('complete', () => {
       console.log('PreloaderScene: All assets loaded successfully');
       this.initializeBackgroundMusic();

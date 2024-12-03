@@ -19,5 +19,5 @@ export const SYMBOL_VALUES = {
 };
 
 export const GRID_SIZE = 6;
-export const SYMBOL_SIZE = 128;
+export const SYMBOL_SIZE = 256; // Increased from 128 to 256
 export const SPIN_DURATION = 2000;

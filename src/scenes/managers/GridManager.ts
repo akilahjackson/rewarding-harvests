@@ -9,8 +9,8 @@ export class GridManager {
   }
 
   calculateGridDimensions(width: number, height: number) {
-    const padding = Math.min(width, height) * 0.15;
-    const gridPadding = Math.min(width, height) * 0.04;
+    const padding = Math.min(width, height) * 0.1; // Reduced from 0.15 to 0.1
+    const gridPadding = Math.min(width, height) * 0.02; // Reduced from 0.04 to 0.02
     const availableWidth = width - (padding * 2);
     const availableHeight = height - (padding * 2);
     
