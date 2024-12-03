@@ -1,21 +1,21 @@
 export const SYMBOLS = {
-  WHEAT: 'wheat',
-  CORN: 'corn',
-  PUMPKIN: 'pumpkin',
-  APPLE: 'apple',
-  GRAPES: 'grapes',
+  BANANA: 'banana',
   CARROT: 'carrot',
-  BANANA: 'banana'
+  CORN: 'corn',
+  GRAPES: 'grapes',
+  PUMPKIN: 'pumpkin',
+  STRAWBERRY: 'strawberry',
+  TOMATO: 'tomato'
 };
 
 export const SYMBOL_VALUES = {
-  [SYMBOLS.WHEAT]: 50,
-  [SYMBOLS.CORN]: 40,
-  [SYMBOLS.PUMPKIN]: 30,
-  [SYMBOLS.APPLE]: 20,
-  [SYMBOLS.GRAPES]: 15,
+  [SYMBOLS.BANANA]: 5,
   [SYMBOLS.CARROT]: 10,
-  [SYMBOLS.BANANA]: 5
+  [SYMBOLS.CORN]: 15,
+  [SYMBOLS.GRAPES]: 20,
+  [SYMBOLS.PUMPKIN]: 30,
+  [SYMBOLS.STRAWBERRY]: 40,
+  [SYMBOLS.TOMATO]: 50
 };
 
 export const GRID_SIZE = 6;
