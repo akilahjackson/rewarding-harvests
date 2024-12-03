@@ -39,6 +39,12 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       height: height,
       transparent: true,
       scene: SlotGameScene,
+      physics: {
+           default: 'arcade',
+            arcade: {
+            debug: false, // Ensure this is false
+                    },
+      },
       scale: {
         mode: Phaser.Scale.RESIZE,
         autoCenter: Phaser.Scale.CENTER_BOTH,
