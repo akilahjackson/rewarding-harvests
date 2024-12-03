@@ -1,4 +1,4 @@
-export const SYMBOLS = {
+export const ALL_SYMBOLS = {
   AVOCADO: 'avocado',
   BANANA: 'banana',
   BLUEBERRIES: 'blueberries',
@@ -19,26 +19,20 @@ export const SYMBOLS = {
   WATERMELON: 'watermelon'
 };
 
-export const SYMBOL_VALUES = {
-  [SYMBOLS.AVOCADO]: 5,
-  [SYMBOLS.BANANA]: 10,
-  [SYMBOLS.BLUEBERRIES]: 15,
-  [SYMBOLS.BROCCOLI]: 20,
-  [SYMBOLS.CARROT]: 25,
-  [SYMBOLS.CAULIFLOWER]: 30,
-  [SYMBOLS.CHERRY]: 35,
-  [SYMBOLS.CORN]: 40,
-  [SYMBOLS.CUCUMBER]: 45,
-  [SYMBOLS.EGGPLANT]: 50,
-  [SYMBOLS.GRAPES]: 55,
-  [SYMBOLS.LIME]: 60,
-  [SYMBOLS.PEAR]: 65,
-  [SYMBOLS.PLUM]: 70,
-  [SYMBOLS.PUMPKIN]: 75,
-  [SYMBOLS.STRAWBERRY]: 80,
-  [SYMBOLS.TOMATO]: 85,
-  [SYMBOLS.WATERMELON]: 90
-};
+// Randomly select 6 symbols for the current game session
+const allSymbolKeys = Object.keys(ALL_SYMBOLS);
+const selectedKeys = [...allSymbolKeys]
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 6);
+
+export const SYMBOLS = Object.fromEntries(
+  selectedKeys.map(key => [key, ALL_SYMBOLS[key as keyof typeof ALL_SYMBOLS]])
+);
+
+// Set multiplier to 10 for all selected symbols
+export const SYMBOL_VALUES = Object.fromEntries(
+  Object.keys(SYMBOLS).map(key => [SYMBOLS[key as keyof typeof SYMBOLS], 10])
+);
 
 export const GRID_SIZE = 6;
 export const SYMBOL_SIZE = 256;
