@@ -97,7 +97,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
         <div className="absolute inset-0 flex items-center justify-center z-10">
           <div className="text-center space-y-4">
             <Loader2 className="w-12 h-12 animate-spin text-neongreen mx-auto" />
-            <p className="text-neongreen font-space animate-pulse">Loading Harvest Slots...</p>
+            <p className="text-neongreen font-space animate-pulse">Loading Rewarding Harvest...</p>
           </div>
         </div>
       )}
