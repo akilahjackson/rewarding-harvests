@@ -1,9 +1,9 @@
 import { SYMBOLS, GRID_SIZE } from '../configs/symbolConfig';
 
 export const generateRandomSymbol = (): string => {
-  const symbolKeys = Object.keys(SYMBOLS);
+  const symbolKeys = Object.values(SYMBOLS);
   const randomIndex = Math.floor(Math.random() * symbolKeys.length);
-  return SYMBOLS[symbolKeys[randomIndex] as keyof typeof SYMBOLS];
+  return symbolKeys[randomIndex];
 };
 
 export const createInitialGrid = (): string[][] => {

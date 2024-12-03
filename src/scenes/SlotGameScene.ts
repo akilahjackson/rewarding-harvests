@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GRID_SIZE, SYMBOL_SIZE } from './configs/symbolConfig';
+import { GRID_SIZE, SYMBOL_SIZE, SYMBOLS } from './configs/symbolConfig';
 import { createInitialGrid } from './utils/gridManager';
 import { WinAnimationManager } from './effects/WinAnimationManager';
 import { MessageManager } from './effects/MessageManager';
@@ -8,7 +8,7 @@ import { GridManager } from './managers/GridManager';
 import { SpinManager } from './managers/SpinManager';
 
 export class SlotGameScene extends Phaser.Scene {
-  private symbols: Phaser.GameObjects.Text[][] = [];
+  private symbols: Phaser.GameObjects.Image[][] = [];
   private isSpinning: boolean = false;
   private currentGrid: string[][] = [];
   private winAnimationManager: WinAnimationManager;
@@ -28,6 +28,12 @@ export class SlotGameScene extends Phaser.Scene {
 
   preload() {
     console.log('SlotGameScene: Preloading assets');
+    
+    // Load SVG symbols
+    Object.values(SYMBOLS).forEach(symbol => {
+      this.load.svg(`symbol-${symbol}`, `/images/assets/${symbol}.svg`);
+    });
+
     // Load audio assets
     this.load.audio('background-music', '/sounds/background-music.mp3');
     this.load.audio('spin-sound', '/sounds/spin.mp3');
@@ -45,7 +51,6 @@ export class SlotGameScene extends Phaser.Scene {
   create() {
     console.log('SlotGameScene: Creating game scene');
     
-    // Clear any existing game objects
     this.children.removeAll(true);
     this.add.graphics().clear();
     
@@ -55,7 +60,6 @@ export class SlotGameScene extends Phaser.Scene {
     this.createGrid();
     this.startFloatingAnimations();
     
-    // Setup scene cleanup
     this.events.on('shutdown', this.cleanup, this);
     
     console.log('SlotGameScene: Scene setup complete');
@@ -111,13 +115,12 @@ export class SlotGameScene extends Phaser.Scene {
         const x = gridDimensions.startX + col * (gridDimensions.cellSize + gridDimensions.gridPadding);
         const y = gridDimensions.startY + row * (gridDimensions.cellSize + gridDimensions.gridPadding);
         
-        const symbol = this.add.text(x, y, this.currentGrid[row][col], {
-          fontSize: `${SYMBOL_SIZE}px`,
-          padding: { x: SYMBOL_SIZE * 0.02, y: SYMBOL_SIZE * 0.02 },
-        })
-        .setOrigin(0.5)
-        .setScale(this.baseScale)
-        .setInteractive();
+        const symbolKey = this.currentGrid[row][col];
+        const symbol = this.add.image(x, y, `symbol-${symbolKey}`)
+          .setDisplaySize(SYMBOL_SIZE, SYMBOL_SIZE)
+          .setOrigin(0.5)
+          .setScale(this.baseScale)
+          .setInteractive();
         
         symbol.setData('originalY', y);
         symbol.setData('isFloating', true);
@@ -151,7 +154,7 @@ export class SlotGameScene extends Phaser.Scene {
     
     console.log('SlotGameScene: Starting floating animations');
     this.symbols.flat().forEach((symbol) => {
-      const baseY = symbol.y;
+      const baseY = symbol.getData('originalY');
       this.tweens.add({
         targets: symbol,
         y: baseY + 10,
