@@ -1,23 +1,45 @@
 export const SYMBOLS = {
+  AVOCADO: 'avocado',
   BANANA: 'banana',
+  BLUEBERRIES: 'blueberries',
+  BROCCOLI: 'broccoli',
   CARROT: 'carrot',
+  CAULIFLOWER: 'cauliflower',
+  CHERRY: 'cherry',
   CORN: 'corn',
+  CUCUMBER: 'cucumber',
+  EGGPLANT: 'eggplant',
   GRAPES: 'grapes',
+  LIME: 'lime',
+  PEAR: 'pear',
+  PLUM: 'plum',
   PUMPKIN: 'pumpkin',
   STRAWBERRY: 'strawberry',
-  TOMATO: 'tomato'
+  TOMATO: 'tomato',
+  WATERMELON: 'watermelon'
 };
 
 export const SYMBOL_VALUES = {
-  [SYMBOLS.BANANA]: 5,
-  [SYMBOLS.CARROT]: 10,
-  [SYMBOLS.CORN]: 15,
-  [SYMBOLS.GRAPES]: 20,
-  [SYMBOLS.PUMPKIN]: 30,
-  [SYMBOLS.STRAWBERRY]: 40,
-  [SYMBOLS.TOMATO]: 50
+  [SYMBOLS.AVOCADO]: 5,
+  [SYMBOLS.BANANA]: 10,
+  [SYMBOLS.BLUEBERRIES]: 15,
+  [SYMBOLS.BROCCOLI]: 20,
+  [SYMBOLS.CARROT]: 25,
+  [SYMBOLS.CAULIFLOWER]: 30,
+  [SYMBOLS.CHERRY]: 35,
+  [SYMBOLS.CORN]: 40,
+  [SYMBOLS.CUCUMBER]: 45,
+  [SYMBOLS.EGGPLANT]: 50,
+  [SYMBOLS.GRAPES]: 55,
+  [SYMBOLS.LIME]: 60,
+  [SYMBOLS.PEAR]: 65,
+  [SYMBOLS.PLUM]: 70,
+  [SYMBOLS.PUMPKIN]: 75,
+  [SYMBOLS.STRAWBERRY]: 80,
+  [SYMBOLS.TOMATO]: 85,
+  [SYMBOLS.WATERMELON]: 90
 };
 
 export const GRID_SIZE = 6;
-export const SYMBOL_SIZE = 256; // Increased from 128 to 256
+export const SYMBOL_SIZE = 256;
 export const SPIN_DURATION = 2000;
