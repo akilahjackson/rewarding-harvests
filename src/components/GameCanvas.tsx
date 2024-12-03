@@ -15,13 +15,13 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
   const gameRef = useRef<Phaser.Game | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+ /* useEffect(() => {
     console.log('GameCanvas: Initial mount');
     if (!containerRef.current || gameRef.current) {
       console.log('GameCanvas: Container not ready or game already initialized');
       return;
     }
-
+*\
     const getGameDimensions = () => {
       const maxHeight = window.innerHeight * 0.6;
       const width = containerRef.current?.clientWidth || window.innerWidth;
