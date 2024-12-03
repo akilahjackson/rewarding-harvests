@@ -4,14 +4,22 @@ import { GRID_SIZE } from '../configs/symbolConfig';
 
 export class SpinManager {
   private scene: Phaser.Scene;
-  private symbols: Phaser.GameObjects.Text[][];
+  private symbols: Phaser.GameObjects.Image[][];
   private currentGrid: string[][];
   private baseScale: number;
   private messageManager: any;
   private soundManager: any;
   private winAnimationManager: any;
 
-  constructor(scene: Phaser.Scene, symbols: Phaser.GameObjects.Text[][], currentGrid: string[][], baseScale: number, messageManager: any, soundManager: any, winAnimationManager: any) {
+  constructor(
+    scene: Phaser.Scene, 
+    symbols: Phaser.GameObjects.Image[][], 
+    currentGrid: string[][], 
+    baseScale: number, 
+    messageManager: any, 
+    soundManager: any, 
+    winAnimationManager: any
+  ) {
     this.scene = scene;
     this.symbols = symbols;
     this.currentGrid = currentGrid;
@@ -57,7 +65,7 @@ export class SpinManager {
             onComplete: () => {
               const newSymbol = generateRandomSymbol();
               this.currentGrid[rowIndex][colIndex] = newSymbol;
-              symbol.setText(newSymbol);
+              symbol.setTexture(`symbol-${newSymbol}`);
               
               this.scene.tweens.add({
                 targets: symbol,
