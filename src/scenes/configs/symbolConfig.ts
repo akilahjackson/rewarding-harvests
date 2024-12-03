@@ -22,8 +22,8 @@ export const ALL_SYMBOLS = {
 // Randomly select 10 symbols for the current game session
 const allSymbolKeys = Object.keys(ALL_SYMBOLS);
 const selectedKeys = [...allSymbolKeys]
-  .sort(() => Math.random() - 0.5)
-  .slice(0, 10);
+  .sort(() => Math.random() - 2)
+  .slice(0, 12);
 
 export const SYMBOLS = Object.fromEntries(
   selectedKeys.map(key => [key, ALL_SYMBOLS[key as keyof typeof ALL_SYMBOLS]])
