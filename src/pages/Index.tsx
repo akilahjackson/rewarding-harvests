@@ -31,7 +31,7 @@ const Index = () => {
       <div className="container mx-auto px-4 py-4 md:py-8">
         <header className="flex flex-col md:flex-row justify-between items-center mb-4 md:mb-8 gap-4">
           <h1 className="text-2xl md:text-3xl font-bold text-neongreen animate-glow-pulse">
-            Harvest Slots
+            Rewarding Harvest
           </h1>
           <WalletConnect onConnect={handleConnect} isConnected={isConnected} />
         </header>
