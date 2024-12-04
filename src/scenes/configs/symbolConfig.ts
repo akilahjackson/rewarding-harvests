@@ -19,11 +19,11 @@ export const ALL_SYMBOLS = {
   WATERMELON: 'watermelon'
 };
 
-// Randomly select 10 symbols for the current game session
+// Randomly select 6 symbols for the current game session
 const allSymbolKeys = Object.keys(ALL_SYMBOLS);
 const selectedKeys = [...allSymbolKeys]
-  .sort(() => Math.random() - 2)
-  .slice(0, 12);
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 6);
 
 export const SYMBOLS = Object.fromEntries(
   selectedKeys.map(key => [key, ALL_SYMBOLS[key as keyof typeof ALL_SYMBOLS]])
@@ -35,5 +35,8 @@ export const SYMBOL_VALUES = Object.fromEntries(
 );
 
 export const GRID_SIZE = 6;
-export const SYMBOL_SIZE = 128;
+export const SYMBOL_SIZE = 256;
 export const SPIN_DURATION = 2000;
+
+// Export the selected symbols array for use in gridManager
+export const SELECTED_SYMBOLS = Object.values(SYMBOLS);

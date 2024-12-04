@@ -1,13 +1,12 @@
-import { SYMBOLS, GRID_SIZE } from '../configs/symbolConfig';
+import { SYMBOLS, GRID_SIZE, SELECTED_SYMBOLS } from '../configs/symbolConfig';
 
 export const generateRandomSymbol = (): string => {
-  const symbolKeys = Object.values(SYMBOLS);
-  const randomIndex = Math.floor(Math.random() * symbolKeys.length);
-  return symbolKeys[randomIndex];
+  const randomIndex = Math.floor(Math.random() * SELECTED_SYMBOLS.length);
+  return SELECTED_SYMBOLS[randomIndex];
 };
 
 export const createInitialGrid = (): string[][] => {
-  console.log('Creating initial grid');
+  console.log('Creating initial grid with selected symbols:', SELECTED_SYMBOLS);
   const grid: string[][] = [];
   for (let row = 0; row < GRID_SIZE; row++) {
     grid[row] = [];
