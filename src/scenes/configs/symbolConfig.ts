@@ -19,7 +19,7 @@ export const ALL_SYMBOLS = {
   WATERMELON: 'watermelon'
 };
 
-// Use all 18 symbols for the game
+// Use all symbols for the game
 const allSymbolKeys = Object.keys(ALL_SYMBOLS);
 export const SYMBOLS = Object.fromEntries(
   allSymbolKeys.map(key => [key, ALL_SYMBOLS[key as keyof typeof ALL_SYMBOLS]])
@@ -31,7 +31,7 @@ export const SYMBOL_VALUES = Object.fromEntries(
 );
 
 export const GRID_SIZE = 6;
-export const SYMBOL_SIZE = 256;
+export const SYMBOL_SIZE = 128; // Changed from 256 to 128
 export const SPIN_DURATION = 2000;
 
 // Export all symbols array for use in gridManager
