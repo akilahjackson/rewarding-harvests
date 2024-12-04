@@ -1,13 +1,15 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import GameCanvas from '@/components/GameCanvas';
 import WalletConnect from '@/components/WalletConnect';
+import AuthForm from '@/components/AuthForm';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 const Index = () => {
   const { toast } = useToast();
-  const [isConnected, setIsConnected] = React.useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
   const isMobile = useIsMobile();
 
   const handleConnect = async () => {
@@ -25,6 +27,14 @@ const Index = () => {
       });
     }
   };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-nightsky flex items-center justify-center px-4">
+        <AuthForm onSuccess={() => setIsAuthenticated(true)} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-nightsky text-white">
