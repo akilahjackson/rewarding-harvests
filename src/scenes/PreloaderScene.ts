@@ -15,6 +15,8 @@ export class PreloaderScene extends Phaser.Scene {
   private particles?: Phaser.GameObjects.Particles.ParticleEmitter;
   private connectButton?: Phaser.GameObjects.Text;
   private onWalletConnect?: () => void;
+  private messageIndex: number = 0;
+  private messageTimer?: Phaser.Time.TimerEvent;
 
   constructor() {
     super({ key: 'PreloaderScene' });
@@ -53,9 +55,11 @@ export class PreloaderScene extends Phaser.Scene {
     console.log('PreloaderScene: Starting create phase');
     const { width, height } = this.cameras.main;
 
+    // Add background
     this.bgImage = this.add.image(width / 2, height / 2, 'preloader-bg')
       .setDisplaySize(width, height);
 
+    // Add floating animation to background
     this.tweens.add({
       targets: this.bgImage,
       y: height / 2 - 10,
@@ -65,6 +69,17 @@ export class PreloaderScene extends Phaser.Scene {
       ease: 'Sine.easeInOut'
     });
 
+    // Add loading messages
+    this.loadingText = this.add.text(width / 2, height * 0.3, '', {
+      fontFamily: 'Space Grotesk',
+      fontSize: Math.min(width * 0.03, 24) + 'px',
+      color: '#4AE54A',
+      align: 'center',
+      stroke: '#000000',
+      strokeThickness: 4,
+    }).setOrigin(0.5);
+
+    // Welcome message
     this.messageText = this.add.text(width / 2, height * 0.4, 'Welcome to Harvest Haven', {
       fontFamily: 'Space Grotesk',
       fontSize: Math.min(width * 0.05, 32) + 'px',
@@ -72,11 +87,9 @@ export class PreloaderScene extends Phaser.Scene {
       align: 'center',
       stroke: '#000000',
       strokeThickness: 4,
-    })
-    .setOrigin(0.5)
-    .setAlpha(0);
+    }).setOrigin(0.5).setAlpha(0);
 
-    // Create login button
+    // Create login button with proper styling
     const loginButton = this.add.text(width / 2, height * 0.6, 'Login to Play', {
       fontFamily: 'Space Grotesk',
       fontSize: Math.min(width * 0.04, 24) + 'px',
@@ -91,8 +104,12 @@ export class PreloaderScene extends Phaser.Scene {
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', () => {
       console.log('PreloaderScene: Login button clicked');
+      // Use window.location.href to navigate to the auth route
       window.location.href = '/auth';
     });
+
+    // Start cycling through loading messages
+    this.startLoadingMessages();
 
     // Fade in texts
     this.tweens.add({
@@ -105,10 +122,27 @@ export class PreloaderScene extends Phaser.Scene {
     this.initializeBackgroundMusic();
   }
 
+  private startLoadingMessages() {
+    if (this.messageTimer) {
+      this.messageTimer.destroy();
+    }
+
+    this.messageTimer = this.time.addEvent({
+      delay: 3000,
+      callback: this.updateLoadingMessage,
+      callbackScope: this,
+      loop: true
+    });
+
+    // Show first message immediately
+    this.updateLoadingMessage();
+  }
+
   private updateLoadingMessage() {
     if (this.loadingText && !this.loadingComplete) {
-      const randomMessage = LOADING_MESSAGES[Math.floor(Math.random() * LOADING_MESSAGES.length)];
-      this.loadingText.setText(randomMessage);
+      const message = LOADING_MESSAGES[this.messageIndex];
+      this.loadingText.setText(message);
+      this.messageIndex = (this.messageIndex + 1) % LOADING_MESSAGES.length;
     }
   }
 
@@ -120,7 +154,6 @@ export class PreloaderScene extends Phaser.Scene {
           volume: 0.5,
           loop: true
         });
-        // Store music reference in registry so other scenes can access it
         this.game.registry.set('bgMusic', this.bgMusic);
       }
     } catch (error) {
@@ -134,21 +167,10 @@ export class PreloaderScene extends Phaser.Scene {
       this.bgMusic.play();
       this.game.registry.set('audioLoaded', true);
       
-      // Don't stop music when transitioning scenes
       this.events.on('shutdown', () => {
         if (this.bgMusic && this.bgMusic.isPlaying) {
           this.game.registry.set('bgMusicPlaying', true);
         }
-      });
-      
-      // Transition to game after wallet connection
-      this.time.delayedCall(2000, () => {
-        this.loadingComplete = true;
-        this.cameras.main.fadeOut(1000, 0, 0, 0);
-        this.cameras.main.once('camerafadeoutcomplete', () => {
-          console.log('PreloaderScene: Starting transition to SlotGameScene');
-          this.game.events.emit('sceneComplete');
-        });
       });
     }
   }
