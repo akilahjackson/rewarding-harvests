@@ -8,7 +8,7 @@ console.log(referenceID);
 
 
 interface GameShiftUser {
-  referenceId: string;
+  referenceId: referenceID;
   email: string;
   externalWalletAddress?: string;
 }
