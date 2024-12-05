@@ -1,6 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-
-const GAMESHIFT_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXkiOiIzMjkxZGYyMy0zODY1LTQwNjEtYTcxZS1kOGIzZGE1ZGYyNTgiLCJzdWIiOiIxNjI3MWQ0Mi1kMDdjLTRmNTgtOTQ2MC05Nzg4MTY3NjkxNjEiLCJpYXQiOjE3MzMzNzQxMTV9.HjZ5MPjypiPSoyGqxrw22IPYsgssRTGPWW4M_DBzWxw';
+import axios from 'axios';
 
 interface GameShiftUser {
   referenceId: string;
@@ -12,7 +11,23 @@ interface GameShiftUserResponse extends GameShiftUser {
   address?: string;
 }
 
-export const registerGameShiftUser = async (
+export const registerGameShiftUser = async (email, externalWallet) => {
+  const endpoint = 'https://api.gameshift.com/register';
+  const headers = {
+    Authorization: `Bearer ${API_KEY}`,
+    'Content-Type': 'application/json',
+  };
+
+  const body = {
+    email,
+    wallet: externalWallet || null,
+  };
+
+  const response = await axios.post(endpoint, body, { headers });
+  return response.data;
+};
+
+/* export const registerGameShiftUser = async (
   email: string, 
   externalWalletAddress?: string
 ): Promise<GameShiftUserResponse> => {
@@ -46,7 +61,7 @@ export const registerGameShiftUser = async (
     console.error('GameShift registration error:', error);
     throw error;
   }
-};
+}; */
 
 export const fetchUserItems = async (userId: string) => {
   try {
