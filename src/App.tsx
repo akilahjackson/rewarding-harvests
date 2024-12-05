@@ -6,14 +6,16 @@ import './App.css';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<PreloaderPage />} />
-        <Route path="/game" element={<MainGamePage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+    <>
+      <Router>
+        <Routes>
+          <Route path="/" element={<PreloaderPage />} />
+          <Route path="/game" element={<MainGamePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Router>
       <Toaster />
-    </Router>
+    </>
   );
 }
 
