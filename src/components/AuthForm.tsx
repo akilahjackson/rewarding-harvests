@@ -5,6 +5,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import CharacterSelection from './CharacterSelection';
 import type { SquadMember } from '@/data/squads';
+import { registerGameShiftUser } from '@/services/gameShiftService';
+import WalletConnect from './WalletConnect';
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -15,13 +17,27 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [externalWallet, setExternalWallet] = useState('');
+  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // TODO: Implement actual authentication logic
-      console.log('Auth attempt with:', { email, password, isLogin });
+      console.log('Starting authentication process:', { email, isLogin });
+      
+      if (!isLogin) {
+        // Register new user with GameShift
+        const gameShiftUser = await registerGameShiftUser(
+          email,
+          isWalletConnected ? externalWallet : undefined
+        );
+        
+        console.log('GameShift user registered:', gameShiftUser);
+        
+        // Store user data in localStorage
+        localStorage.setItem('gameshift_user', JSON.stringify(gameShiftUser));
+      }
       
       setIsAuthenticated(true);
       toast({
@@ -29,17 +45,27 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
         description: "Welcome to Harvest Haven!",
       });
     } catch (error) {
+      console.error('Authentication error:', error);
       toast({
         title: "Authentication Error",
-        description: "Please try again",
+        description: error instanceof Error ? error.message : "Please try again",
         variant: "destructive",
       });
     }
   };
 
+  const handleWalletConnect = (address: string) => {
+    console.log('External wallet connected:', address);
+    setExternalWallet(address);
+    setIsWalletConnected(true);
+    toast({
+      title: "Wallet Connected",
+      description: "External wallet successfully connected!",
+    });
+  };
+
   const handleCharacterSelect = (character: SquadMember) => {
     console.log('Selected character:', character);
-    // TODO: Store character selection in user profile
     onSuccess();
   };
 
@@ -79,6 +105,16 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
             placeholder="Enter your password"
           />
         </div>
+
+        {!isLogin && (
+          <div className="space-y-2">
+            <Label className="text-white">External Wallet (Optional)</Label>
+            <WalletConnect
+              onConnect={handleWalletConnect}
+              isConnected={isWalletConnected}
+            />
+          </div>
+        )}
 
         <Button 
           type="submit"

@@ -2,14 +2,24 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 
 interface WalletConnectProps {
-  onConnect: () => void;
+  onConnect: (address: string) => void;
   isConnected: boolean;
 }
 
 const WalletConnect = ({ onConnect, isConnected }: WalletConnectProps) => {
+  const handleConnect = async () => {
+    try {
+      // For development, generate a mock wallet address
+      const mockAddress = `wallet_${Math.random().toString(36).substring(2, 15)}`;
+      onConnect(mockAddress);
+    } catch (error) {
+      console.error('Error connecting wallet:', error);
+    }
+  };
+
   return (
     <Button
-      onClick={onConnect}
+      onClick={handleConnect}
       disabled={isConnected}
       className={`${
         isConnected 
