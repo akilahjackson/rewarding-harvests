@@ -1,6 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
-require('dotenv').config();
+
+const API_KEY = import.meta.env.VITE_GAMESHIFT_API_KEY; // For Vite
+
 
 
 interface GameShiftUser {
