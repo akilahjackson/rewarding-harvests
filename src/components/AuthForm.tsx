@@ -26,45 +26,25 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      console.log('Starting authentication process:', { email, isLogin });
-      
       if (!isLogin) {
         const gameShiftUser = await registerGameShiftUser(
           email,
           isWalletConnected ? externalWallet : undefined
         );
-        
-        console.log('GameShift user registered:', gameShiftUser);
+
         localStorage.setItem('gameshift_user', JSON.stringify({
           ...gameShiftUser,
           username,
-          lastActive: new Date().toISOString()
+          lastActive: new Date().toISOString(),
         }));
       }
-      
+
       setIsAuthenticated(true);
       toast({
         title: isLogin ? "Login Successful" : "Account Created",
         description: "Welcome to Rewarding Harvest!",
       });
-
-      // Set session timeout
-      const timeout = setTimeout(() => {
-        localStorage.removeItem('gameshift_user');
-        window.location.href = '/';
-      }, 15 * 60 * 1000); // 15 minutes
-
-      // Reset timeout on user activity
-      const resetTimeout = () => {
-        clearTimeout(timeout);
-        localStorage.setItem('lastActive', new Date().toISOString());
-      };
-
-      window.addEventListener('mousemove', resetTimeout);
-      window.addEventListener('keypress', resetTimeout);
-
     } catch (error) {
-      console.error('Authentication error:', error);
       toast({
         title: "Authentication Error",
         description: error instanceof Error ? error.message : "Please try again",
@@ -73,16 +53,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     }
   };
 
-  const handleSocialLogin = async (provider: string) => {
-    console.log(`Attempting to login with ${provider}`);
-    toast({
-      title: "Social Login",
-      description: `${provider} login coming soon!`,
-    });
-  };
-
   const handleWalletConnect = (address: string) => {
-    console.log('External wallet connected:', address);
     setExternalWallet(address);
     setIsWalletConnected(true);
     toast({
@@ -91,65 +62,60 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     });
   };
 
-  const handleCharacterSelect = (character: SquadMember) => {
-    console.log('Selected character:', character);
-    onSuccess();
-  };
-
   if (isAuthenticated) {
-    return <CharacterSelection onCharacterSelect={handleCharacterSelect} />;
+    return <CharacterSelection onCharacterSelect={(character) => onSuccess()} />;
   }
 
   return (
-    <div className="w-full max-w-md mx-auto p-6 bg-nightsky/80 rounded-lg shadow-xl">
-      <h2 className="text-2xl font-bold text-neongreen mb-6 text-center">
+    <div className="w-full max-w-md mx-auto p-8 bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-xl backdrop-blur-md border border-glow">
+      <h2 className="text-3xl font-extrabold text-neongreen text-center mb-6">
         {isLogin ? 'Login' : 'Create Account'}
       </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
+
+      <form onSubmit={handleSubmit} className="space-y-6">
         {!isLogin && (
-          <div className="space-y-2">
-            <Label htmlFor="username" className="text-white">Username</Label>
+          <div>
+            <Label htmlFor="username" className="text-glow">Username</Label>
             <Input
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              className="bg-white/10 text-white"
-              placeholder="Choose a username"
+              placeholder="Enter your username"
+              className="bg-gray-800 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
             />
           </div>
         )}
 
-        <div className="space-y-2">
-          <Label htmlFor="email" className="text-white">Email</Label>
+        <div>
+          <Label htmlFor="email" className="text-glow">Email</Label>
           <Input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="bg-white/10 text-white"
             placeholder="Enter your email"
+            className="bg-gray-800 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
           />
         </div>
-        
-        <div className="space-y-2">
-          <Label htmlFor="password" className="text-white">Password</Label>
+
+        <div>
+          <Label htmlFor="password" className="text-glow">Password</Label>
           <Input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="bg-white/10 text-white"
             placeholder="Enter your password"
+            className="bg-gray-800 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
           />
         </div>
 
         {!isLogin && (
-          <div className="space-y-2">
-            <Label className="text-white">External Wallet (Optional)</Label>
+          <div>
+            <Label className="text-glow">External Wallet (Optional)</Label>
             <WalletConnect
               onConnect={handleWalletConnect}
               isConnected={isWalletConnected}
@@ -157,60 +123,25 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
           </div>
         )}
 
-        <Button 
+        <Button
           type="submit"
-          className="w-full bg-harvestorange hover:bg-harvestpeach text-white"
+          className="w-full py-3 bg-neongreen text-black font-bold rounded-lg hover:bg-lightgreen transition-transform transform hover:scale-105"
         >
-          <LogIn className="w-4 h-4 mr-2" />
+          <LogIn className="mr-2 w-5 h-5" />
           {isLogin ? 'Login' : 'Sign Up'}
         </Button>
 
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-white/20" />
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-nightsky px-2 text-white">Or continue with</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-3 gap-3">
-          <Button
+        <div className="text-center text-sm text-gray-400">
+          {isLogin ? "Don't have an account? " : "Already have an account? "}
+          <button
             type="button"
-            variant="outline"
-            onClick={() => handleSocialLogin('Google')}
-            className="text-white hover:text-neongreen"
+            onClick={() => setIsLogin(!isLogin)}
+            className="text-neongreen hover:underline focus:outline-none"
           >
-            <Mail className="w-4 h-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleSocialLogin('Twitter')}
-            className="text-white hover:text-neongreen"
-          >
-            <Twitter className="w-4 h-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleSocialLogin('Telegram')}
-            className="text-white hover:text-neongreen"
-          >
-            <MessageCircle className="w-4 h-4" />
-          </Button>
+            {isLogin ? 'Sign Up' : 'Login'}
+          </button>
         </div>
       </form>
-
-      <p className="mt-4 text-center text-white">
-        {isLogin ? "Don't have an account? " : "Already have an account? "}
-        <button
-          onClick={() => setIsLogin(!isLogin)}
-          className="text-neongreen hover:underline"
-        >
-          {isLogin ? 'Sign Up' : 'Login'}
-        </button>
-      </p>
     </div>
   );
 };
