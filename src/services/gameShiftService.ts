@@ -2,6 +2,8 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
 const API_KEY = import.meta.env.VITE_GAMESHIFT_API_KEY; // For Vite
+const referenceID = Math.random().toString(36).substr(2, 9);
+console.log(referenceID);
 
 
 
