@@ -3,6 +3,7 @@ import { LOADING_MESSAGES } from './constants/loadingMessages';
 
 interface PreloaderSceneData {
   onWalletConnect?: () => void;
+  onLoginClick?: () => void;
 }
 
 export class PreloaderScene extends Phaser.Scene {
@@ -15,6 +16,7 @@ export class PreloaderScene extends Phaser.Scene {
   private particles?: Phaser.GameObjects.Particles.ParticleEmitter;
   private connectButton?: Phaser.GameObjects.Text;
   private onWalletConnect?: () => void;
+  private onLoginClick?: () => void;
   private messageIndex: number = 0;
   private messageTimer?: Phaser.Time.TimerEvent;
 
@@ -26,6 +28,7 @@ export class PreloaderScene extends Phaser.Scene {
   init(data: PreloaderSceneData) {
     console.log('PreloaderScene: Initializing with data:', data);
     this.onWalletConnect = data.onWalletConnect;
+    this.onLoginClick = data.onLoginClick;
   }
 
   preload() {
@@ -104,8 +107,9 @@ export class PreloaderScene extends Phaser.Scene {
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', () => {
       console.log('PreloaderScene: Login button clicked');
-      // Use window.location.href to navigate to the auth route
-      window.location.href = '/auth';
+      if (this.onLoginClick) {
+        this.onLoginClick();
+      }
     });
 
     // Start cycling through loading messages

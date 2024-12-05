@@ -5,7 +5,7 @@ import { SlotGameScene } from '@/scenes/SlotGameScene';
 import Phaser from 'phaser';
 import { useToast } from "@/hooks/use-toast";
 
-const PreloaderPage = () => {
+const PreloaderPage: React.FC = () => {
   const navigate = useNavigate();
   const [isConnected, setIsConnected] = useState(false);
   const { toast } = useToast();
@@ -29,7 +29,7 @@ const PreloaderPage = () => {
       console.log('PreloaderPage: Creating new Phaser game instance');
       const game = new Phaser.Game(config);
 
-      // Pass the wallet connection callback to the PreloaderScene
+      // Pass navigation function to PreloaderScene
       game.scene.start('PreloaderScene', { 
         onWalletConnect: () => {
           console.log('PreloaderPage: Wallet connected from scene');
@@ -39,6 +39,11 @@ const PreloaderPage = () => {
             description: "You can now start playing!",
             duration: 2000,
           });
+        },
+        onLoginClick: () => {
+          console.log('PreloaderPage: Login clicked, navigating to auth');
+          game.destroy(true);
+          navigate('/auth');
         }
       });
 
@@ -57,7 +62,7 @@ const PreloaderPage = () => {
     } catch (error) {
       console.error('PreloaderPage: Error creating Phaser game instance:', error);
     }
-  }, [navigate]);
+  }, [navigate, toast]);
 
   return (
     <div className="w-full min-h-screen bg-nightsky">
