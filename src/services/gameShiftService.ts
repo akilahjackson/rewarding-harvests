@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
 const API_KEY = import.meta.env.VITE_GAMESHIFT_API_KEY; // For Vite
-const referenceID = `user_${uuidv4().replace(/-/g, '')}` ;
+const referenceID = `user_${uuidv4().replace(/-/g, '')}`;
 console.log(referenceID);
 
 
