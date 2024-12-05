@@ -65,7 +65,7 @@ export class PreloaderScene extends Phaser.Scene {
       ease: 'Sine.easeInOut'
     });
 
-    this.messageText = this.add.text(width / 2, height * 0.4, 'The Harvest Begins...', {
+    this.messageText = this.add.text(width / 2, height * 0.4, 'Welcome to Harvest Haven', {
       fontFamily: 'Space Grotesk',
       fontSize: Math.min(width * 0.05, 32) + 'px',
       color: '#4AE54A',
@@ -76,19 +76,8 @@ export class PreloaderScene extends Phaser.Scene {
     .setOrigin(0.5)
     .setAlpha(0);
 
-    this.loadingText = this.add.text(width / 2, height * 0.5, '', {
-      fontFamily: 'Space Grotesk',
-      fontSize: Math.min(width * 0.04, 24) + 'px',
-      color: '#FEC6A1',
-      align: 'center',
-      stroke: '#000000',
-      strokeThickness: 3,
-    })
-    .setOrigin(0.5)
-    .setAlpha(0);
-
-    // Create connect wallet button
-    this.connectButton = this.add.text(width / 2, height * 0.6, 'Connect Wallet', {
+    // Create login button
+    const loginButton = this.add.text(width / 2, height * 0.6, 'Login to Play', {
       fontFamily: 'Space Grotesk',
       fontSize: Math.min(width * 0.04, 24) + 'px',
       color: '#FFFFFF',
@@ -101,29 +90,16 @@ export class PreloaderScene extends Phaser.Scene {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on('pointerdown', () => {
-      console.log('PreloaderScene: Connect wallet button clicked');
-      if (this.onWalletConnect) {
-        this.onWalletConnect();
-        this.connectButton?.setBackgroundColor('#4AE54A');
-        this.connectButton?.setText('Connected');
-        this.startBackgroundMusic();
-      }
+      console.log('PreloaderScene: Login button clicked');
+      window.location.href = '/auth';
     });
 
     // Fade in texts
     this.tweens.add({
-      targets: [this.messageText, this.loadingText, this.connectButton],
+      targets: [this.messageText, loginButton],
       alpha: 1,
       duration: 1000,
       ease: 'Power2'
-    });
-
-    // Update loading messages
-    this.time.addEvent({
-      delay: 2000,
-      callback: this.updateLoadingMessage,
-      callbackScope: this,
-      loop: true
     });
 
     this.initializeBackgroundMusic();

@@ -7,6 +7,7 @@ import CharacterSelection from './CharacterSelection';
 import type { SquadMember } from '@/data/squads';
 import { registerGameShiftUser } from '@/services/gameShiftService';
 import WalletConnect from './WalletConnect';
+import { LogIn, Mail, User, Twitter, MessageCircle } from "lucide-react";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -16,6 +17,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [externalWallet, setExternalWallet] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
@@ -27,16 +29,17 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       console.log('Starting authentication process:', { email, isLogin });
       
       if (!isLogin) {
-        // Register new user with GameShift
         const gameShiftUser = await registerGameShiftUser(
           email,
           isWalletConnected ? externalWallet : undefined
         );
         
         console.log('GameShift user registered:', gameShiftUser);
-        
-        // Store user data in localStorage
-        localStorage.setItem('gameshift_user', JSON.stringify(gameShiftUser));
+        localStorage.setItem('gameshift_user', JSON.stringify({
+          ...gameShiftUser,
+          username,
+          lastActive: new Date().toISOString()
+        }));
       }
       
       setIsAuthenticated(true);
@@ -44,6 +47,22 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
         title: isLogin ? "Login Successful" : "Account Created",
         description: "Welcome to Harvest Haven!",
       });
+
+      // Set session timeout
+      const timeout = setTimeout(() => {
+        localStorage.removeItem('gameshift_user');
+        window.location.href = '/';
+      }, 15 * 60 * 1000); // 15 minutes
+
+      // Reset timeout on user activity
+      const resetTimeout = () => {
+        clearTimeout(timeout);
+        localStorage.setItem('lastActive', new Date().toISOString());
+      };
+
+      window.addEventListener('mousemove', resetTimeout);
+      window.addEventListener('keypress', resetTimeout);
+
     } catch (error) {
       console.error('Authentication error:', error);
       toast({
@@ -52,6 +71,14 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleSocialLogin = async (provider: string) => {
+    console.log(`Attempting to login with ${provider}`);
+    toast({
+      title: "Social Login",
+      description: `${provider} login coming soon!`,
+    });
   };
 
   const handleWalletConnect = (address: string) => {
@@ -80,6 +107,20 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       </h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
+        {!isLogin && (
+          <div className="space-y-2">
+            <Label htmlFor="username" className="text-white">Username</Label>
+            <Input
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              required
+              className="bg-white/10 text-white"
+              placeholder="Choose a username"
+            />
+          </div>
+        )}
+
         <div className="space-y-2">
           <Label htmlFor="email" className="text-white">Email</Label>
           <Input
@@ -120,8 +161,45 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
           type="submit"
           className="w-full bg-harvestorange hover:bg-harvestpeach text-white"
         >
+          <LogIn className="w-4 h-4 mr-2" />
           {isLogin ? 'Login' : 'Sign Up'}
         </Button>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t border-white/20" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-nightsky px-2 text-white">Or continue with</span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleSocialLogin('Google')}
+            className="text-white hover:text-neongreen"
+          >
+            <Mail className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleSocialLogin('Twitter')}
+            className="text-white hover:text-neongreen"
+          >
+            <Twitter className="w-4 h-4" />
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleSocialLogin('Telegram')}
+            className="text-white hover:text-neongreen"
+          >
+            <MessageCircle className="w-4 h-4" />
+          </Button>
+        </div>
       </form>
 
       <p className="mt-4 text-center text-white">
