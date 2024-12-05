@@ -2,13 +2,13 @@ import { v4 as uuidv4 } from 'uuid';
 import axios from 'axios';
 
 const API_KEY = import.meta.env.VITE_GAMESHIFT_API_KEY; // For Vite
-const referenceID = Math.random().toString(36).substr(2, 9);
+const referenceID = `user_${uuidv4().replace(/-/g, '')}` ;
 console.log(referenceID);
 
 
 
 interface GameShiftUser {
-  referenceId: referenceID;
+  referenceId: string;
   email: string;
   externalWalletAddress?: string;
 }
@@ -25,7 +25,7 @@ export const registerGameShiftUser = async (email, externalWallet) => {
   };
 
   const body = {
-    referenceID,
+    referenceId : referenceID,
     email,
     wallet: externalWallet || null,
   };
