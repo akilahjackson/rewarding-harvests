@@ -23,6 +23,7 @@ export const registerGameShiftUser = async (email, externalWallet) => {
   };
 
   const body = {
+    referenceID,
     email,
     wallet: externalWallet || null,
   };
@@ -75,7 +76,7 @@ export const fetchUserItems = async (userId: string) => {
       `https://api.gameshift.dev/nx/users/${userId}/items`,
       {
         headers: {
-          'Authorization': `Bearer ${GAMESHIFT_API_KEY}`
+          'Authorization': `Bearer ${API_KEY}`
         }
       }
     );
