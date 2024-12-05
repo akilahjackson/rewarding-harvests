@@ -46,3 +46,25 @@
 .border-glow { border-color: #39ff14; box-shadow: 0 0 10px #39ff14; }
 .focus:ring-neongreen { box-shadow: 0 0 5px #39ff14; }
 .hover:bg-lightgreen { background: #32cd32; }
+
+//for character selection
+
+.text-neongreen {
+  color: #39ff14;
+}
+
+.bg-nightsky {
+  background-color: #1a1a2e;
+}
+
+.border-neongreen {
+  border-color: #39ff14;
+}
+
+.from-harvestorange {
+  background-color: #ff7f50;
+}
+
+.to-harvestpeach {
+  background-color: #ffa07a;
+}
