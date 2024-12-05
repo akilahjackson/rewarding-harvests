@@ -45,7 +45,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       setIsAuthenticated(true);
       toast({
         title: isLogin ? "Login Successful" : "Account Created",
-        description: "Welcome to Harvest Haven!",
+        description: "Welcome to Rewarding Harvest!",
       });
 
       // Set session timeout
