@@ -39,3 +39,10 @@
 .read-the-docs {
   color: #888;
 }
+
+//for Auth Form
+.bg-nightsky { background: #1a1a2e; }
+.text-neongreen { color: #39ff14; }
+.border-glow { border-color: #39ff14; box-shadow: 0 0 10px #39ff14; }
+.focus:ring-neongreen { box-shadow: 0 0 5px #39ff14; }
+.hover:bg-lightgreen { background: #32cd32; }
