@@ -9,9 +9,10 @@ const referenceID = `user_${uuidv4().replace(/-/g, '')}`;
 interface GameShiftUser {
   referenceId: string;
   email: string;
+  externalWallet?: string;
 }
 
-export const registerGameShiftUser = async (email: string): Promise<any> => {
+export const registerGameShiftUser = async (email: string, externalWallet?: string): Promise<any> => {
   try {
     const endpoint = 'https://api.gameshift.dev/nx/users';
 
@@ -19,13 +20,14 @@ export const registerGameShiftUser = async (email: string): Promise<any> => {
     const headers = {
       'accept': 'application/json',
       'content-type': 'application/json',
-      'x-api-key': API_KEY, // Use x-api-key instead of Authorization
+      'x-api-key': API_KEY,
     };
 
     // Define payload
     const userData: GameShiftUser = {
       referenceId: referenceID,
       email,
+      ...(externalWallet && { externalWallet })
     };
 
     console.log('Sending Request:', {
