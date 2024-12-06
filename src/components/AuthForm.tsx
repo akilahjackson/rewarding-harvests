@@ -71,6 +71,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   };
 
   const handleCharacterSelect = () => {
+    // Fixed: Remove the character parameter and just call onSuccess
     onSuccess();
   };
 
