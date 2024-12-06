@@ -61,8 +61,12 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     });
   };
 
+  const handleCharacterSelect = () => {
+    onSuccess();
+  };
+
   if (isAuthenticated) {
-    return <CharacterSelection onCharacterSelect={() => onSuccess()} />;
+    return <CharacterSelection onCharacterSelect={handleCharacterSelect} />;
   }
 
   return (
