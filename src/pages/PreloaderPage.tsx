@@ -1,72 +1,54 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { PreloaderScene } from '@/scenes/PreloaderScene';
-import { SlotGameScene } from '@/scenes/SlotGameScene';
+import React, { useState } from 'react';
 import Phaser from 'phaser';
-import { useToast } from "@/hooks/use-toast";
+import { PreloaderScene } from '@/scenes/PreloaderScene';
+import AuthForm from '@/components/auth/AuthForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useNavigate } from 'react-router-dom';
 
 const PreloaderPage: React.FC = () => {
   const navigate = useNavigate();
-  const [isConnected, setIsConnected] = useState(false);
-  const { toast } = useToast();
-  
-  useEffect(() => {
-    console.log('PreloaderPage: Initializing game');
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  React.useEffect(() => {
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
       parent: 'game-container',
       width: window.innerWidth,
       height: window.innerHeight,
+      backgroundColor: '#000',
+      scene: [PreloaderScene],
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
       },
-      backgroundColor: '#000000',
-      scene: [PreloaderScene, SlotGameScene]
     };
 
-    try {
-      console.log('PreloaderPage: Creating new Phaser game instance');
-      const game = new Phaser.Game(config);
+    const game = new Phaser.Game(config);
 
-      // Pass navigation function to PreloaderScene
-      game.scene.start('PreloaderScene', { 
-        onWalletConnect: () => {
-          console.log('PreloaderPage: Wallet connected from scene');
-          setIsConnected(true);
-          toast({
-            title: "Wallet Connected",
-            description: "You can now start playing!",
-            duration: 2000,
-          });
-        },
-        onLoginClick: () => {
-          console.log('PreloaderPage: Login clicked, navigating to auth');
-          game.destroy(true);
-          navigate('/auth');
-        }
-      });
+    game.scene.start('PreloaderScene', {
+      showAuthModal: () => setShowAuthModal(true),
+    });
 
-      const handleSceneComplete = () => {
-        console.log('PreloaderPage: Preloader complete, navigating to game');
-        game.destroy(true);
-        navigate('/game');
-      };
-
-      game.events.on('sceneComplete', handleSceneComplete);
-
-      return () => {
-        game.events.off('sceneComplete', handleSceneComplete);
-        game.destroy(true);
-      };
-    } catch (error) {
-      console.error('PreloaderPage: Error creating Phaser game instance:', error);
-    }
-  }, [navigate, toast]);
+    return () => game.destroy(true);
+  }, []);
 
   return (
-    <div className="w-full min-h-screen bg-nightsky">
-      <div id="game-container" className="w-full h-full" />
+    <div className="relative w-full h-screen bg-nightsky">
+      <div id="game-container" className="absolute inset-0" />
+
+      <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-neongreen">Login to Play</DialogTitle>
+          </DialogHeader>
+          <AuthForm
+            onSuccess={() => {
+              setShowAuthModal(false);
+              navigate('/welcome');
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
