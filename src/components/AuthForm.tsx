@@ -7,6 +7,7 @@ import CharacterSelection from './CharacterSelection';
 import { registerGameShiftUser } from '@/services/gameShiftService';
 import WalletConnect from './WalletConnect';
 import { LogIn } from "lucide-react";
+import { useUser } from '@/contexts/UserContext';
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -21,6 +22,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   const [externalWallet, setExternalWallet] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const { toast } = useToast();
+  const { setUser } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,11 +33,18 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
           isWalletConnected ? externalWallet : undefined
         );
 
-        localStorage.setItem('gameshift_user', JSON.stringify({
+        const userData = {
           ...gameShiftUser,
           username,
+          email,
+          isAuthenticated: true,
+          walletBalance: '0.00',
+          tokenBalance: '0',
           lastActive: new Date().toISOString(),
-        }));
+        };
+
+        setUser(userData);
+        localStorage.setItem('gameshift_user', JSON.stringify(userData));
       }
 
       setIsAuthenticated(true);
