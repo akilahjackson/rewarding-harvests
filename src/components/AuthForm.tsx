@@ -4,10 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import CharacterSelection from './CharacterSelection';
-import type { SquadMember } from '@/data/squads';
 import { registerGameShiftUser } from '@/services/gameShiftService';
 import WalletConnect from './WalletConnect';
-import { LogIn, Mail, User, Twitter, MessageCircle } from "lucide-react";
+import { LogIn } from "lucide-react";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -63,7 +62,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   };
 
   if (isAuthenticated) {
-    return <CharacterSelection onCharacterSelect={(character) => onSuccess()} />;
+    return <CharacterSelection onCharacterSelect={() => onSuccess()} />;
   }
 
   return (
