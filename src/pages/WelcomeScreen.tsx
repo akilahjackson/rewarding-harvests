@@ -33,9 +33,9 @@ const WelcomeScreen = () => {
             <CardContent>
               <ul className="space-y-4">
                 {[
-                  { task: "Harvest 50 crops", reward: "10 HRVST" },
-                  { task: "Complete 3 trades", reward: "15 HRVST" },
-                  { task: "Win 5 games", reward: "25 HRVST" }
+                  { task: "Harvest 50 crops", reward: "1000 HRVST" },
+                  { task: "Complete 3 trades", reward: "1500 HRVST" },
+                  { task: "Win 5 games", reward: "2500 HRVST" }
                 ].map((mission, index) => (
                   <li key={index} className="flex justify-between items-center text-white">
                     <span>{mission.task}</span>
