@@ -9,6 +9,7 @@ import WalletConnect from './WalletConnect';
 import { LogIn } from "lucide-react";
 import { useUser } from '@/contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { type SquadMember } from "@/data/squads";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -72,7 +73,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     });
   };
 
-  const handleCharacterSelect = () => {
+  const handleCharacterSelect = (character: SquadMember) => {
     onSuccess();
     navigate('/welcome');
   };
