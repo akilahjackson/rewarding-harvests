@@ -8,6 +8,7 @@ import { registerGameShiftUser } from '@/services/gameShiftService';
 import WalletConnect from './WalletConnect';
 import { LogIn } from "lucide-react";
 import { useUser } from '@/contexts/UserContext';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -23,6 +24,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const { toast } = useToast();
   const { setUser } = useUser();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,9 +72,9 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     });
   };
 
-  // This function now correctly matches the type definition
   const handleCharacterSelect = () => {
     onSuccess();
+    navigate('/welcome');
   };
 
   if (isAuthenticated) {
