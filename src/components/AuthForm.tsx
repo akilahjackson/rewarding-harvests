@@ -3,13 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import CharacterSelection from './CharacterSelection';
 import { registerGameShiftUser } from '@/services/gameShiftService';
 import WalletConnect from './WalletConnect';
 import { LogIn } from "lucide-react";
 import { useUser } from '@/contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
-import { type SquadMember } from "@/data/squads";
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -20,7 +18,6 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [externalWallet, setExternalWallet] = useState('');
   const [isWalletConnected, setIsWalletConnected] = useState(false);
   const { toast } = useToast();
@@ -50,11 +47,14 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
         localStorage.setItem('gameshift_user', JSON.stringify(userData));
       }
 
-      setIsAuthenticated(true);
       toast({
         title: isLogin ? "Login Successful" : "Account Created",
         description: "Welcome to Rewarding Harvest!",
       });
+      
+      onSuccess();
+      navigate('/welcome');
+      
     } catch (error) {
       toast({
         title: "Authentication Error",
@@ -72,15 +72,6 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       description: "External wallet successfully connected!",
     });
   };
-
-  const handleCharacterSelect = (character: SquadMember) => {
-    onSuccess();
-    navigate('/welcome');
-  };
-
-  if (isAuthenticated) {
-    return <CharacterSelection onCharacterSelect={handleCharacterSelect} />;
-  }
 
   return (
     <div className="w-full max-w-md mx-auto p-8 bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-xl backdrop-blur-md border border-glow">
