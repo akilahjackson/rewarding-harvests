@@ -70,8 +70,8 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     });
   };
 
+  // This function now correctly matches the type definition
   const handleCharacterSelect = () => {
-    // Fixed: Remove the character parameter and just call onSuccess
     onSuccess();
   };
 
