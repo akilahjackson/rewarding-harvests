@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Menu, User, Settings, ShoppingBag, Repeat, Wallet, LogOut, X } from "lucide-react";
+import { Menu, User, Settings, ShoppingBag, Repeat, Wallet, LogOut, X, Coins } from "lucide-react";
 import { useUser } from '@/contexts/UserContext';
 
 const UserMenuBar = () => {
@@ -31,9 +31,14 @@ const UserMenuBar = () => {
               {user?.username?.slice(0, 2).toUpperCase() || 'U'}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <p className="text-white font-medium">{user?.username || 'Player'}</p>
-            <p className="text-sm text-harvestpeach">{user?.walletBalance || '0.00'} SOL</p>
+          <div className="flex items-center space-x-4">
+            <div>
+              <p className="text-white font-medium">{user?.username || 'Player'}</p>
+              <div className="flex items-center text-sm text-harvestpeach">
+                <Coins className="w-4 h-4 mr-1" />
+                <span>{user?.tokenBalance || '0'} HRVST</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -63,7 +68,7 @@ const UserMenuBar = () => {
                   { icon: Settings, label: 'Settings', path: '/settings' },
                   { icon: ShoppingBag, label: 'Shop', path: '/shop' },
                   { icon: Repeat, label: 'Trade', path: '/trade' },
-                  { icon: Wallet, label: 'Buy Tokens', path: '/buy-tokens' },
+                  { icon: Wallet, label: 'Buy HRVST', path: '/buy-tokens' },
                 ].map((item) => (
                   <Button
                     key={item.path}

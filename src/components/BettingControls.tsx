@@ -59,19 +59,19 @@ const BettingControls: React.FC<BettingControlsProps> = ({
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <div className="w-full md:w-1/2 space-y-2">
           <div className="flex items-center gap-4">
-            <span className="text-neongreen font-space whitespace-nowrap min-w-[80px]">Bet (SOL):</span>
+            <span className="text-neongreen font-space whitespace-nowrap min-w-[120px]">Bet (HRVST):</span>
             <div className="flex-1">
               <Slider
                 defaultValue={[betAmount]}
-                max={1}
-                min={0.001}
-                step={0.001}
+                max={10000}
+                min={100}
+                step={100}
                 value={[betAmount]}
                 onValueChange={handleSliderChange}
                 className="w-full"
               />
             </div>
-            <span className="text-neongreen font-space min-w-[80px] text-right">{betAmount.toFixed(3)}</span>
+            <span className="text-neongreen font-space min-w-[80px] text-right">{betAmount}</span>
           </div>
         </div>
         

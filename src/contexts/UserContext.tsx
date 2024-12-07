@@ -4,10 +4,9 @@ interface UserState {
   email: string;
   username: string;
   isAuthenticated: boolean;
-  walletBalance: string;
   tokenBalance: string;
   lastActive: string;
-  avatarUrl?: string; // Added this field
+  avatarUrl?: string;
 }
 
 interface UserContextType {
