@@ -28,7 +28,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     e.preventDefault();
     try {
       if (!isLogin) {
-        const gameShiftUser = await registerGameShiftUser(email);
+        const gameShiftUser = await registerGameShiftUser(email, isWalletConnected ? externalWallet : undefined);
 
         const userData = {
           ...gameShiftUser,
@@ -43,21 +43,35 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
 
         setUser(userData);
         localStorage.setItem('gameshift_user', JSON.stringify(userData));
+
+        toast({
+          title: "Account Created",
+          description: "Welcome to Rewarding Harvest!",
+        });
+
+        onSuccess();
+        navigate('/welcome');
+      } else {
+        // Handle login case
+        toast({
+          title: "Login Successful",
+          description: "Welcome back to Rewarding Harvest!",
+        });
+        onSuccess();
+        navigate('/welcome');
       }
-
-      toast({
-        title: isLogin ? "Login Successful" : "Account Created",
-        description: "Welcome to Rewarding Harvest!",
-      });
-
-      onSuccess();
-      navigate('/welcome');
     } catch (error) {
+      console.error('Auth Error:', error);
       toast({
         title: "Authentication Error",
         description: error instanceof Error ? error.message : "Please try again",
         variant: "destructive",
       });
+
+      // If user already exists, switch to login mode
+      if (error instanceof Error && error.message.includes('already exists')) {
+        setIsLogin(true);
+      }
     }
   };
 

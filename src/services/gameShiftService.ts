@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 // API Key from environment variables
-const API_KEY = import.meta.env.VITE_GAMESHIFT_API_KEY; // Ensure this is set
+const API_KEY = import.meta.env.VITE_GAMESHIFT_API_KEY;
 
 // Generate a unique reference ID
 const referenceID = `user_${uuidv4().replace(/-/g, '')}`;
@@ -43,14 +43,19 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
       body: JSON.stringify(userData),
     });
 
-    // Handle response
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Error Response:', errorData);
-      throw new Error(errorData.message || 'Failed to register user with GameShift');
+    const data = await response.json();
+
+    // Handle existing user case
+    if (response.status === 409) {
+      console.log('User already exists:', data);
+      throw new Error('An account with this email already exists. Please try logging in instead.');
     }
 
-    const data = await response.json();
+    if (!response.ok) {
+      console.error('Error Response:', data);
+      throw new Error(data.message || 'Failed to register user with GameShift');
+    }
+
     console.log('GameShift Registration Successful:', data);
     return data;
   } catch (error) {
