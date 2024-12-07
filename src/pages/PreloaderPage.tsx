@@ -12,7 +12,9 @@ const PreloaderPage: React.FC = () => {
   const { user } = useUser();
 
   useEffect(() => {
-    if (user) {
+    // If user is already authenticated, redirect to welcome page
+    if (user?.isAuthenticated) {
+      console.log('PreloaderPage: User is authenticated, redirecting to welcome page');
       navigate('/welcome');
       return;
     }
@@ -52,7 +54,7 @@ const PreloaderPage: React.FC = () => {
   const handleAuthSuccess = () => {
     console.log('PreloaderPage: Auth successful, navigating to welcome');
     setShowAuthModal(false);
-    navigate('/welcome');
+    navigate('/welcome', { replace: true }); // Using replace to prevent going back to preloader
   };
 
   return (
