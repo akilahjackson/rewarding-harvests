@@ -63,3 +63,28 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
     throw error;
   }
 };
+
+// Fetch wallet balances using GameShift API
+export const fetchWalletBalances = async (walletAddress: string) => {
+  const response = await fetch(`https://api.gameshift.dev/wallets/${walletAddress}/balances`, {
+    headers: {
+      'accept': 'application/json',
+      'content-type': 'application/json',
+      'x-api-key': API_KEY,
+      'referenceId' : referenceID
+      
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch wallet balances.");
+  }
+
+  const data = await response.json();
+
+  return {
+    usdc: data.usdc || 0,
+    sol: data.sol || 0,
+    hrvst: data.hrvst || 0,
+  };
+};
