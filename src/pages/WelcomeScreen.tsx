@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,26 +10,42 @@ const WelcomeScreen = () => {
   const navigate = useNavigate();
   const { user } = useUser();
 
+  useEffect(() => {
+    // Initialize background music
+    const bgMusic = new Audio('/sounds/background-music.mp3');
+    bgMusic.loop = true;
+    bgMusic.volume = 0.5;
+    bgMusic.play().catch(error => console.log('Audio playback failed:', error));
+
+    return () => {
+      bgMusic.pause();
+      bgMusic.currentTime = 0;
+    };
+  }, []);
+
   if (!user) {
-    return <Navigate to="/auth" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return (
     <div
       className="min-h-screen bg-cover bg-center relative text-white"
-      style={{ backgroundImage: `url('/images/neon-crop-circles.WEBP')` }}
+      style={{ 
+        backgroundImage: `url('/images/neon-crop-circles.WEBP')`,
+        backgroundColor: '#1A1F2C'
+      }}
     >
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
       <UserMenuBar />
       
       <div className="relative container mx-auto px-4 pt-20 pb-12">
-        <h1 className="text-5xl font-extrabold text-neongreen text-center mb-12 drop-shadow-md">
+        <h1 className="text-5xl font-extrabold text-neongreen text-center mb-12 drop-shadow-md animate-fade-in">
           Welcome, {user.username}!
         </h1>
 
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
           {/* Daily Missions */}
-          <Card className="bg-nightsky/80 border border-neongreen/30 hover:shadow-lg hover:shadow-neongreen/50 rounded-xl transition-all">
+          <Card className="bg-nightsky/80 border border-neongreen/30 hover:shadow-lg hover:shadow-neongreen/50 rounded-xl transition-all animate-scale-in">
             <CardHeader>
               <CardTitle className="flex items-center text-neongreen text-2xl">
                 <Target className="mr-2" /> Daily Missions
@@ -57,7 +73,7 @@ const WelcomeScreen = () => {
           </Card>
 
           {/* Leaderboard */}
-          <Card className="bg-nightsky/80 border border-neongreen/30 hover:shadow-lg hover:shadow-neongreen/50 rounded-xl transition-all">
+          <Card className="bg-nightsky/80 border border-neongreen/30 hover:shadow-lg hover:shadow-neongreen/50 rounded-xl transition-all animate-scale-in">
             <CardHeader>
               <CardTitle className="flex items-center text-neongreen text-2xl">
                 <Trophy className="mr-2" /> Leaderboard
@@ -89,7 +105,7 @@ const WelcomeScreen = () => {
         <div className="flex justify-center mt-12">
           <Button
             onClick={() => navigate('/game')}
-            className="bg-gradient-to-r from-harvestorange to-harvestpeach text-black font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-harvestpeach/50 hover:scale-105 transition-transform flex items-center"
+            className="bg-gradient-to-r from-harvestorange to-harvestpeach text-black font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-harvestpeach/50 hover:scale-105 transition-transform flex items-center animate-fade-in"
           >
             Start Playing <ArrowRight className="ml-2" />
           </Button>
