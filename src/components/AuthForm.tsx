@@ -3,8 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
-import { registerGameShiftUser } from '@/services/gameShiftService';
-import WalletConnect from './WalletConnect';
 import { LogIn } from "lucide-react";
 import { useUser } from '@/contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
@@ -18,8 +16,6 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
-  const [externalWallet, setExternalWallet] = useState('');
-  const [isWalletConnected, setIsWalletConnected] = useState(false);
   const { toast } = useToast();
   const { setUser } = useUser();
   const navigate = useNavigate();
@@ -27,61 +23,36 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      if (!isLogin) {
-        const gameShiftUser = await registerGameShiftUser(email, isWalletConnected ? externalWallet : undefined);
+      // Simulate successful authentication
+      const mockUserData = {
+        id: 'mock_id_123',
+        username: username || email.split('@')[0],
+        email,
+        isAuthenticated: true,
+        walletBalance: '1000.00',
+        tokenBalance: '500',
+        lastActive: new Date().toISOString(),
+      };
 
-        const userData = {
-          ...gameShiftUser,
-          username,
-          email,
-          isAuthenticated: true,
-          walletBalance: '0.00',
-          tokenBalance: '0',
-          lastActive: new Date().toISOString(),
-          externalWallet: isWalletConnected ? externalWallet : undefined,
-        };
+      setUser(mockUserData);
+      localStorage.setItem('gameshift_user', JSON.stringify(mockUserData));
 
-        setUser(userData);
-        localStorage.setItem('gameshift_user', JSON.stringify(userData));
+      toast({
+        title: isLogin ? "Login Successful" : "Account Created",
+        description: "Welcome to Rewarding Harvest!",
+      });
 
-        toast({
-          title: "Account Created",
-          description: "Welcome to Rewarding Harvest!",
-        });
-
-        onSuccess();
-        navigate('/welcome');
-      } else {
-        // Handle login case
-        toast({
-          title: "Login Successful",
-          description: "Welcome back to Rewarding Harvest!",
-        });
-        onSuccess();
-        navigate('/welcome');
-      }
+      // Navigate to welcome page
+      navigate('/welcome', { replace: true });
+      onSuccess();
     } catch (error) {
       console.error('Auth Error:', error);
       toast({
         title: "Authentication Error",
-        description: error instanceof Error ? error.message : "Please try again",
+        description: "Please try again",
         variant: "destructive",
       });
-
-      // If user already exists, switch to login mode
-      if (error instanceof Error && error.message.includes('already exists')) {
-        setIsLogin(true);
-      }
     }
-  };
-
-  const handleWalletConnect = (address: string) => {
-    setExternalWallet(address);
-    setIsWalletConnected(true);
-    toast({
-      title: "Wallet Connected",
-      description: "External wallet successfully connected!",
-    });
   };
 
   return (
@@ -98,7 +69,6 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              required
               placeholder="Enter your username"
               className="bg-gray-800/50 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
             />
@@ -130,16 +100,6 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
             className="bg-gray-800/50 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
           />
         </div>
-
-        {!isLogin && (
-          <div>
-            <Label className="text-neongreen">External Wallet (Optional)</Label>
-            <WalletConnect
-              onConnect={handleWalletConnect}
-              isConnected={isWalletConnected}
-            />
-          </div>
-        )}
 
         <Button
           type="submit"
