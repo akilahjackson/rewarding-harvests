@@ -60,7 +60,7 @@ const PreloaderPage: React.FC = () => {
       <div id="game-container" className="absolute inset-0" />
 
       <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="bg-transparent border-none shadow-none">
           <AuthForm onSuccess={handleAuthSuccess} />
         </DialogContent>
       </Dialog>

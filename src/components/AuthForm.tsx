@@ -28,10 +28,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
     e.preventDefault();
     try {
       if (!isLogin) {
-        const gameShiftUser = await registerGameShiftUser(
-          email,
-          isWalletConnected ? externalWallet : undefined
-        );
+        const gameShiftUser = await registerGameShiftUser(email);
 
         const userData = {
           ...gameShiftUser,
@@ -41,6 +38,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
           walletBalance: '0.00',
           tokenBalance: '0',
           lastActive: new Date().toISOString(),
+          externalWallet: isWalletConnected ? externalWallet : undefined,
         };
 
         setUser(userData);
@@ -51,10 +49,9 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
         title: isLogin ? "Login Successful" : "Account Created",
         description: "Welcome to Rewarding Harvest!",
       });
-      
+
       onSuccess();
       navigate('/welcome');
-      
     } catch (error) {
       toast({
         title: "Authentication Error",
@@ -74,7 +71,7 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-8 bg-gradient-to-b from-gray-900 to-black rounded-2xl shadow-xl backdrop-blur-md border border-glow">
+    <div className="w-full max-w-md mx-auto p-8 bg-transparent backdrop-blur-sm rounded-2xl shadow-xl border border-neongreen/30">
       <h2 className="text-3xl font-extrabold text-neongreen text-center mb-6">
         {isLogin ? 'Login' : 'Create Account'}
       </h2>
@@ -82,20 +79,20 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       <form onSubmit={handleSubmit} className="space-y-6">
         {!isLogin && (
           <div>
-            <Label htmlFor="username" className="text-glow">Username</Label>
+            <Label htmlFor="username" className="text-neongreen">Username</Label>
             <Input
               id="username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
               placeholder="Enter your username"
-              className="bg-gray-800 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
+              className="bg-gray-800/50 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
             />
           </div>
         )}
 
         <div>
-          <Label htmlFor="email" className="text-glow">Email</Label>
+          <Label htmlFor="email" className="text-neongreen">Email</Label>
           <Input
             id="email"
             type="email"
@@ -103,12 +100,12 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
             onChange={(e) => setEmail(e.target.value)}
             required
             placeholder="Enter your email"
-            className="bg-gray-800 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
+            className="bg-gray-800/50 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
           />
         </div>
 
         <div>
-          <Label htmlFor="password" className="text-glow">Password</Label>
+          <Label htmlFor="password" className="text-neongreen">Password</Label>
           <Input
             id="password"
             type="password"
@@ -116,13 +113,13 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
             onChange={(e) => setPassword(e.target.value)}
             required
             placeholder="Enter your password"
-            className="bg-gray-800 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
+            className="bg-gray-800/50 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
           />
         </div>
 
         {!isLogin && (
           <div>
-            <Label className="text-glow">External Wallet (Optional)</Label>
+            <Label className="text-neongreen">External Wallet (Optional)</Label>
             <WalletConnect
               onConnect={handleWalletConnect}
               isConnected={isWalletConnected}
@@ -132,13 +129,13 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
 
         <Button
           type="submit"
-          className="w-full py-3 bg-neongreen text-black font-bold rounded-lg hover:bg-lightgreen transition-transform transform hover:scale-105"
+          className="w-full py-3 bg-neongreen text-black font-bold rounded-lg hover:bg-green-400 transition-transform transform hover:scale-105"
         >
           <LogIn className="mr-2 w-5 h-5" />
           {isLogin ? 'Login' : 'Sign Up'}
         </Button>
 
-        <div className="text-center text-sm text-gray-400">
+        <div className="text-center text-sm text-neongreen">
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button
             type="button"
