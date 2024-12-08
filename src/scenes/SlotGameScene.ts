@@ -13,7 +13,7 @@ export class SlotGameScene extends Phaser.Scene {
   private currentGrid: string[][] = [];
   private winAnimationManager: WinAnimationManager;
   private messageManager: MessageManager;
-  private soundManager: SoundManager;
+  public soundManager: SoundManager; // Changed to public
   private gridManager: GridManager;
   private spinManager: SpinManager;
   private baseScale: number = 1;

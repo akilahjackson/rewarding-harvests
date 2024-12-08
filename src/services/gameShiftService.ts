@@ -66,13 +66,12 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
 
 // Fetch wallet balances using GameShift API
 export const fetchWalletBalances = async (walletAddress: string) => {
-  const response = await fetch(`https://api.gameshift.dev/nx/users/${referenceId}/wallet-address`, {
+  const response = await fetch(`https://api.gameshift.dev/nx/users/${referenceID}/wallet-address`, {
     headers: {
       'accept': 'application/json',
       'content-type': 'application/json',
       'x-api-key': API_KEY,
-      'referenceId' : referenceID
-      
+      'referenceId': referenceID
     },
   });
 

@@ -7,6 +7,7 @@ interface UserState {
   tokenBalance: string;
   lastActive: string;
   avatarUrl?: string;
+  walletAddress?: string;  // Added walletAddress as optional property
 }
 
 interface UserContextType {
