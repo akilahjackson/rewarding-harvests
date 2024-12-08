@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameCanvas from '@/components/GameCanvas';
 import UserMenu from '@/components/UserMenu';
 import BettingControls from '@/components/BettingControls';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { HelpCircle } from 'lucide-react';
 import {
@@ -13,17 +13,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import HowToPlay from '@/components/HowToPlay';
+import { SlotGameScene } from '@/scenes/SlotGameScene';
+import { getWinToastMessage, getLoseToastMessage } from '@/utils/toastMessages';
 
 export const MainGamePage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [balance, setBalance] = useState(1000);
-  const [betAmount, setBetAmount] = useState(0.1);
+  const [balance, setBalance] = useState(10000); // Starting with 10k HRVST
+  const [betAmount, setBetAmount] = useState(100);
   const [totalWinnings, setTotalWinnings] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [isAutoSpin, setIsAutoSpin] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [gameScene, setGameScene] = useState<SlotGameScene | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -53,8 +56,13 @@ export const MainGamePage = () => {
     return () => clearInterval(interval);
   }, [navigate]);
 
-  const handleSpin = () => {
-    if (betAmount > balance) {
+  const handleSceneCreated = useCallback((scene: SlotGameScene) => {
+    console.log('MainGamePage: Game scene created');
+    setGameScene(scene);
+  }, []);
+
+  const handleSpin = async () => {
+    if (!gameScene || betAmount > balance) {
       toast({
         title: "Insufficient Balance",
         description: "Please lower your bet amount.",
@@ -66,22 +74,30 @@ export const MainGamePage = () => {
     setIsSpinning(true);
     setBalance(prev => prev - betAmount);
 
-    // Simulate spin result after 2 seconds
-    setTimeout(() => {
-      const win = Math.random() > 0.5;
-      const winAmount = win ? betAmount * 2 : 0;
+    try {
+      const { totalWinAmount, winningLines } = await gameScene.startSpin(betAmount, 1);
       
-      if (win) {
-        setBalance(prev => prev + winAmount);
-        setTotalWinnings(prev => prev + winAmount);
-        toast({
-          title: "Winner!",
-          description: `You won ${winAmount.toFixed(2)} SOL!`,
-        });
+      if (winningLines.length > 0) {
+        setBalance(prev => prev + totalWinAmount);
+        setTotalWinnings(prev => prev + totalWinAmount);
+        
+        const isBigWin = totalWinAmount >= betAmount * 50;
+        const toastConfig = getWinToastMessage(totalWinAmount, isBigWin);
+        toast(toastConfig);
+      } else {
+        const toastConfig = getLoseToastMessage();
+        toast(toastConfig);
       }
-
+    } catch (error) {
+      console.error('Error during spin:', error);
+      toast({
+        title: "Error",
+        description: "An error occurred during spin.",
+        variant: "destructive"
+      });
+    } finally {
       setIsSpinning(false);
-    }, 2000);
+    }
   };
 
   if (!user) return null;
@@ -96,11 +112,11 @@ export const MainGamePage = () => {
       <UserMenu 
         username={user.username || 'Player'}
         avatarUrl={user.avatarUrl}
-        walletBalance={balance.toFixed(3)}
-        tokenBalance={totalWinnings.toFixed(3)}
+        walletBalance={balance.toFixed(0)}
+        tokenBalance={totalWinnings.toFixed(0)}
       />
 
-      <GameCanvas />
+      <GameCanvas onSceneCreated={handleSceneCreated} />
 
       <BettingControls
         balance={balance}
@@ -112,7 +128,12 @@ export const MainGamePage = () => {
         isAutoSpin={isAutoSpin}
         onAutoSpinToggle={() => setIsAutoSpin(!isAutoSpin)}
         isMuted={isMuted}
-        onMuteToggle={() => setIsMuted(!isMuted)}
+        onMuteToggle={() => {
+          setIsMuted(!isMuted);
+          if (gameScene) {
+            gameScene.soundManager?.toggleMute(!isMuted);
+          }
+        }}
         helpButton={
           <Button
             variant="outline"
