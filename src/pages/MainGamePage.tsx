@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameCanvas from '@/components/GameCanvas';
-import UserMenu from '@/components/UserMenu';
 import BettingControls from '@/components/BettingControls';
+import UserMenuBar from '@/components/UserMenuBar';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { HelpCircle } from 'lucide-react';
@@ -19,7 +19,7 @@ import { getWinToastMessage, getLoseToastMessage } from '@/utils/toastMessages';
 export const MainGamePage = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<any>(null);
-  const [balance, setBalance] = useState(10000); // Starting with 10k HRVST
+  const [balance, setBalance] = useState(10000);
   const [betAmount, setBetAmount] = useState(100);
   const [totalWinnings, setTotalWinnings] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
@@ -39,21 +39,16 @@ export const MainGamePage = () => {
     const userData = JSON.parse(userStr);
     setUser(userData);
 
-    // Check session timeout
-    const checkSession = () => {
-      const lastActive = localStorage.getItem('lastActive');
-      if (lastActive) {
-        const inactiveTime = new Date().getTime() - new Date(lastActive).getTime();
-        if (inactiveTime > 15 * 60 * 1000) { // 15 minutes
-          localStorage.removeItem('gameshift_user');
-          localStorage.removeItem('lastActive');
-          navigate('/');
-        }
-      }
-    };
+    // Initialize background music
+    const bgMusic = new Audio('/sounds/background-music.mp3');
+    bgMusic.loop = true;
+    bgMusic.volume = 0.5;
+    bgMusic.play().catch(error => console.log('Audio playback failed:', error));
 
-    const interval = setInterval(checkSession, 60000); // Check every minute
-    return () => clearInterval(interval);
+    return () => {
+      bgMusic.pause();
+      bgMusic.currentTime = 0;
+    };
   }, [navigate]);
 
   const handleSceneCreated = useCallback((scene: SlotGameScene) => {
@@ -109,42 +104,39 @@ export const MainGamePage = () => {
         style={{ backgroundImage: `url('/images/neon-crop-circles.WEBP')` }}
       />
       
-      <UserMenu 
-        username={user.username || 'Player'}
-        avatarUrl={user.avatarUrl}
-        walletBalance={balance.toFixed(0)}
-        tokenBalance={totalWinnings.toFixed(0)}
-      />
+      <UserMenuBar />
 
-      <GameCanvas onSceneCreated={handleSceneCreated} />
+      <div className="pt-16"> {/* Added padding-top to account for fixed UserMenuBar */}
+        <GameCanvas onSceneCreated={handleSceneCreated} />
 
-      <BettingControls
-        balance={balance}
-        betAmount={betAmount}
-        setBetAmount={setBetAmount}
-        totalWinnings={totalWinnings}
-        isSpinning={isSpinning}
-        onSpin={handleSpin}
-        isAutoSpin={isAutoSpin}
-        onAutoSpinToggle={() => setIsAutoSpin(!isAutoSpin)}
-        isMuted={isMuted}
-        onMuteToggle={() => {
-          setIsMuted(!isMuted);
-          if (gameScene) {
-            gameScene.soundManager?.toggleMute(!isMuted);
+        <BettingControls
+          balance={balance}
+          betAmount={betAmount}
+          setBetAmount={setBetAmount}
+          totalWinnings={totalWinnings}
+          isSpinning={isSpinning}
+          onSpin={handleSpin}
+          isAutoSpin={isAutoSpin}
+          onAutoSpinToggle={() => setIsAutoSpin(!isAutoSpin)}
+          isMuted={isMuted}
+          onMuteToggle={() => {
+            setIsMuted(!isMuted);
+            if (gameScene) {
+              gameScene.soundManager?.toggleMute(!isMuted);
+            }
+          }}
+          helpButton={
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setShowHelp(true)}
+              className="bg-nightsky/50 border-neongreen"
+            >
+              <HelpCircle className="h-6 w-6 text-neongreen" />
+            </Button>
           }
-        }}
-        helpButton={
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setShowHelp(true)}
-            className="bg-nightsky/50 border-neongreen"
-          >
-            <HelpCircle className="h-6 w-6 text-neongreen" />
-          </Button>
-        }
-      />
+        />
+      </div>
 
       <Dialog open={showHelp} onOpenChange={setShowHelp}>
         <DialogContent>
