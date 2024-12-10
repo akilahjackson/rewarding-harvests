@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { observer } from 'mobx-react-lite';
 import GameCanvas from '@/components/GameCanvas';
 import BettingControls from '@/components/BettingControls';
 import UserMenuBar from '@/components/UserMenuBar';
@@ -15,41 +16,34 @@ import {
 import HowToPlay from '@/components/HowToPlay';
 import { SlotGameScene } from '@/scenes/SlotGameScene';
 import { getWinToastMessage, getLoseToastMessage } from '@/utils/toastMessages';
+import { useStore } from '@/contexts/StoreContext';
 
-export const MainGamePage = () => {
+export const MainGamePage = observer(() => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<any>(null);
-  const [balance, setBalance] = useState(10000);
-  const [betAmount, setBetAmount] = useState(100);
-  const [totalWinnings, setTotalWinnings] = useState(0);
-  const [isSpinning, setIsSpinning] = useState(false);
-  const [isAutoSpin, setIsAutoSpin] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const { userStore, gameStore } = useStore();
   const [showHelp, setShowHelp] = useState(false);
   const [gameScene, setGameScene] = useState<SlotGameScene | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const userStr = localStorage.getItem('gameshift_user');
-    if (!userStr) {
+    if (!userStore.user) {
       navigate('/');
       return;
     }
-
-    const userData = JSON.parse(userStr);
-    setUser(userData);
 
     // Initialize background music
     const bgMusic = new Audio('/sounds/background-music.mp3');
     bgMusic.loop = true;
     bgMusic.volume = 0.5;
-    bgMusic.play().catch(error => console.log('Audio playback failed:', error));
+    if (!gameStore.isMuted) {
+      bgMusic.play().catch(error => console.log('Audio playback failed:', error));
+    }
 
     return () => {
       bgMusic.pause();
       bgMusic.currentTime = 0;
     };
-  }, [navigate]);
+  }, [navigate, userStore.user, gameStore.isMuted]);
 
   const handleSceneCreated = useCallback((scene: SlotGameScene) => {
     console.log('MainGamePage: Game scene created');
@@ -57,7 +51,7 @@ export const MainGamePage = () => {
   }, []);
 
   const handleSpin = async () => {
-    if (!gameScene || betAmount > balance) {
+    if (!gameScene || gameStore.betAmount > gameStore.balance) {
       toast({
         title: "Insufficient Balance",
         description: "Please lower your bet amount.",
@@ -66,20 +60,18 @@ export const MainGamePage = () => {
       return;
     }
 
-    setIsSpinning(true);
-    setBalance(prev => prev - betAmount);
-
     try {
-      const { totalWinAmount, winningLines } = await gameScene.startSpin(betAmount, 1);
+      gameStore.placeBet();
+      const { totalWinAmount, winningLines } = await gameScene.startSpin(gameStore.betAmount, 1);
       
       if (winningLines.length > 0) {
-        setBalance(prev => prev + totalWinAmount);
-        setTotalWinnings(prev => prev + totalWinAmount);
+        gameStore.updateAfterSpin(totalWinAmount);
         
-        const isBigWin = totalWinAmount >= betAmount * 50;
+        const isBigWin = totalWinAmount >= gameStore.betAmount * 50;
         const toastConfig = getWinToastMessage(totalWinAmount, isBigWin);
         toast(toastConfig);
       } else {
+        gameStore.setSpinning(false);
         const toastConfig = getLoseToastMessage();
         toast(toastConfig);
       }
@@ -90,12 +82,11 @@ export const MainGamePage = () => {
         description: "An error occurred during spin.",
         variant: "destructive"
       });
-    } finally {
-      setIsSpinning(false);
+      gameStore.setSpinning(false);
     }
   };
 
-  if (!user) return null;
+  if (!userStore.user) return null;
 
   return (
     <div className="min-h-screen bg-nightsky relative overflow-hidden">
@@ -106,25 +97,11 @@ export const MainGamePage = () => {
       
       <UserMenuBar />
 
-      <div className="pt-16"> {/* Added padding-top to account for fixed UserMenuBar */}
+      <div className="pt-16">
         <GameCanvas onSceneCreated={handleSceneCreated} />
 
         <BettingControls
-          balance={balance}
-          betAmount={betAmount}
-          setBetAmount={setBetAmount}
-          totalWinnings={totalWinnings}
-          isSpinning={isSpinning}
           onSpin={handleSpin}
-          isAutoSpin={isAutoSpin}
-          onAutoSpinToggle={() => setIsAutoSpin(!isAutoSpin)}
-          isMuted={isMuted}
-          onMuteToggle={() => {
-            setIsMuted(!isMuted);
-            if (gameScene) {
-              gameScene.soundManager?.toggleMute(!isMuted);
-            }
-          }}
           helpButton={
             <Button
               variant="outline"
@@ -148,4 +125,4 @@ export const MainGamePage = () => {
       </Dialog>
     </div>
   );
-};
+});

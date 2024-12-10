@@ -1,10 +1,12 @@
 import { userStore } from './UserStore';
+import { gameStore } from './GameStore';
 
 class RootStore {
   userStore = userStore;
+  gameStore = gameStore;
   
   constructor() {
-    // Initialize other stores here as needed
+    console.log('RootStore: Initialized with userStore and gameStore');
   }
 }
 

@@ -1,42 +1,27 @@
 import React, { useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
-import { Badge } from '@/components/ui/badge';
 import { Loader2, Coins, RotateCw, Volume2, VolumeX } from "lucide-react";
+import { observer } from 'mobx-react-lite';
+import { useStore } from '@/contexts/StoreContext';
 
 interface BettingControlsProps {
-  balance: number;
-  betAmount: number;
-  setBetAmount: (value: number) => void;
-  totalWinnings: number;
-  isSpinning: boolean;
   onSpin: () => void;
-  isAutoSpin: boolean;
-  onAutoSpinToggle: () => void;
-  isMuted: boolean;
-  onMuteToggle: () => void;
   helpButton: React.ReactNode;
 }
 
-const BettingControls: React.FC<BettingControlsProps> = ({
-  balance,
-  betAmount,
-  setBetAmount,
-  totalWinnings,
-  isSpinning,
+const BettingControls: React.FC<BettingControlsProps> = observer(({
   onSpin,
-  isAutoSpin,
-  onAutoSpinToggle,
-  isMuted,
-  onMuteToggle,
   helpButton
 }) => {
-  console.log('BettingControls: Rendering with props:', {
-    balance,
-    betAmount,
-    isSpinning,
-    isAutoSpin,
-    isMuted
+  const { gameStore } = useStore();
+  
+  console.log('BettingControls: Rendering with store state:', {
+    balance: gameStore.balance,
+    betAmount: gameStore.betAmount,
+    isSpinning: gameStore.isSpinning,
+    isAutoSpin: gameStore.isAutoSpin,
+    isMuted: gameStore.isMuted
   });
 
   useEffect(() => {
@@ -46,8 +31,8 @@ const BettingControls: React.FC<BettingControlsProps> = ({
 
   const handleSliderChange = useCallback((value: number[]) => {
     console.log('BettingControls: Slider value changed:', value[0]);
-    setBetAmount(value[0]);
-  }, [setBetAmount]);
+    gameStore.setBetAmount(value[0]);
+  }, [gameStore]);
 
   const handleSpinClick = () => {
     console.log('BettingControls: Spin button clicked');
@@ -62,16 +47,16 @@ const BettingControls: React.FC<BettingControlsProps> = ({
             <span className="text-neongreen font-space whitespace-nowrap min-w-[120px]">Bet (HRVST):</span>
             <div className="flex-1">
               <Slider
-                defaultValue={[betAmount]}
+                defaultValue={[gameStore.betAmount]}
                 max={10000}
                 min={100}
                 step={100}
-                value={[betAmount]}
+                value={[gameStore.betAmount]}
                 onValueChange={handleSliderChange}
                 className="w-full"
               />
             </div>
-            <span className="text-neongreen font-space min-w-[80px] text-right">{betAmount}</span>
+            <span className="text-neongreen font-space min-w-[80px] text-right">{gameStore.betAmount}</span>
           </div>
         </div>
         
@@ -79,10 +64,10 @@ const BettingControls: React.FC<BettingControlsProps> = ({
           <Button
             variant="outline"
             size="icon"
-            onClick={onMuteToggle}
+            onClick={() => gameStore.toggleMute()}
             className="bg-nightsky/50 border-neongreen"
           >
-            {isMuted ? (
+            {gameStore.isMuted ? (
               <VolumeX className="h-6 w-6 text-neongreen" />
             ) : (
               <Volume2 className="h-6 w-6 text-neongreen" />
@@ -96,9 +81,9 @@ const BettingControls: React.FC<BettingControlsProps> = ({
           <Button
             className="min-w-[200px] h-16 bg-neongreen text-nightsky hover:bg-neongreen/80 font-space text-lg"
             onClick={handleSpinClick}
-            disabled={isSpinning || betAmount > balance}
+            disabled={gameStore.isSpinning || gameStore.betAmount > gameStore.balance}
           >
-            {isSpinning ? (
+            {gameStore.isSpinning ? (
               <>
                 <Loader2 className="mr-2 h-6 w-6 animate-spin" />
                 Spinning...
@@ -110,19 +95,19 @@ const BettingControls: React.FC<BettingControlsProps> = ({
           
           <Button
             className={`h-16 px-6 font-space ${
-              isAutoSpin 
+              gameStore.isAutoSpin 
                 ? 'bg-red-500 hover:bg-red-600' 
                 : 'bg-blue-500 hover:bg-blue-600'
             }`}
-            onClick={onAutoSpinToggle}
-            disabled={isSpinning || betAmount > balance}
+            onClick={() => gameStore.toggleAutoSpin()}
+            disabled={gameStore.isSpinning || gameStore.betAmount > gameStore.balance}
           >
-            <RotateCw className={`h-6 w-6 ${isAutoSpin ? 'animate-spin' : ''}`} />
+            <RotateCw className={`h-6 w-6 ${gameStore.isAutoSpin ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
     </div>
   );
-};
+});
 
 export default BettingControls;
