@@ -1,5 +1,5 @@
 // userService.js
-import pool from './db.js';
+import pool from './data/db.js';
 
 /**
  * Tracks Player Action in the Database
