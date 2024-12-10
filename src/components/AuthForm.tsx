@@ -1,55 +1,52 @@
 import React, { useState } from 'react';
+import { observer } from 'mobx-react-lite';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import { LogIn } from "lucide-react";
-import { useUser } from '@/contexts/UserContext';
 import { useNavigate } from 'react-router-dom';
+import { useStore } from '@/contexts/StoreContext';
 
 interface AuthFormProps {
   onSuccess: () => void;
 }
 
-const AuthForm = ({ onSuccess }: AuthFormProps) => {
+const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const { toast } = useToast();
-  const { setUser } = useUser();
   const navigate = useNavigate();
+  const { userStore } = useStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     try {
-      // Simulate successful authentication
-      const mockUserData = {
-        id: 'mock_id_123',
-        username: username || email.split('@')[0],
-        email,
-        isAuthenticated: true,
-        walletBalance: '1000.00',
-        tokenBalance: '500',
-        lastActive: new Date().toISOString(),
-      };
+      if (!isLogin) {
+        // Handle registration
+        await userStore.registerUser(email, username);
+        toast({
+          title: "Account Created",
+          description: "Welcome to Rewarding Harvest!",
+        });
+      } else {
+        // TODO: Implement login logic with MobX store
+        toast({
+          title: "Login Successful",
+          description: "Welcome back to Rewarding Harvest!",
+        });
+      }
 
-      setUser(mockUserData);
-      localStorage.setItem('gameshift_user', JSON.stringify(mockUserData));
-
-      toast({
-        title: isLogin ? "Login Successful" : "Account Created",
-        description: "Welcome to Rewarding Harvest!",
-      });
-
-      // Navigate to welcome page
       navigate('/welcome', { replace: true });
       onSuccess();
     } catch (error) {
       console.error('Auth Error:', error);
       toast({
         title: "Authentication Error",
-        description: "Please try again",
+        description: error.message || "Please try again",
         variant: "destructive",
       });
     }
@@ -122,6 +119,6 @@ const AuthForm = ({ onSuccess }: AuthFormProps) => {
       </form>
     </div>
   );
-};
+});
 
 export default AuthForm;

@@ -49,6 +49,8 @@
     "embla-carousel-react": "^8.3.0",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
+    "mobx": "^6.12.0",
+    "mobx-react-lite": "^4.0.5",
     "next-themes": "^0.3.0",
     "pg": "^8.13.1",
     "phaser": "^3.87.0",
