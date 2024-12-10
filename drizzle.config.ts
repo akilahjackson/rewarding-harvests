@@ -1,11 +1,23 @@
-import 'dotenv/config';
-import { defineConfig } from 'drizzle-kit';
+import type { Config } from "drizzle-kit";
+import fs from "fs";
+import "dotenv/config";
 
-export default defineConfig({
-  out: './drizzle',
-  schema: './src/db/schema.ts',
-  dialect: 'postgresql',
+// Load SSL certificate
+const sslCert = fs.readFileSync("./src/db/CA_Cert.crt").toString();
+
+export default {
+  schema: "./schema.ts", // Path to schema file
+  out: "./drizzle",      // Output directory for migrations
+  dialect: "postgresql", // Use PostgreSQL dialect
   dbCredentials: {
-    url: process.env.DATABASE_URL!,
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT || "25061", 10),
+    database: process.env.DB_DATABASE,
+    user: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    ssl: {
+      ca: sslCert,
+      rejectUnauthorized: true, // Enforce SSL validation
+    },
   },
-});
+} satisfies Config;

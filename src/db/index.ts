@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
+import { Logger } from 'drizzle-orm/logger';
 import { Pool } from 'pg';
 import fs from 'fs';
 
@@ -13,9 +14,22 @@ const pool = new Pool({
     ca: sslCert, // Provide the CA certificate
     rejectUnauthorized: true, // Validate the certificate
   },
-});
+}) satisfies Config;
 
-// Initialize Drizzle with the configured pool
-const db = drizzle(pool);
+// Define the custom logger
+class MyLogger implements Logger {
+  logQuery(query: string, params: unknown[]): void {
+    console.log("Executing Query:", { query, params });
+  }
+}
 
+// Initialize Drizzle with the logger
+const db = drizzle(pool, { logger: new MyLogger() });
+
+class MyLogger implements Logger {
+  logQuery(query: string, params: unknown[]): void {
+    const log = `Query: ${query}, Params: ${JSON.stringify(params)}\n`;
+    fs.appendFileSync("drizzle-queries.log", log);
+  }
+}
 export default db;

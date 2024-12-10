@@ -49,6 +49,7 @@
     "drizzle-kit": "^0.30.0",
     "drizzle-orm": "^0.38.0",
     "embla-carousel-react": "^8.3.0",
+    "git-filter-repo": "^0.0.30",
     "input-otp": "^1.2.4",
     "lucide-react": "^0.462.0",
     "mobx": "^6.12.0",
