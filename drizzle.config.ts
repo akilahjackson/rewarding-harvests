@@ -6,7 +6,7 @@ import "dotenv/config";
 const sslCert = fs.readFileSync("./src/db/CA_Cert.crt").toString();
 
 export default {
-  schema: "./schema.ts", // Path to schema file
+  schema: "./drizzle/schema.ts", // Path to schema file
   out: "./drizzle",      // Output directory for migrations
   dialect: "postgresql", // Use PostgreSQL dialect
   dbCredentials: {
