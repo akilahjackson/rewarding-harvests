@@ -1,5 +1,6 @@
 // userService.js
-import pool from './data/db.js';
+import { db } from './data/index.ts' // Drizzle database instance
+import { playerActions } from './data/schema.ts'; // Drizzle schema for player_actions
 
 /**
  * Tracks Player Action in the Database
@@ -13,23 +14,18 @@ export async function trackUserAction(
   device = "unknown"
 ) {
   try {
-    const actionQuery = `
-      INSERT INTO player_actions (player_id, player_email, player_wallet, action_type, action_description, device)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING *;
-    `;
-
-    const actionLog = await pool.query(actionQuery, [
+    // Insert action into player_actions table using Drizzle ORM
+    const [actionLog] = await db.insert(playerActions).values({
       playerId,
       playerEmail,
       playerWallet,
       actionType,
       actionDescription,
       device,
-    ]);
+    }).returning();
 
-    console.log("✅ Action tracked:", actionLog.rows[0]);
-    return actionLog.rows[0];
+    console.log("✅ Action tracked:", actionLog);
+    return actionLog;
   } catch (error) {
     console.error("❌ Tracking Error:", error.message || error);
     throw error;
