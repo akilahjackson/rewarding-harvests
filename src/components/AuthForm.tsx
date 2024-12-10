@@ -23,10 +23,12 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('AuthForm: Handling form submission');
     
     try {
       if (!isLogin) {
         // Handle registration
+        console.log('AuthForm: Attempting registration');
         await userStore.registerUser(email, username);
         toast({
           title: "Account Created",
@@ -34,14 +36,16 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
         });
       } else {
         // TODO: Implement login logic with MobX store
+        console.log('AuthForm: Attempting login');
         toast({
           title: "Login Successful",
           description: "Welcome back to Rewarding Harvest!",
         });
       }
 
-      navigate('/welcome', { replace: true });
+      console.log('AuthForm: Authentication successful, navigating to welcome screen');
       onSuccess();
+      navigate('/welcome');
     } catch (error) {
       console.error('Auth Error:', error);
       toast({
