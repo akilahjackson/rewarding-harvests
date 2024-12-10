@@ -43,6 +43,38 @@ class UserStore {
     });
   }
 
+  async loginUser(email: string, password: string) {
+    this.isLoading = true;
+    this.error = null;
+    
+    try {
+      // Simulated login for now - replace with actual API call
+      const userData: UserData = {
+        id: 1,
+        gameshift_ID: 'temp-id',
+        username: email.split('@')[0],
+        email,
+        wallet_type: 'none',
+        wallet_address: '',
+        avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${email}`,
+      };
+      
+      this.setUser(userData);
+      console.log('UserStore: Login successful', userData);
+      return userData;
+    } catch (error) {
+      runInAction(() => {
+        this.error = error.message;
+        console.error('Login error:', error);
+      });
+      throw error;
+    } finally {
+      runInAction(() => {
+        this.isLoading = false;
+      });
+    }
+  }
+
   async registerUser(email: string, username: string, walletAddress?: string) {
     this.isLoading = true;
     this.error = null;

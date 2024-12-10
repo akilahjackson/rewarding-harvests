@@ -35,8 +35,9 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
           description: "Welcome to Rewarding Harvest!",
         });
       } else {
-        // TODO: Implement login logic with MobX store
+        // Handle login
         console.log('AuthForm: Attempting login');
+        await userStore.loginUser(email, password);
         toast({
           title: "Login Successful",
           description: "Welcome back to Rewarding Harvest!",
@@ -44,8 +45,10 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
       }
 
       console.log('AuthForm: Authentication successful, navigating to welcome screen');
+      // First call onSuccess to update any parent state
       onSuccess();
-      navigate('/welcome');
+      // Then use navigate to change routes
+      navigate('/welcome', { replace: true });
     } catch (error) {
       console.error('Auth Error:', error);
       toast({
