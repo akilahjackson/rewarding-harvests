@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { db } from "../db/index.ts";
+import db from "../db/index.ts";
 import { users } from "../db/schema.ts";
 
 interface UserState {
