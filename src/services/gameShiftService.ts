@@ -1,7 +1,16 @@
 import { v4 as uuidv4 } from 'uuid';
 
-// API Key from environment variables
-const API_KEY = import.meta.env.VITE_GAMESHIFT_API_KEY;
+// API Key - we'll store this in localStorage for now since we don't have a backend
+const getApiKey = () => {
+  const storedKey = localStorage.getItem('gameshift_api_key');
+  if (!storedKey) {
+    // For development, you can set a default key here
+    const defaultKey = "your_default_key_here"; // Replace with your GameShift API key
+    localStorage.setItem('gameshift_api_key', defaultKey);
+    return defaultKey;
+  }
+  return storedKey;
+};
 
 // Generate a unique reference ID
 const referenceID = `user_${uuidv4().replace(/-/g, '')}`;
@@ -15,12 +24,17 @@ interface GameShiftUser {
 export const registerGameShiftUser = async (email: string, externalWallet?: string): Promise<any> => {
   try {
     const endpoint = 'https://api.gameshift.dev/nx/users';
+    const apiKey = getApiKey();
 
-    // Define headers
+    if (!apiKey) {
+      throw new Error('GameShift API key is not configured');
+    }
+
+    // Define headers with API key
     const headers = {
       'accept': 'application/json',
       'content-type': 'application/json',
-      'x-api-key': API_KEY,
+      'x-api-key': apiKey,
     };
 
     // Define payload
@@ -32,7 +46,10 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
 
     console.log('Sending Request:', {
       endpoint,
-      headers,
+      headers: {
+        ...headers,
+        'x-api-key': '[REDACTED]' // Don't log the actual API key
+      },
       body: userData,
     });
 
@@ -66,11 +83,17 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
 
 // Fetch wallet balances using GameShift API
 export const fetchWalletBalances = async (walletAddress: string) => {
+  const apiKey = getApiKey();
+  
+  if (!apiKey) {
+    throw new Error('GameShift API key is not configured');
+  }
+
   const response = await fetch(`https://api.gameshift.dev/nx/users/${referenceID}/wallet-address`, {
     headers: {
       'accept': 'application/json',
       'content-type': 'application/json',
-      'x-api-key': API_KEY,
+      'x-api-key': apiKey,
       'referenceId': referenceID
     },
   });
