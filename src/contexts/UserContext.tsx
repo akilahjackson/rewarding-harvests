@@ -1,6 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { db } from "../db/index.ts";
-import { users } from "../db/schema.ts";
 
 interface UserState {
   email: string;
@@ -15,12 +13,15 @@ interface UserState {
 interface UserContextType {
   user: UserState | null;
   setUser: (user: UserState | null) => void;
-  updateLastActive: () => void;
-  logout: () => void;
+  updateLastActive: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | null>(null);
 
+/**
+ * Hook to use User Context
+ */
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {
@@ -29,74 +30,95 @@ export const useUser = () => {
   return context;
 };
 
+/**
+ * User Provider
+ */
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserState | null>(() => {
     const stored = localStorage.getItem("gameshift_user");
-    return stored ? JSON.parse(stored) : null;
+    const parsed = stored ? JSON.parse(stored) : null;
+    console.log("UserProvider: Initial user state loaded from localStorage:", parsed);
+    return parsed;
   });
 
-  const syncUserToDatabase = async (updatedUser: UserState) => {
+  /**
+   * Update Last Active
+   */
+  const updateLastActive = async () => {
+    if (!user) return;
+
+    const updatedUser = {
+      ...user,
+      lastActive: new Date().toISOString(),
+    };
+
+    console.log("UserProvider: Updating last active:", updatedUser);
+
+    setUser(updatedUser);
+    localStorage.setItem("gameshift_user", JSON.stringify(updatedUser));
+
     try {
-      await db
-        .insert(users)
-        .values({
-          email: updatedUser.email,
-          username: updatedUser.username,
-          walletAddress: updatedUser.walletAddress ?? null,
-          avatarUrl: updatedUser.avatarUrl ?? null,
-          lastActive: updatedUser.lastActive,
-        })
-        .onConflictDoUpdate({
-          target: users.email,
-          set: {
-            username: updatedUser.username,
-            walletAddress: updatedUser.walletAddress ?? null,
-            avatarUrl: updatedUser.avatarUrl ?? null,
-            lastActive: updatedUser.lastActive,
-          },
-        });
-      console.log("✅ User synced to database:", updatedUser);
+      const response = await fetch("/api/users/updateLastActive", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.tokenBalance}`,
+        },
+        body: JSON.stringify({ lastActive: updatedUser.lastActive }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update last active in the backend");
+      }
+
+      console.log("✅ UserProvider: Successfully updated last active in the backend.");
     } catch (error) {
-      console.error("❌ Failed to sync user to database:", error);
+      console.error("❌ UserProvider: Failed to sync last active:", error);
     }
   };
 
-  const updateLastActive = () => {
-    if (user) {
-      const updatedUser = {
-        ...user,
-        lastActive: new Date().toISOString(),
-      };
-      setUser(updatedUser);
-      localStorage.setItem("gameshift_user", JSON.stringify(updatedUser));
-      syncUserToDatabase(updatedUser);
-    }
-  };
+  /**
+   * Log the user out
+   */
+  const logout = async () => {
+    console.log("UserProvider: Logging out user:", user);
 
-  const logout = () => {
+    try {
+      await fetch("/api/users/logout", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${user?.tokenBalance}`,
+        },
+      });
+
+      console.log("✅ UserProvider: Successfully notified backend of logout.");
+    } catch (error) {
+      console.error("❌ UserProvider: Failed to notify backend of logout:", error);
+    }
+
+    // Clear Local Storage and Reset State
     localStorage.removeItem("gameshift_user");
     setUser(null);
   };
 
+  /**
+   * Monitor Inactivity
+   */
   useEffect(() => {
     const checkSession = () => {
-      const lastActive = user?.lastActive;
-      if (lastActive) {
-        const inactiveTime = new Date().getTime() - new Date(lastActive).getTime();
-        if (inactiveTime > 15 * 60 * 1000) {
-          logout();
-        }
+      if (!user?.lastActive) return;
+
+      const inactiveTime = new Date().getTime() - new Date(user.lastActive).getTime();
+      console.log("UserProvider: Checking session. Inactive time:", inactiveTime);
+
+      if (inactiveTime > 15 * 60 * 1000) { // 15-minute timeout
+        console.warn("⚠️ UserProvider: User session expired. Logging out...");
+        logout();
       }
     };
 
-    const interval = setInterval(checkSession, 60000);
-    return () => clearInterval(interval);
-  }, [user]);
-
-  useEffect(() => {
-    if (user) {
-      syncUserToDatabase(user);
-    }
+    const interval = setInterval(checkSession, 60000); // Check every 60 seconds
+    return () => clearInterval(interval); // Clean up on component unmount
   }, [user]);
 
   return (

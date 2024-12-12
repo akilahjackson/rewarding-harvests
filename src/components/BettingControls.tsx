@@ -15,7 +15,7 @@ const BettingControls: React.FC<BettingControlsProps> = observer(({
   helpButton
 }) => {
   const { gameStore } = useStore();
-  
+
   useEffect(() => {
     console.log('BettingControls: Component mounted');
     return () => console.log('BettingControls: Component unmounting');
@@ -27,7 +27,7 @@ const BettingControls: React.FC<BettingControlsProps> = observer(({
         <div className="w-full md:w-1/2 space-y-2">
           <BetAmountControl />
         </div>
-        
+
         <div className="flex items-center gap-4">
           <GameControls helpButton={helpButton} />
           <SpinControls onSpin={onSpin} />

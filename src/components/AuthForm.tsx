@@ -15,29 +15,36 @@ interface AuthFormProps {
 const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const { toast } = useToast();
   const navigate = useNavigate();
   const { userStore } = useStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent page refresh
+
+    // Prevent multiple submissions
+    if (userStore.isLoading) {
+      console.warn("⚠️ Submission already in progress...");
+      return;
+    }
+
     console.log('AuthForm: Handling form submission');
-    
+
     try {
       if (!isLogin) {
-        // Handle registration
         console.log('AuthForm: Attempting registration');
-        await userStore.registerUser(email, username);
+        await userStore.register(email, username);
+
         toast({
           title: "Account Created",
           description: "Welcome to Rewarding Harvest!",
         });
       } else {
-        // Handle login
         console.log('AuthForm: Attempting login');
-        await userStore.loginUser(email, password);
+        await userStore.login(email);
+
         toast({
           title: "Login Successful",
           description: "Welcome back to Rewarding Harvest!",
@@ -45,15 +52,17 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
       }
 
       console.log('AuthForm: Authentication successful, navigating to welcome screen');
-      // First call onSuccess to update any parent state
+
+      // Call parent callback
       onSuccess();
-      // Then use navigate to change routes
+
+      // Navigate to the welcome screen
       navigate('/welcome', { replace: true });
-    } catch (error) {
-      console.error('Auth Error:', error);
+    } catch (error: any) {
+      console.error('❌ Auth Error:', error);
       toast({
         title: "Authentication Error",
-        description: error.message || "Please try again",
+        description: error.message || String(error) || "Please try again",
         variant: "destructive",
       });
     }
@@ -107,10 +116,13 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
 
         <Button
           type="submit"
-          className="w-full py-3 bg-neongreen text-black font-bold rounded-lg hover:bg-green-400 transition-transform transform hover:scale-105"
+          disabled={userStore.isLoading}
+          className={`w-full py-3 font-bold rounded-lg hover:scale-105 transition-transform
+            ${userStore.isLoading ? 'bg-gray-400 text-gray-800' : 'bg-neongreen text-black hover:bg-green-400'}
+          `}
         >
           <LogIn className="mr-2 w-5 h-5" />
-          {isLogin ? 'Login' : 'Sign Up'}
+          {userStore.isLoading ? "Processing..." : isLogin ? 'Login' : 'Sign Up'}
         </Button>
 
         <div className="text-center text-sm text-neongreen">

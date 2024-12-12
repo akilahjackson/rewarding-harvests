@@ -6,6 +6,7 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+src/logger
 
 node_modules
 dist
@@ -25,3 +26,6 @@ dist-ssr
 
 #Secrets
 .env
+
+#Hardcoded Files
+db/fetchallUsers.cjs

@@ -4,9 +4,11 @@ import { gameStore } from './GameStore';
 class RootStore {
   userStore = userStore;
   gameStore = gameStore;
-  
+
   constructor() {
-    console.log('RootStore: Initialized with userStore and gameStore');
+    console.log('RootStore: Initializing...');
+    console.log('RootStore: UserStore initialized:', this.userStore);
+    console.log('RootStore: GameStore initialized:', this.gameStore);
   }
 }
 
