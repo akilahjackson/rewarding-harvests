@@ -1,77 +1,61 @@
+import axios from "axios";
+
 // API Configuration
 const API_GAMESHIFT_URL = "https://api.gameshift.dev/nx/users";
 const API_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
 const GAMESHIFT_API_KEY = import.meta.env.VITE_GAME_SHIFT_API_KEY;
 
+// Create a Centralized Axios Instance
+const api = axios.create({
+ // baseURL: API_GAMESHIFT_URL,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 /**
- * Centralized API Request Handler
- * Automatically injects JWT token if present in localStorage.
+ * Axios Request Interceptor - Attach JWT Token if Available
  */
-export const apiRequest = async (method, url, payload = {}) => {
-  const token = localStorage.getItem("auth_token");
-
-  const options = {
-    method,
-    headers: {
-      "content-type": "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }), // Attach JWT Token
-    },
-    ...(method !== "GET" && { body: JSON.stringify(payload) }),
-  };
-
-  try {
-    const response = await fetch(url, options);
-
-    if (!response.ok) {
-      const errorMessage = await response.text();
-      console.error(`❌ API Request Failed: ${url} | ${errorMessage}`);
-      throw new Error(`Request Error: ${errorMessage}`);
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("auth_token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
-
-    return await response.json();
-  } catch (error) {
-    console.error(`❌ Network/API Error in ${url}:`, error.message || error);
-    throw error;
-  }
-};
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 /**
- * Register User in GameShift
- * Registers a new user using `referenceId` and `email`.
+ * Register User in GameShift API
  */
 export const createUserInGameShift = async (email) => {
   if (!email) {
     throw new Error("Email is required.");
   }
 
-  const referenceId = crypto.randomUUID();  // Unique GameShift ID
-
-  const url = API_GAMESHIFT_URL;
-  const options = {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "x-api-key": GAMESHIFT_API_KEY,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      referenceId,
-      email,
-    }),
-  };
+  const referenceId = crypto.randomUUID(); // Generate Unique Reference ID
 
   try {
-    const response = await fetch(url, options);
+    const response = await axios.post(
+      API_GAMESHIFT_URL,
+      { referenceId, email },
+      {
+        headers: {
+          accept: "application/json",
+          "x-api-key": GAMESHIFT_API_KEY,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-    if (!response.ok) {
-      const errorMessage = await response.text();
-      console.error(`❌ GameShift Registration Error: ${response.status} - ${errorMessage}`);
-      throw new Error(`GameShift Registration Error: ${errorMessage}`);
+    const userData = response.data;
+    if (!userData.referenceId || !userData.email) {
+      throw new Error("Invalid registration response from GameShift.");
     }
 
-    const userData = await response.json();
     console.log("✅ User successfully registered in GameShift:", userData);
-
     return { referenceId, email, ...userData };
   } catch (error) {
     console.error("❌ Error registering user in GameShift:", error.message || error);
@@ -81,42 +65,54 @@ export const createUserInGameShift = async (email) => {
 
 /**
  * Save User to Backend Database
- * Saves the user in the backend database using the schema.
  */
 export const saveUserToDatabase = async (userData) => {
-  const url = `${API_BACKEND_URL}/api/users/register`;
+  try {
+    const response = await api.post("/api/users/register", {
+      gameshiftId: userData.referenceId,
+      email: userData.email,
+      username: userData.username || "unknown",
+    });
 
-  const payload = {
-    gameshiftId: userData.referenceId,  // Ensure correct field mapping
-    email: userData.email,
-    username: userData.username || "unknown",
-  };
-
-  return await apiRequest("POST", url, payload);
+    console.log("✅ User saved to backend:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error saving user to backend:", error.message || error);
+    throw new Error("Failed to save user to backend.");
+  }
 };
 
 /**
  * Fetch User from Backend Database
- * Retrieves the user from the backend using the provided email.
  */
 export const fetchUserFromDatabase = async (email) => {
   if (!email) {
     throw new Error("Email is required.");
   }
 
-  const url = `${API_BACKEND_URL}/api/auth/login`;
-  const payload = { email };
+  try {
+    const response = await api.post("/api/auth/login", { email });
 
-  const { user, token } = await apiRequest("POST", url, payload);
-  localStorage.setItem("auth_token", token);  // Save JWT Token
+    const { user, token } = response.data;
 
-  console.log("✅ User fetched from backend:", user);
-  return user;
+    if (!user || !token) {
+      throw new Error("Invalid login response from backend.");
+    }
+
+    // Save JWT Token and User to LocalStorage
+    localStorage.setItem("auth_token", token);
+    localStorage.setItem("gameshift_user", JSON.stringify(user));
+
+    console.log("✅ User fetched from backend:", user);
+    return user;
+  } catch (error) {
+    console.error("❌ Login failed:", error.message || error);
+    throw new Error("Login failed.");
+  }
 };
 
 /**
  * Log Player Action
- * Logs a player's action using the correct schema from the database.
  */
 export const addPlayerAction = async (
   playerId,
@@ -130,24 +126,26 @@ export const addPlayerAction = async (
     throw new Error("Missing required action parameters.");
   }
 
-  const payload = {
-    playerId,
-    playerEmail,
-    playerWallet: playerWallet || "unknown",
-    actionType,
-    actionDescription,
-    device,
-  };
+  try {
+    const response = await api.post("/api/player-actions", {
+      playerId,
+      playerEmail,
+      playerWallet: playerWallet || "unknown",
+      actionType,
+      actionDescription,
+      device,
+    });
 
-  const url = `${API_BACKEND_URL}/api/player-actions`;
-  await apiRequest("POST", url, payload);
-
-  console.log("✅ Player action logged successfully:", actionType, actionDescription);
+    console.log("✅ Player action logged successfully:", actionType, actionDescription);
+    return response.data;
+  } catch (error) {
+    console.error("❌ Error logging player action:", error.message || error);
+    throw new Error("Failed to log player action.");
+  }
 };
 
 /**
  * Logout User
- * Clears user data and JWT token from local storage.
  */
 export const logoutUser = () => {
   localStorage.removeItem("auth_token");
