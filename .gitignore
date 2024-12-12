@@ -28,4 +28,4 @@ dist-ssr
 .env
 
 #Hardcoded Files
-db/fetchallUsers.cjs
+src/db/fetchallUsers.cjs
