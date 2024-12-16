@@ -2,7 +2,7 @@ import axios from "axios";
 
 // API Configuration
 const API_GAMESHIFT_URL = "https://api.gameshift.dev/nx/users";
-const API_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+const API_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://rewarding-harvests-xfkmy.ondigitalocean.app/";
 const GAMESHIFT_API_KEY = import.meta.env.VITE_GAME_SHIFT_API_KEY;
 
 // Create a Centralized Axios Instance
