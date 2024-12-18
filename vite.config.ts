@@ -11,7 +11,9 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true
+    sourcemap: true,
+    minify: mode === 'production',
+    emptyOutDir: true
   },
   plugins: [
     react(),
