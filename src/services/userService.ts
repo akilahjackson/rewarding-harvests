@@ -17,7 +17,7 @@ const api = axios.create({
  */
 api.interceptors.request.use(
   (config) => {
-    console.log('🔄 API Request:', config.url);
+    console.log('🔄 API Request:', config.url, config.params);
     const token = localStorage.getItem("auth_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -39,7 +39,7 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('❌ API Response Error:', error.config?.url, error.response?.status, error.response?.data);
+    console.error('❌ API Response Error:', error.response?.status, error.response?.data);
     return Promise.reject(error);
   }
 );
@@ -120,7 +120,6 @@ export const fetchUserFromDatabase = async (email: string): Promise<BackendRespo
   console.log('🔍 Fetching user from backend:', email);
 
   try {
-    // Changed to GET request with query parameters
     const response = await api.get(`${API_BACKEND_URL}/api/users/login`, { 
       params: { email } 
     });
@@ -131,7 +130,6 @@ export const fetchUserFromDatabase = async (email: string): Promise<BackendRespo
       throw new Error("Invalid login response from backend.");
     }
 
-    // Save JWT Token and User to LocalStorage
     localStorage.setItem("auth_token", response.data.token);
     localStorage.setItem("gameshift_user", JSON.stringify(response.data.user));
 
