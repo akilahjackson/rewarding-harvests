@@ -22,9 +22,8 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
   const { userStore } = useStore();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();  // Prevent page refresh
+    e.preventDefault();
 
-    // Prevent multiple submissions
     if (userStore.isLoading) {
       console.warn("⚠️ Submission already in progress...");
       return;
@@ -52,12 +51,13 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
       }
 
       console.log('AuthForm: Authentication successful, navigating to welcome screen');
+      
+      if (onSuccess) {
+        onSuccess();
+      }
+      
+      navigate('/welcome');
 
-      // Call parent callback
-      onSuccess();
-
-      // Navigate to the welcome screen
-      navigate('/welcome', { replace: true });
     } catch (error: any) {
       console.error('❌ Auth Error:', error);
       toast({

@@ -1,38 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
+import { componentTagger } from "lovable-tagger";
+import path from 'path';
 
-export default defineConfig({
-  // Development Server Settings
+export default defineConfig(({ mode }) => ({
   server: {
-    host: true,       // Accessible via LAN
-    port: 8080,       // Custom port
+    host: "::",
+    port: 8080,
   },
-
-  // Vite Plugins
   plugins: [
-    react(),          // React plugin
-    tsconfigPaths(),  // Resolves TypeScript paths from tsconfig.json
-  ],
-
-  // Module Resolution
+    react(),
+    mode === 'development' && componentTagger(),
+    tsconfigPaths(),
+  ].filter(Boolean),
   resolve: {
     alias: {
-      "@": "/src",    // Shortcut for the `src` folder
+      "@": path.resolve(__dirname, "./src"),
     },
   },
-
-  // Global Definitions
-  define: {
-    'process.env': process.env,  // Fixes environment variables
-  },
-
-  // Build Settings (Optional Customization)
-  build: {
-    outDir: "dist",           // Output directory for production build
-    sourcemap: true,          // Generates source maps for easier debugging
-    rollupOptions: {
-      input: "index.html",    // Main HTML entry
-    },
-  },
-});
+}));
