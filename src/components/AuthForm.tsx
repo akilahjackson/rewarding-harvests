@@ -50,12 +50,10 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
         });
       }
 
-      console.log('AuthForm: Authentication successful, navigating to welcome screen');
+      console.log('AuthForm: Authentication successful, calling onSuccess');
+      onSuccess();
       
-      if (onSuccess) {
-        onSuccess();
-      }
-      
+      console.log('AuthForm: Navigating to welcome screen');
       navigate('/welcome');
 
     } catch (error: any) {
