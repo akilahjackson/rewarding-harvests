@@ -13,7 +13,12 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     sourcemap: true,
     minify: mode === 'production',
-    emptyOutDir: true
+    emptyOutDir: true,
+    rollupOptions: {
+      input: {
+        main: path.resolve(__dirname, 'index.html'),
+      },
+    }
   },
   plugins: [
     react(),
