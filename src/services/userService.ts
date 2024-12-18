@@ -2,7 +2,7 @@ import axios from "axios";
 
 // API Configuration
 const API_GAMESHIFT_URL = "https://api.gameshift.dev/nx/users";
-const API_BACKEND_URL = "https://rewarding-harvests-xfkmy.ondigitalocean.app/";
+const API_BACKEND_URL = "https://rewarding-harvests-xfkmy.ondigitalocean.app";
 const GAMESHIFT_API_KEY = import.meta.env.VITE_GAME_SHIFT_API_KEY;
 
 // Create a Centralized Axios Instance
@@ -35,11 +35,11 @@ api.interceptors.request.use(
  */
 api.interceptors.response.use(
   (response) => {
-    console.log('✅ API Response:', response.config.url, response.status);
+    console.log('✅ API Response:', response.config.url, response.status, response.data);
     return response;
   },
   (error) => {
-    console.error('❌ API Response Error:', error.config?.url, error.response?.status);
+    console.error('❌ API Response Error:', error.config?.url, error.response?.status, error.response?.data);
     return Promise.reject(error);
   }
 );
@@ -82,13 +82,8 @@ export const createUserInGameShift = async (email: string): Promise<GameShiftRes
       }
     );
 
-    const userData = response.data;
-    if (!userData.referenceId || !userData.email) {
-      throw new Error("Invalid registration response from GameShift.");
-    }
-
-    console.log('✅ GameShift registration successful:', userData);
-    return { referenceId, email, ...userData };
+    console.log('✅ GameShift registration response:', response.data);
+    return response.data;
   } catch (error: any) {
     console.error('❌ GameShift registration failed:', error.message || error);
     throw new Error("Failed to register user in GameShift.");
@@ -99,7 +94,6 @@ export const createUserInGameShift = async (email: string): Promise<GameShiftRes
  * Save User to Backend Database
  */
 export const saveUserToDatabase = async (userData: { 
-  gameshiftId: string; 
   email: string; 
   username?: string; 
 }): Promise<BackendResponse> => {
@@ -107,10 +101,10 @@ export const saveUserToDatabase = async (userData: {
   
   try {
     const response = await api.post(`${API_BACKEND_URL}/api/users/register`, userData);
-    console.log('✅ User saved to backend:', response.data);
+    console.log('✅ Backend registration response:', response.data);
     return response.data;
   } catch (error: any) {
-    console.error('❌ Failed to save user to backend:', error.message || error);
+    console.error('❌ Backend registration failed:', error.message || error);
     throw new Error("Failed to save user to backend.");
   }
 };
@@ -126,25 +120,25 @@ export const fetchUserFromDatabase = async (email: string): Promise<BackendRespo
   console.log('🔍 Fetching user from backend:', email);
 
   try {
+    // Changed to GET request with query parameters
     const response = await api.get(`${API_BACKEND_URL}/api/users/login`, { 
       params: { email } 
     });
 
-    const { user, token } = response.data;
+    console.log('✅ Backend login response:', response.data);
 
-    if (!user || !token) {
+    if (!response.data.user || !response.data.token) {
       throw new Error("Invalid login response from backend.");
     }
 
     // Save JWT Token and User to LocalStorage
-    localStorage.setItem("auth_token", token);
-    localStorage.setItem("gameshift_user", JSON.stringify(user));
+    localStorage.setItem("auth_token", response.data.token);
+    localStorage.setItem("gameshift_user", JSON.stringify(response.data.user));
 
-    console.log('✅ User fetched successfully:', user);
-    return { user, token };
+    return response.data;
   } catch (error: any) {
     console.error('❌ Login failed:', error.message || error);
-    throw new Error("Login failed.");
+    throw new Error(error.response?.data?.message || "Login failed. Please try again.");
   }
 };
 
@@ -154,7 +148,6 @@ export const fetchUserFromDatabase = async (email: string): Promise<BackendRespo
 export const addPlayerAction = async (
   playerId: string,
   playerEmail: string,
-  playerWallet: string | undefined,
   actionType: string,
   actionDescription = "N/A",
   device = "unknown"
@@ -166,16 +159,15 @@ export const addPlayerAction = async (
   console.log('📝 Logging player action:', actionType);
 
   try {
-    await api.post(`${API_BACKEND_URL}/api/player-actions`, {
+    const response = await api.post(`${API_BACKEND_URL}/api/player-actions`, {
       playerId,
       playerEmail,
-      playerWallet: playerWallet || "unknown",
       actionType,
       actionDescription,
       device,
     });
 
-    console.log('✅ Player action logged successfully');
+    console.log('✅ Player action logged:', response.data);
   } catch (error: any) {
     console.error('❌ Failed to log player action:', error.message || error);
     throw new Error("Failed to log player action.");
