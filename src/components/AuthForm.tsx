@@ -56,7 +56,7 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
         onSuccess();
       }
       
-      navigate('/welcome'); // Removed the { replace: true } argument
+      navigate('/welcome'); // Removed the second argument
 
     } catch (error: any) {
       console.error('❌ Auth Error:', error);
