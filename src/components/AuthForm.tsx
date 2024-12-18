@@ -45,10 +45,10 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
         const userData = await userStore.login(email);
         console.log('AuthForm: Login successful, user data:', userData);
         
-        // Update user context
+        // Update user context with the correct data structure
         setUser({
-          email: userData.email,
-          username: userData.username || '',
+          email: userData.user.email,
+          username: userData.user.username || '',
           isAuthenticated: true,
           tokenBalance: userData.token,
           lastActive: new Date().toISOString(),
@@ -58,17 +58,17 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
           title: "Login Successful",
           description: "Welcome back to Rewarding Harvest!",
         });
+
+        // Ensure navigation happens after context is updated
+        console.log('AuthForm: Navigating to welcome page');
+        navigate('/welcome');
+        onSuccess();
       }
-
-      console.log('AuthForm: Authentication successful, navigating to welcome screen');
-      navigate('/welcome');
-      onSuccess();
-
     } catch (error: any) {
       console.error('❌ Auth Error:', error);
       toast({
         title: "Authentication Error",
-        description: error.message || String(error) || "Please try again",
+        description: error.message || "Please try again",
         variant: "destructive",
       });
     }
