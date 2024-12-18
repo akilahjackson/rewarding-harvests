@@ -11,6 +11,7 @@ export interface UserData {
   id: string;
   email: string;
   username?: string;
+  token?: string;
 }
 
 interface GameShiftResponse {
@@ -77,28 +78,35 @@ class UserStore {
     }
   }
 
-  async login(email: string): Promise<void> {
-    console.log("UserStore: Starting login process...");
+  async login(email: string): Promise<UserData & { token: string }> {
+    console.log("UserStore: Starting login process for email:", email);
     this.isLoading = true;
     this.error = null;
 
     try {
-      const { user, token } = await fetchUserFromDatabase(email);
+      const response = await fetchUserFromDatabase(email);
+      console.log("UserStore: Received login response:", response);
 
-      if (!user?.email || !token) {
-        throw new Error("User account could not be loaded from the database.");
+      if (!response?.user?.email) {
+        throw new Error("Invalid login response from server");
       }
-      console.log("✅ User data loaded from backend:", user);
+
+      const userData = {
+        ...response.user,
+        token: response.token
+      };
 
       runInAction(() => {
-        this.user = user;
+        this.user = response.user;
         this.isAuthenticated = true;
-        localStorage.setItem("gameshift_user", JSON.stringify(user));
+        localStorage.setItem("gameshift_user", JSON.stringify(response.user));
       });
 
-      console.log("✅ Login Successful:", this.user);
+      console.log("UserStore: Login successful, returning user data");
+      return userData;
+
     } catch (error) {
-      console.error("❌ Login Failed:", error);
+      console.error("UserStore: Login failed:", error);
       runInAction(() => {
         this.error = error instanceof Error ? error.message : "Login Failed";
       });
