@@ -91,7 +91,7 @@ export const fetchUserFromDatabase = async (email) => {
   }
 
   try {
-    const response = await api.post("/api/auth/login", { email });
+    const response = await api.get("/api/users/login", { email });
 
     const { user, token } = response.data;
 
