@@ -47,8 +47,8 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
         
         // Update user context with the correct data structure
         setUser({
-          email: userData.user.email,
-          username: userData.user.username || '',
+          email: userData.email,
+          username: userData.username || '',
           isAuthenticated: true,
           tokenBalance: userData.token,
           lastActive: new Date().toISOString(),
