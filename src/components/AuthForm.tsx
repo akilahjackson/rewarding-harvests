@@ -8,7 +8,7 @@ import { LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/contexts/StoreContext";
 import { useUser } from "@/contexts/UserContext";
-import { loginUser } from "@/services/auth/userAuthService";
+import { loginUser } from "@/services/userService";
 
 interface AuthFormProps {
   onSuccess?: () => void;
