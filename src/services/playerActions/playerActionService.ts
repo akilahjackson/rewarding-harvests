@@ -1,4 +1,4 @@
-import { api, API_BACKEND_URL } from '../api/apiConfig';
+import { api } from '../api/apiConfig';
 
 export const addPlayerAction = async (
   playerId: string,
@@ -12,7 +12,7 @@ export const addPlayerAction = async (
   }
 
   try {
-    const response = await api.post(`${API_BACKEND_URL}/api/player-actions`, {
+    const response = await api.post('/api/player-actions', {
       playerId,
       playerEmail,
       actionType,

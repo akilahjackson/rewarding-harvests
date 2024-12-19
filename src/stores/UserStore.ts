@@ -1,10 +1,10 @@
 import { makeAutoObservable, runInAction } from "mobx";
 import {
-  createUserInGameShift,
+  loginUser,
   saveUserToDatabase,
-  fetchUserFromDatabase,
-  addPlayerAction,
-} from "@/services/userService";
+  fetchUserFromDatabase
+} from "@/services/auth/userAuthService";
+import { addPlayerAction } from "@/services/playerActions/playerActionService";
 
 export interface UserData {
   id: string;
