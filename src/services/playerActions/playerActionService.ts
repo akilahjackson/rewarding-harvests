@@ -14,13 +14,24 @@ export const addPlayerAction = async (
   console.log('📝 Logging player action:', actionType);
 
   try {
-    const response = await api.post('/api/player-actions', {
-      playerId,
-      playerEmail,
-      actionType,
-      actionDescription,
-      device,
-    });
+    const token = localStorage.getItem('auth_token');
+    const response = await api.post('/api/player-actions', 
+      {
+        playerId,
+        playerEmail,
+        actionType,
+        actionDescription,
+        device,
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      }
+    );
 
     console.log('✅ Player action logged:', response.data);
   } catch (error: any) {
