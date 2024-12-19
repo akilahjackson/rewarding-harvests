@@ -3,9 +3,9 @@ import {
   loginUser,
   saveUserToDatabase,
   fetchUserFromDatabase
-} from "@/services/auth/userAuthService";
-import { createUserInGameShift } from "@/services/auth/gameShiftService";
-import { addPlayerAction } from "@/services/playerActions/playerActionService";
+} from "@/services/userService";
+import { createUserInGameShift } from "@/services/userService";
+import { addPlayerAction } from "@/services/userService";
 
 export interface UserData {
   id: string;
