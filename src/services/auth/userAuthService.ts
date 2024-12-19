@@ -1,4 +1,4 @@
-import { api, API_BACKEND_URL } from '../api/apiConfig';
+import { API_BACKEND_URL } from '../api/apiConfig';
 
 export interface BackendResponse {
   user: {
@@ -16,9 +16,21 @@ export const saveUserToDatabase = async (userData: {
   console.log('💾 Saving user to backend:', userData);
   
   try {
-    const response = await api.post('/api/users/register', userData);
-    console.log('✅ Backend registration response:', response.data);
-    return response.data;
+    const response = await fetch(`${API_BACKEND_URL}/api/users/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(userData)
+    });
+
+    if (!response.ok) {
+      throw new Error('Registration failed');
+    }
+
+    const data = await response.json();
+    console.log('✅ Backend registration response:', data);
+    return data;
   } catch (error: any) {
     console.error('❌ Backend registration failed:', error.message || error);
     throw new Error("Failed to save user to backend.");
@@ -33,12 +45,12 @@ export const fetchUserFromDatabase = async (email: string): Promise<BackendRespo
   console.log('🔍 Fetching user from backend:', email);
 
   try {
-    // Use fetch API with no-cors mode as fallback
     const response = await fetch(`${API_BACKEND_URL}/api/users/login?email=${encodeURIComponent(email)}`, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({ email })
     });
 
     if (!response.ok) {

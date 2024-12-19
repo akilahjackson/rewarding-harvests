@@ -11,24 +11,29 @@ export const addPlayerAction = async (
 
   try {
     const token = localStorage.getItem('auth_token');
-    const response = await api.post('/api/player-actions', 
-      {
+    const response = await fetch(`${API_BACKEND_URL}/api/player-actions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
         playerId,
         playerEmail,
         actionType,
         actionDescription,
-        device,
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
+        device
+      })
+    });
 
-    console.log('✅ Player action logged:', response.data);
-  } catch (error: any) {
-    console.error('❌ Failed to log player action:', error.message || error);
-    throw new Error("Failed to log player action.");
+    if (!response.ok) {
+      throw new Error('Failed to log player action');
+    }
+
+    console.log('✅ Player action logged successfully');
+    return await response.json();
+  } catch (error) {
+    console.error('❌ Error logging player action:', error);
+    throw error;
   }
 };
