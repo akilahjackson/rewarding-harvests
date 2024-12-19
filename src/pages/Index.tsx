@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import GameCanvas from '@/components/GameCanvas';
 import WalletConnect from '@/components/WalletConnect';
 import AuthForm from '@/components/AuthForm';

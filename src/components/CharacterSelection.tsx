@@ -15,7 +15,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { squads, type Squad, type SquadMember } from "@/data/squads";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import UserMenuBar from './UserMenuBar';
 
 interface CharacterSelectionProps {
