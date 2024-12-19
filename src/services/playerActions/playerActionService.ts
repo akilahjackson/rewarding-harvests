@@ -1,4 +1,4 @@
-import { api } from '../api/apiConfig';
+import { API_BACKEND_URL } from '../api/apiConfig';
 
 export const addPlayerAction = async (
   playerId: string,
