@@ -24,7 +24,8 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' && componentTagger(),
+    //mode === 'development' && componentTagger(),
+    mode === 'development',
     tsconfigPaths(),
   ].filter(Boolean),
   resolve: {
