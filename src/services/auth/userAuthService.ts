@@ -1,56 +1,16 @@
 import { API_BACKEND_URL } from '../api/apiConfig';
 
-export interface BackendResponse {
-  user: {
-    id: string;
-    email: string;
-    username?: string;
-  };
-  token: string;
-}
-
-export const saveUserToDatabase = async (userData: { 
-  email: string; 
-  username?: string; 
-}): Promise<BackendResponse> => {
-  console.log('💾 Saving user to backend:', userData);
+export const loginUser = async (email: string): Promise<any> => {
+  console.log("🔵 userAuthService: Attempting login with email:", email);
   
   try {
-    const response = await fetch(`${API_BACKEND_URL}/api/users/register`, {
+    const response = await fetch(`${API_BACKEND_URL}/api/users/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(userData)
-    });
-
-    if (!response.ok) {
-      throw new Error('Registration failed');
-    }
-
-    const data = await response.json();
-    console.log('✅ Backend registration response:', data);
-    return data;
-  } catch (error: any) {
-    console.error('❌ Backend registration failed:', error.message || error);
-    throw new Error("Failed to save user to backend.");
-  }
-};
-
-export const fetchUserFromDatabase = async (email: string): Promise<BackendResponse> => {
-  if (!email) {
-    throw new Error("Email is required.");
-  }
-
-  console.log('🔍 Fetching user from backend:', email);
-
-  try {
-    const response = await fetch(`${API_BACKEND_URL}/api/users/login?email=${encodeURIComponent(email)}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ email }),
+      credentials: 'include', // Include credentials in the request
     });
 
     if (!response.ok) {
@@ -58,15 +18,10 @@ export const fetchUserFromDatabase = async (email: string): Promise<BackendRespo
     }
 
     const data = await response.json();
-    console.log('✅ Login response:', data);
-
-    if (!data.user || !data.token) {
-      throw new Error("Invalid login response from server");
-    }
-
+    console.log("✅ userAuthService: Login successful, received data:", data);
     return data;
-  } catch (error: any) {
-    console.error('❌ Login failed:', error.message || error);
-    throw new Error(error.message || "Login failed. Please try again.");
+  } catch (error) {
+    console.error("❌ userAuthService: Login failed:", error);
+    throw error;
   }
 };
