@@ -5,11 +5,14 @@ const API_GAMESHIFT_URL = "https://api.gameshift.dev/nx/users";
 const API_BACKEND_URL = "https://rewarding-harvests-xfkmy.ondigitalocean.app";
 const GAMESHIFT_API_KEY = import.meta.env.VITE_GAME_SHIFT_API_KEY;
 
-// Create a Centralized Axios Instance
+// Create a Centralized Axios Instance with CORS configuration
 const api = axios.create({
   headers: {
     "Content-Type": "application/json",
+    "Accept": "application/json",
   },
+  // Enable credentials for CORS
+  withCredentials: true
 });
 
 /**
@@ -22,6 +25,9 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+    // Add CORS headers
+    config.headers['Access-Control-Allow-Origin'] = '*';
+    config.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,PATCH,OPTIONS';
     return config;
   },
   (error) => {
@@ -39,6 +45,18 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
+    // Handle CORS errors specifically
+    if (error.message?.includes('CORS')) {
+      console.error('❌ CORS Error:', error.message);
+      // Attempt to make request with no-cors mode if CORS fails
+      return api({
+        ...error.config,
+        headers: {
+          ...error.config.headers,
+          'mode': 'no-cors'
+        }
+      });
+    }
     console.error('❌ API Response Error:', error.response?.status, error.response?.data);
     return Promise.reject(error);
   }
@@ -78,6 +96,7 @@ export const createUserInGameShift = async (email: string): Promise<GameShiftRes
           accept: "application/json",
           "x-api-key": GAMESHIFT_API_KEY,
           "Content-Type": "application/json",
+          'Access-Control-Allow-Origin': '*'
         },
       }
     );
@@ -120,8 +139,16 @@ export const fetchUserFromDatabase = async (email: string): Promise<BackendRespo
   console.log('🔍 Fetching user from backend:', email);
 
   try {
-    const response = await api.get(`${API_BACKEND_URL}/api/users/login`, { 
-      params: { email } 
+    // Use axios directly with CORS configuration
+    const response = await axios.get(`${API_BACKEND_URL}/api/users/login`, { 
+      params: { email },
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS'
+      },
+      withCredentials: true
     });
 
     console.log('✅ Backend login response:', response.data);
@@ -136,6 +163,17 @@ export const fetchUserFromDatabase = async (email: string): Promise<BackendRespo
     return response.data;
   } catch (error: any) {
     console.error('❌ Login failed:', error.message || error);
+    if (error.message?.includes('CORS')) {
+      console.error('❌ CORS Error - Attempting no-cors mode');
+      // Retry with no-cors mode
+      return axios.get(`${API_BACKEND_URL}/api/users/login`, {
+        params: { email },
+        headers: {
+          'Content-Type': 'application/json',
+          'mode': 'no-cors'
+        }
+      });
+    }
     throw new Error(error.response?.data?.message || "Login failed. Please try again.");
   }
 };
