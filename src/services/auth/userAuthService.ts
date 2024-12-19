@@ -13,17 +13,13 @@ export const loginUser = async (email: string): Promise<any> => {
   console.log("🔵 userAuthService: Attempting login with email:", email);
   
   try {
-    const response = await fetch(`${API_BACKEND_URL}/api/users/login`, {
+    // Use relative URL to avoid CORS issues
+    const response = await fetch('/api/proxy/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Origin': window.location.origin,
-        'Access-Control-Allow-Origin': window.location.origin
       },
       body: JSON.stringify({ email }),
-      credentials: 'include',
-      mode: 'cors'
     });
 
     if (!response.ok) {
@@ -44,17 +40,12 @@ export const saveUserToDatabase = async (userData: Partial<UserData>): Promise<{
   console.log("🔵 userAuthService: Saving user to database:", userData);
   
   try {
-    const response = await fetch(`${API_BACKEND_URL}/api/users`, {
+    const response = await fetch('/api/proxy/users', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Origin': window.location.origin,
-        'Access-Control-Allow-Origin': window.location.origin
       },
       body: JSON.stringify(userData),
-      credentials: 'include',
-      mode: 'cors'
     });
 
     if (!response.ok) {
@@ -74,15 +65,11 @@ export const fetchUserFromDatabase = async (email: string): Promise<{ user: User
   console.log("🔵 userAuthService: Fetching user from database:", email);
   
   try {
-    const response = await fetch(`${API_BACKEND_URL}/api/users/${email}`, {
+    const response = await fetch(`/api/proxy/users/${email}`, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
-        'Origin': window.location.origin,
-        'Access-Control-Allow-Origin': window.location.origin
-      },
-      credentials: 'include',
-      mode: 'cors'
+        'Content-Type': 'application/json',
+      }
     });
 
     if (!response.ok) {
