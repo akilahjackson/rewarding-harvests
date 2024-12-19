@@ -119,7 +119,7 @@ export const addPlayerAction = async (
   playerEmail,
   playerWallet,
   actionType,
-  actionDescription = "N/A",
+  actionDescription = "Login",
   device = "unknown"
 ) => {
   if (!playerId || !playerEmail || !actionType) {

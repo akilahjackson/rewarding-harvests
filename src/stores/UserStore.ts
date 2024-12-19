@@ -145,7 +145,7 @@ class UserStore {
    */
   async logPlayerAction(
     actionType: string,
-    actionDescription = "N/A"
+    actionDescription = "Login"
   ): Promise<void> {
     try {
       if (!this.user) {
