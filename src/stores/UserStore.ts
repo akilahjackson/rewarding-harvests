@@ -6,34 +6,36 @@ import {
   addPlayerAction,
 } from "@/services/userService";
 
-// Corrected UserData interface
+// Updated interfaces to match actual API responses
 export interface UserData {
-  gameshiftId: string;  // Correct field from the backend schema
+  id: string;
   email: string;
-  walletType?: string;
-  walletAddress?: string;
-  avatarUrl?: string;
+  username?: string;
+  token?: string;
+}
+
+interface GameShiftResponse {
+  referenceId: string;
+  email: string;
+}
+
+interface BackendResponse {
+  user: UserData;
+  token: string;
 }
 
 class UserStore {
-  user: UserData | null = null;          // Current user state
-  isAuthenticated: boolean = false;      // Authentication status
-  isLoading: boolean = false;            // Loading state for API calls
-  error: string | null = null;           // Error messages for UI feedback
+  user: UserData | null = null;
+  isAuthenticated: boolean = false;
+  isLoading: boolean = false;
+  error: string | null = null;
 
   constructor() {
-    makeAutoObservable(this);            // Enable MobX state management
-    this.loadUserFromStorage();          // Load user data from localStorage on init
+    makeAutoObservable(this);
+    this.loadUserFromStorage();
   }
 
-  /**
-   * Register a New User
-   * Handles full user registration process:
-   * 1. Create user in GameShift
-   * 2. Save user in backend database
-   * 3. Update MobX state and Local Storage
-   */
-  async register(email: string): Promise<void> {
+  async register(email: string, username?: string): Promise<void> {
     console.log("UserStore: Starting registration process...");
     this.isLoading = true;
     this.error = null;
@@ -47,29 +49,28 @@ class UserStore {
       console.log("✅ User registered in GameShift:", newUserFromGameShift);
 
       const savedUser = await saveUserToDatabase({
-        gameshiftId: newUserFromGameShift.referenceId,   // Correct mapping
         email: newUserFromGameShift.email,
-        walletType: newUserFromGameShift.walletType || "unknown",
-        walletAddress: newUserFromGameShift.walletAddress || "unknown",
+        username
       });
 
-      if (!savedUser?.gameshiftId) {
+      if (!savedUser?.user?.id) {
         throw new Error("Failed to save user in the backend database.");
       }
       console.log("✅ User saved in backend:", savedUser);
 
       runInAction(() => {
-        this.user = savedUser;
+        this.user = savedUser.user;
         this.isAuthenticated = true;
-        localStorage.setItem("gameshift_user", JSON.stringify(savedUser));
+        localStorage.setItem("gameshift_user", JSON.stringify(savedUser.user));
       });
 
       console.log("✅ Registration Complete:", this.user);
     } catch (error) {
-      console.error("❌ Registration Failed:", error.message || error);
+      console.error("❌ Registration Failed:", error);
       runInAction(() => {
-        this.error = (error as Error).message || "Registration Failed";
+        this.error = error instanceof Error ? error.message : "Registration Failed";
       });
+      throw error;
     } finally {
       runInAction(() => {
         this.isLoading = false;
@@ -77,37 +78,39 @@ class UserStore {
     }
   }
 
-  /**
-   * Log In an Existing User
-   * Logs in the user using email only and fetches their full profile.
-   */
-  async login(email: string): Promise<void> {
-    console.log("UserStore: Starting login process...");
+  async login(email: string): Promise<UserData & { token: string }> {
+    console.log("UserStore: Starting login process for email:", email);
     this.isLoading = true;
     this.error = null;
 
     try {
-      const { user, token } = await fetchUserFromDatabase(email);
+      const response = await fetchUserFromDatabase(email);
+      console.log("UserStore: Received login response:", response);
 
-      if (!user?.email || !token) {
-        throw new Error("User account could not be loaded from the database.");
+      if (!response?.user?.email) {
+        throw new Error("Invalid login response from server");
       }
-      console.log("✅ User data loaded from backend:", user);
 
-      localStorage.setItem("auth_token", token);  // Save JWT Token
+      const userData = {
+        ...response.user,
+        token: response.token
+      };
 
       runInAction(() => {
-        this.user = user;
+        this.user = response.user;
         this.isAuthenticated = true;
-        localStorage.setItem("gameshift_user", JSON.stringify(user));
+        localStorage.setItem("gameshift_user", JSON.stringify(response.user));
       });
 
-      console.log("✅ Login Successful:", this.user);
+      console.log("UserStore: Login successful, returning user data");
+      return userData;
+
     } catch (error) {
-      console.error("❌ Login Failed:", error.message || error);
+      console.error("UserStore: Login failed:", error);
       runInAction(() => {
-        this.error = (error as Error).message || "Login Failed";
+        this.error = error instanceof Error ? error.message : "Login Failed";
       });
+      throw error;
     } finally {
       runInAction(() => {
         this.isLoading = false;
@@ -115,10 +118,6 @@ class UserStore {
     }
   }
 
-  /**
-   * Load User Data from Local Storage
-   * Ensures user persistence across sessions.
-   */
   loadUserFromStorage(): void {
     try {
       const storedUser = localStorage.getItem("gameshift_user");
@@ -138,6 +137,7 @@ class UserStore {
       console.error("❌ Failed to load user from local storage:", error);
     }
   }
+<<<<<<< HEAD
 
   /**
    * Log a Player Action
@@ -181,7 +181,8 @@ class UserStore {
     localStorage.removeItem("gameshift_user");
     console.log("✅ User Logged Out");
   }
+=======
+>>>>>>> a11b918c54e109aed53058229d93a98a351d8a2e
 }
 
-// Export Singleton Instance
 export const userStore = new UserStore();

@@ -3,10 +3,11 @@ import { observer } from 'mobx-react-lite';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { LogIn } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '@/contexts/StoreContext';
+import { useUser } from '@/contexts/UserContext';
 
 interface AuthFormProps {
   onSuccess: () => void;
@@ -20,49 +21,54 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const { userStore } = useStore();
+  const { setUser } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();  // Prevent page refresh
+    e.preventDefault();
+    console.log('AuthForm: Starting form submission');
 
-    // Prevent multiple submissions
     if (userStore.isLoading) {
       console.warn("⚠️ Submission already in progress...");
       return;
     }
 
-    console.log('AuthForm: Handling form submission');
-
     try {
       if (!isLogin) {
         console.log('AuthForm: Attempting registration');
         await userStore.register(email, username);
-
         toast({
           title: "Account Created",
           description: "Welcome to Rewarding Harvest!",
         });
       } else {
-        console.log('AuthForm: Attempting login');
-        await userStore.login(email);
+        console.log('AuthForm: Attempting login with email:', email);
+        const userData = await userStore.login(email);
+        console.log('AuthForm: Login successful, user data:', userData);
+        
+        // Update user context with the correct data structure
+        setUser({
+          email: userData.email,
+          username: userData.username || '',
+          isAuthenticated: true,
+          tokenBalance: userData.token,
+          lastActive: new Date().toISOString(),
+        });
 
         toast({
           title: "Login Successful",
           description: "Welcome back to Rewarding Harvest!",
         });
+
+        // Ensure navigation happens after context is updated
+        console.log('AuthForm: Navigating to welcome page');
+        navigate('/welcome');
+        onSuccess();
       }
-
-      console.log('AuthForm: Authentication successful, navigating to welcome screen');
-
-      // Call parent callback
-      onSuccess();
-
-      // Navigate to the welcome screen
-      navigate('/welcome', { replace: true });
     } catch (error: any) {
       console.error('❌ Auth Error:', error);
       toast({
         title: "Authentication Error",
-        description: error.message || String(error) || "Please try again",
+        description: error.message || "Please try again",
         variant: "destructive",
       });
     }
