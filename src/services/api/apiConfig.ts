@@ -11,7 +11,7 @@ export const api = axios.create({
     "Accept": "application/json",
     "Origin": window.location.origin
   },
-  withCredentials: true // Enable sending cookies with requests
+  withCredentials: true
 });
 
 // Create GameShift specific axios instance
@@ -24,7 +24,7 @@ export const gameshiftApi = axios.create({
   }
 });
 
-// Add request interceptor to include credentials
+// Add request interceptor for credentials
 api.interceptors.request.use(
   (config) => {
     config.withCredentials = true;

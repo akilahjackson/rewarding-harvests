@@ -18,7 +18,8 @@ export const loginUser = async (email: string): Promise<any> => {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Origin': window.location.origin
+        'Origin': window.location.origin,
+        'Access-Control-Allow-Origin': window.location.origin
       },
       body: JSON.stringify({ email }),
       credentials: 'include',
@@ -48,7 +49,8 @@ export const saveUserToDatabase = async (userData: Partial<UserData>): Promise<{
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Origin': window.location.origin
+        'Origin': window.location.origin,
+        'Access-Control-Allow-Origin': window.location.origin
       },
       body: JSON.stringify(userData),
       credentials: 'include',
@@ -76,7 +78,8 @@ export const fetchUserFromDatabase = async (email: string): Promise<{ user: User
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'Origin': window.location.origin
+        'Origin': window.location.origin,
+        'Access-Control-Allow-Origin': window.location.origin
       },
       credentials: 'include',
       mode: 'cors'
