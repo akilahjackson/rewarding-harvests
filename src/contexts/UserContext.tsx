@@ -137,4 +137,15 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => clearInterval(interval);
   }, [user, logout, updateLastActive]);
 
+  // Provide the context value
+  const value = {
+    user,
+    setUser,
+    updateLastActive,
+    logout,
+  };
 
+  return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
+};
+
+export default UserContext;
