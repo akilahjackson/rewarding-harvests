@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 
 interface UserState {
   email: string;
+  gameshiftId: string;
   username: string;
   isAuthenticated: boolean;
   tokenBalance: string;
@@ -19,6 +20,7 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | null>(null);
 
+// Custom Hook
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {
@@ -27,6 +29,7 @@ export const useUser = () => {
   return context;
 };
 
+// Provider Component
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserState | null>(() => {
     const stored = localStorage.getItem("gameshift_user");
@@ -35,9 +38,12 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return parsed;
   });
 
-  const updateLastActive = async () => {
+  /**
+   * Update Last Active Timestamp Using Player Actions API
+   */
+  const updateLastActive = useCallback(async () => {
     if (!user) {
-      console.log("⚠️ UserProvider: Cannot update lastActive - no user logged in");
+      console.warn("⚠️ UserProvider: Cannot update last active - no user logged in");
       return;
     }
 
@@ -46,75 +52,89 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       lastActive: new Date().toISOString(),
     };
 
-    console.log("🔵 UserProvider: Updating last active:", updatedUser);
-
+    // Update local state and localStorage
     setUser(updatedUser);
     localStorage.setItem("gameshift_user", JSON.stringify(updatedUser));
-    console.log("✅ UserProvider: Updated user state in localStorage");
 
     try {
-      const response = await fetch("/api/users/updateLastActive", {
+      const response = await fetch("/api/player-actions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${user.tokenBalance}`,
         },
-        body: JSON.stringify({ lastActive: updatedUser.lastActive }),
+        body: JSON.stringify({
+          playerId: user.gameshiftId,        // Correct playerId
+          playerEmail: user.email,           // Correct playerEmail
+          playerWallet: user.walletAddress || "unknown",
+          actionType: "user_active",         // Custom action type
+          actionDescription: "User last active update",
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update last active in the backend");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to update last active in the backend");
       }
 
-      console.log("✅ UserProvider: Successfully updated last active in backend");
+      console.log("✅ UserProvider: Successfully logged last active action");
     } catch (error) {
       console.error("❌ UserProvider: Failed to sync last active:", error);
     }
-  };
+  }, [user]);
 
-  const logout = async () => {
+  /**
+   * Logout the Current User
+   */
+  const logout = useCallback(async () => {
     console.log("🔵 UserProvider: Logging out user:", user?.email);
 
     try {
       if (user?.tokenBalance) {
-        await fetch("/api/users/logout", {
+        const response = await fetch("/api/users/logout", {
           method: "POST",
           headers: {
             Authorization: `Bearer ${user.tokenBalance}`,
           },
         });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.message || "Failed to notify backend of logout");
+        }
+
         console.log("✅ UserProvider: Successfully notified backend of logout");
       }
     } catch (error) {
-      console.error("❌ UserProvider: Failed to notify backend of logout:", error);
+      console.error("❌ UserProvider: Logout API call failed:", error);
+    } finally {
+      // Clear local storage and reset state
+      localStorage.removeItem("gameshift_user");
+      localStorage.removeItem("auth_token");
+      setUser(null);
+      console.log("✅ UserProvider: Cleared local storage and reset user state");
     }
+  }, [user]);
 
-    localStorage.removeItem("gameshift_user");
-    localStorage.removeItem("auth_token");
-    setUser(null);
-    console.log("✅ UserProvider: Cleared local storage and reset user state");
-  };
-
+  /**
+   * Automatic Session Management with Inactivity Check
+   */
   useEffect(() => {
     const checkSession = () => {
       if (!user?.lastActive) return;
 
-      const inactiveTime = new Date().getTime() - new Date(user.lastActive).getTime();
-      console.log("🔵 UserProvider: Checking session. Inactive time:", inactiveTime);
+      const inactiveTime = Date.now() - new Date(user.lastActive).getTime();
 
       if (inactiveTime > 15 * 60 * 1000) {
-        console.warn("⚠️ UserProvider: User session expired. Logging out...");
-        logout();
+        console.warn("⚠️ UserProvider: Session expired. Logging out...");
+        logout(); // Logout user after inactivity
+      } else {
+        updateLastActive(); // Optionally refresh last active status
       }
     };
 
-    const interval = setInterval(checkSession, 60000);
+    const interval = setInterval(checkSession, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, logout, updateLastActive]);
 
-  return (
-    <UserContext.Provider value={{ user, setUser, updateLastActive, logout }}>
-      {children}
-    </UserContext.Provider>
-  );
-};
+

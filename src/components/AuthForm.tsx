@@ -1,100 +1,66 @@
+// src/components/AuthForm.tsx
 import React, { useState } from "react";
 import { observer } from "mobx-react-lite";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { LogIn } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/contexts/StoreContext";
-import { useUser } from "@/contexts/UserContext";
-import { loginUser } from "@/services/userService";
 
-interface AuthFormProps {
-  onSuccess?: () => void;
-}
-
-const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
+const AuthForm: React.FC = observer(() => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+
+  const { userStore } = useStore();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { userStore } = useStore();
-  const { setUser } = useUser();
 
+  /**
+   * Handle Form Submission
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("🔵 AuthForm: Starting form submission with email:", email);
 
-    if (userStore.isLoading) {
-      console.warn("⚠️ AuthForm: Submission already in progress...");
-      return;
-    }
+    if (userStore.isLoading) return;
 
     try {
       if (!isLogin) {
-        console.log("🔵 AuthForm: Attempting registration");
+        // Register a new user
         await userStore.register(email, username);
-
         toast({
           title: "Account Created",
           description: "Welcome to Rewarding Harvest!",
         });
-        console.log("✅ AuthForm: Registration successful");
       } else {
-        console.log("🔵 AuthForm: Attempting login with email:", email);
-        const userData = await loginUser(email);
-
-        if (!userData.user) {
-          console.error("❌ AuthForm: No user data received after login");
-          throw new Error("Login failed - no user data received");
-        }
-
-        // Update user context with the received data
-        setUser({
-          email: userData.user.email,
-          username: userData.user.username || "",
-          isAuthenticated: true,
-          tokenBalance: userData.token,
-          lastActive: new Date().toISOString(),
-        });
-        console.log("✅ AuthForm: User context updated");
-
-        // Store user data in localStorage
-        localStorage.setItem('gameshift_user', JSON.stringify({
-          email: userData.user.email,
-          username: userData.user.username || "",
-          isAuthenticated: true,
-          tokenBalance: userData.token,
-          lastActive: new Date().toISOString(),
-        }));
-        localStorage.setItem('auth_token', userData.token);
-        console.log("✅ AuthForm: User data saved to localStorage");
+        // Login an existing user
+        const userData = await userStore.login(email);
+        await userStore.logPlayerAction("login", "User logged in");
 
         toast({
           title: "Login Successful",
-          description: "Welcome back to Rewarding Harvest!",
+          description: `Welcome back, ${userData.username || "user"}!`,
         });
 
-        console.log("🔵 AuthForm: Preparing to redirect...");
-        if (onSuccess) {
-          console.log("🔵 AuthForm: Calling onSuccess callback");
-          onSuccess();
-        } else {
-          console.log("🔵 AuthForm: No onSuccess callback, navigating directly");
-          navigate('/welcome');
-        }
+        navigate("/welcome");
       }
     } catch (error: any) {
-      console.error("❌ AuthForm: Authentication error:", error);
       toast({
         title: "Authentication Error",
-        description: error.message || "Please try again",
+        description: error.message || "Please try again.",
         variant: "destructive",
       });
     }
+  };
+
+  /**
+   * Toggle Between Login and Registration
+   */
+  const toggleAuthMode = () => {
+    setIsLogin(!isLogin);
+    setEmail("");
+    setUsername("");
   };
 
   return (
@@ -111,9 +77,11 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
             </Label>
             <Input
               id="username"
+              type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Enter your username"
+              required={!isLogin}
               className="bg-gray-800/50 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
             />
           </div>
@@ -134,21 +102,6 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
           />
         </div>
 
-        <div>
-          <Label htmlFor="password" className="text-neongreen">
-            Password
-          </Label>
-          <Input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            placeholder="Enter your password"
-            className="bg-gray-800/50 text-white border-none focus:ring-2 focus:ring-neongreen rounded-lg"
-          />
-        </div>
-
         <Button
           type="submit"
           disabled={userStore.isLoading}
@@ -158,7 +111,6 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
               : "bg-neongreen text-black hover:bg-green-400"
           }`}
         >
-          <LogIn className="mr-2 w-5 h-5" />
           {userStore.isLoading ? "Processing..." : isLogin ? "Login" : "Sign Up"}
         </Button>
 
@@ -166,7 +118,7 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
           {isLogin ? "Don't have an account? " : "Already have an account? "}
           <button
             type="button"
-            onClick={() => setIsLogin(!isLogin)}
+            onClick={toggleAuthMode}
             className="text-neongreen hover:underline focus:outline-none"
           >
             {isLogin ? "Sign Up" : "Login"}

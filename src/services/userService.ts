@@ -1,159 +1,127 @@
-/* lovable changes export * from './auth/gameShiftService';
-export * from './auth/userAuthService';
-export * from './playerActions/playerActionService';
-export * from './api/apiConfig'; */
+// src/services/UserService.ts
 
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 
-// API Configuration
-const API_GAMESHIFT_URL = "https://api.gameshift.dev/nx/users";
-const API_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://rewarding-harvests-xfkmy.ondigitalocean.app/";
-const GAMESHIFT_API_KEY = import.meta.env.VITE_GAME_SHIFT_API_KEY;
+// Define API Response Interfaces
+export interface UserResponse {
+  user: {
+    id: string;
+    email: string;
+    username: string;
+    gameshiftId: string;
+    walletAddress?: string;
+    avatarUrl?: string;
+  };
+  token: string;
+}
 
-// Create a Centralized Axios Instance
-const api = axios.create({
- // baseURL: API_GAMESHIFT_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-/**
- * Axios Request Interceptor - Attach JWT Token if Available
- */
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("auth_token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+export interface PlayerActionResponse {
+  success: boolean;
+  message: string;
+}
 
 /**
- * Register User in GameShift API
+ * Register user in GameShift
+ * @param email - User email
+ * @returns API Response
  */
-export const createUserInGameShift = async (email) => {
-  if (!email) {
-    throw new Error("Email is required.");
-  }
-
-  const referenceId = crypto.randomUUID(); // Generate Unique Reference ID
-
+export const createUserInGameShift = async (email: string): Promise<UserResponse> => {
   try {
-    const response = await axios.post(
-      API_GAMESHIFT_URL,
-      { referenceId, email },
-      {
-        headers: {
-          accept: "application/json",
-          "x-api-key": GAMESHIFT_API_KEY,
-          "Content-Type": "application/json",
-        },
-      }
+    const response: AxiosResponse<UserResponse> = await axios.post("/api/gameshift/register", {
+      email,
+    });
+
+    if (!response.data || !response.data.user || !response.data.user.id) {
+      throw new Error("Failed to create user in GameShift.");
+    }
+
+    console.log("✅ GameShift Registration Successful:", response.data.user);
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ GameShift Registration Error:", error.message || error);
+    throw new Error(error.response?.data?.message || "GameShift registration failed.");
+  }
+};
+
+/**
+ * Save user in the backend database
+ * @param userData - User data payload
+ * @returns API Response
+ */
+export const saveUserToDatabase = async (
+  userData: Partial<UserResponse["user"]>
+): Promise<UserResponse> => {
+  try {
+    const response: AxiosResponse<UserResponse> = await axios.post("/api/users/register", userData);
+
+    if (!response.data || !response.data.user || !response.data.user.id) {
+      throw new Error("Failed to save user to the backend.");
+    }
+
+    console.log("✅ Backend Registration Successful:", response.data.user);
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Backend Registration Error:", error.message || error);
+    throw new Error(error.response?.data?.message || "Backend registration failed.");
+  }
+};
+
+/**
+ * Fetch user from backend database
+ * @param email - User email
+ * @returns API Response
+ */
+export const fetchUserFromDatabase = async (email: string): Promise<UserResponse> => {
+  try {
+    const response: AxiosResponse<UserResponse> = await axios.get(
+      `/api/users/login?email=${email}`
     );
 
-    const userData = response.data;
-    if (!userData.referenceId || !userData.email) {
-      throw new Error("Invalid registration response from GameShift.");
+    if (!response.data || !response.data.user || !response.data.token) {
+      throw new Error("Invalid login response from the backend.");
     }
 
-    console.log("✅ User successfully registered in GameShift:", userData);
-    return { referenceId, email, ...userData };
-  } catch (error) {
-    console.error("❌ Error registering user in GameShift:", error.message || error);
-    throw new Error("Failed to register user in GameShift.");
-  }
-};
-
-/**
- * Save User to Backend Database
- */
-export const saveUserToDatabase = async (userData) => {
-  try {
-    const response = await api.post("/api/users/register", {
-      gameshiftId: userData.referenceId,
-      email: userData.email,
-      username: userData.username || "unknown",
-    });
-
-    console.log("✅ User saved to backend:", response.data);
+    console.log("✅ Login Successful:", response.data.user);
     return response.data;
-  } catch (error) {
-    console.error("❌ Error saving user to backend:", error.message || error);
-    throw new Error("Failed to save user to backend.");
+  } catch (error: any) {
+    console.error("❌ Login Error:", error.message || error);
+    throw new Error(error.response?.data?.message || "Login failed.");
   }
 };
 
 /**
- * Fetch User from Backend Database
- */
-export const fetchUserFromDatabase = async (email) => {
-  if (!email) {
-    throw new Error("Email is required.");
-  }
-
-  try {
-    const response = await api.get("/api/users/login", { email });
-
-    const { user, token } = response.data;
-
-    if (!user || !token) {
-      throw new Error("Invalid login response from backend.");
-    }
-
-    // Save JWT Token and User to LocalStorage
-    localStorage.setItem("auth_token", token);
-    localStorage.setItem("gameshift_user", JSON.stringify(user));
-
-    console.log("✅ User fetched from backend:", user);
-    return user;
-  } catch (error) {
-    console.error("❌ Login failed:", error.message || error);
-    throw new Error("Login failed.");
-  }
-};
-
-/**
- * Log Player Action
+ * Log Player Action in the backend
+ * @param playerId - User's GameShift ID
+ * @param playerEmail - User's email
+ * @param walletAddress - User's wallet address
+ * @param actionType - Type of action (e.g., login)
+ * @param actionDescription - Description of the action
+ * @returns API Response
  */
 export const addPlayerAction = async (
-  playerId,
-  playerEmail,
-  playerWallet,
-  actionType,
-  actionDescription = "Login",
-  device = "unknown"
-) => {
-  if (!playerId || !playerEmail || !actionType) {
-    throw new Error("Missing required action parameters.");
-  }
-
+  playerId: string,
+  playerEmail: string,
+  walletAddress: string,
+  actionType: string,
+  actionDescription: string
+): Promise<PlayerActionResponse> => {
   try {
-    const response = await api.post("/api/player-actions", {
+    const response: AxiosResponse<PlayerActionResponse> = await axios.post("/api/player-actions", {
       playerId,
       playerEmail,
-      playerWallet: playerWallet || "unknown",
+      playerWallet: walletAddress,
       actionType,
       actionDescription,
-      device,
     });
 
-    console.log("✅ Player action logged successfully:", actionType, actionDescription);
-    return response.data;
-  } catch (error) {
-    console.error("❌ Error logging player action:", error.message || error);
-    throw new Error("Failed to log player action.");
-  }
-};
+    if (!response.data || !response.data.success) {
+      throw new Error("Failed to log player action.");
+    }
 
-/**
- * Logout User
- */
-export const logoutUser = () => {
-  localStorage.removeItem("auth_token");
-  localStorage.removeItem("gameshift_user");
-  console.log("✅ User logged out successfully.");
+    console.log("✅ Player Action Logged:", actionType, actionDescription);
+    return response.data;
+  } catch (error: any) {
+    console.error("❌ Player Action Logging Error:", error.message || error);
+    throw new Error(error.response?.data?.message || "Player action logging failed.");
+  }
 };

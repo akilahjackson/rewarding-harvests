@@ -1,11 +1,12 @@
+// src/store/UserStore.ts
 import { makeAutoObservable, runInAction } from "mobx";
 import {
-  loginUser,
+  createUserInGameShift,
   saveUserToDatabase,
-  fetchUserFromDatabase
-} from "@/services/userService";
-import { createUserInGameShift } from "@/services/userService";
-import { addPlayerAction } from "@/services/userService";
+  fetchUserFromDatabase,
+  addPlayerAction,
+  UserResponse,
+} from "@/services/UserService";
 
 export interface UserData {
   id: string;
@@ -13,6 +14,7 @@ export interface UserData {
   username?: string;
   gameshiftId?: string;
   walletAddress?: string;
+  avatarUrl?: string;
   token?: string;
 }
 
@@ -24,11 +26,15 @@ class UserStore {
 
   constructor() {
     makeAutoObservable(this);
-    this.loadUserFromStorage();
+    this.loadUserFromStorage(); 
   }
 
-  async register(email: string, username?: string): Promise<void> {
-    console.log("UserStore: Starting registration process...");
+  /**
+   * Register a new user
+   */
+  async register(email: string, username: string): Promise<void> {
+    if (this.isLoading) return;
+
     this.isLoading = true;
     this.error = null;
 
@@ -38,7 +44,6 @@ class UserStore {
       if (!newUserFromGameShift?.referenceId) {
         throw new Error("Failed to create user in GameShift.");
       }
-      console.log("✅ User registered in GameShift:", newUserFromGameShift);
 
       const savedUser = await saveUserToDatabase({
         email: newUserFromGameShift.email,
@@ -46,10 +51,10 @@ class UserStore {
       });
 
       if (!savedUser?.user?.id) {
-        throw new Error("Failed to save user in the backend database.");
+        throw new Error("Failed to save user in the backend.");
       }
-      console.log("✅ User saved in backend:", savedUser);
 
+      // Update MobX state
       runInAction(() => {
         this.user = savedUser.user;
         this.isAuthenticated = true;
@@ -58,7 +63,6 @@ class UserStore {
 
       console.log("✅ Registration Complete:", this.user);
     } catch (error) {
-      console.error("❌ Registration Failed:", error);
       runInAction(() => {
         this.error = error instanceof Error ? error.message : "Registration Failed";
       });
@@ -70,35 +74,37 @@ class UserStore {
     }
   }
 
-  async login(email: string): Promise<UserData & { token: string }> {
-    console.log("UserStore: Starting login process for email:", email);
+  /**
+   * Login the user
+   */
+  async login(email: string): Promise<UserData> {
+    if (this.isLoading) return Promise.reject(new Error("Login already in progress."));
+
     this.isLoading = true;
     this.error = null;
 
     try {
       const response = await fetchUserFromDatabase(email);
-      console.log("UserStore: Received login response:", response);
 
-      if (!response?.user?.email) {
-        throw new Error("Invalid login response from server");
+      if (!response || !response.user || !response.token) {
+        throw new Error("Invalid login response.");
       }
 
-      const userData = {
+      const userData: UserData = {
         ...response.user,
         token: response.token,
       };
 
+      // Update MobX state
       runInAction(() => {
-        this.user = response.user;
+        this.user = userData;
         this.isAuthenticated = true;
-        localStorage.setItem("gameshift_user", JSON.stringify(response.user));
-        localStorage.setItem("auth_token", response.token);
+        localStorage.setItem("gameshift_user", JSON.stringify(userData));
       });
 
-      console.log("UserStore: Login successful, returning user data");
+      console.log("✅ Login Successful:", this.user);
       return userData;
     } catch (error) {
-      console.error("UserStore: Login failed:", error);
       runInAction(() => {
         this.error = error instanceof Error ? error.message : "Login Failed";
       });
@@ -110,50 +116,52 @@ class UserStore {
     }
   }
 
-  async logPlayerAction(
-    actionType: string,
-    actionDescription = "N/A"
-  ): Promise<void> {
-    try {
-      if (!this.user) {
-        throw new Error("User not logged in.");
-      }
+  /**
+   * Log player actions after user activity
+   */
+  async logPlayerAction(actionType: string, actionDescription = "User activity"): Promise<void> {
+    if (!this.user) {
+      console.warn("⚠️ No user found. Cannot log player action.");
+      return;
+    }
 
+    try {
       await addPlayerAction(
-        this.user.id,
+        this.user.gameshiftId || "unknown",
         this.user.email,
+        this.user.walletAddress || "unknown",
         actionType,
-        actionDescription,
-        "web"
+        actionDescription
       );
 
-      console.log("✅ Player action logged:", actionType, actionDescription);
+      console.log("✅ Player Action Logged:", actionType, actionDescription);
     } catch (error) {
-      console.error("❌ Error logging player action:", error);
-      throw error;
+      console.error("❌ Error Logging Player Action:", error);
     }
   }
 
+  /**
+   * Load the user from local storage on app start
+   */
   loadUserFromStorage(): void {
     try {
       const storedUser = localStorage.getItem("gameshift_user");
       if (storedUser) {
         const parsedUser: UserData = JSON.parse(storedUser);
-
         runInAction(() => {
           this.user = parsedUser;
           this.isAuthenticated = true;
         });
-
-        console.log("✅ User Loaded from Local Storage:", this.user);
-      } else {
-        console.warn("⚠️ No user found in local storage.");
+        console.log("✅ User Loaded from LocalStorage:", this.user);
       }
     } catch (error) {
-      console.error("❌ Failed to load user from local storage:", error);
+      console.error("❌ Failed to Load User from LocalStorage:", error);
     }
   }
 
+  /**
+   * Logout the user and clear state
+   */
   logout(): void {
     runInAction(() => {
       this.user = null;
@@ -161,7 +169,6 @@ class UserStore {
       this.error = null;
     });
 
-    localStorage.removeItem("auth_token");
     localStorage.removeItem("gameshift_user");
     console.log("✅ User Logged Out");
   }

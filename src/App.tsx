@@ -1,35 +1,59 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import PreloaderPage from './pages/PreloaderPage';
-import { MainGamePage } from './pages/MainGamePage';
-import AuthForm from './components/AuthForm';
-import UserProfilePage from './pages/UserProfilePage';
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import PreloaderPage from "./pages/PreloaderPage";
+import MainGamePage from "./pages/MainGamePage";
+import AuthForm from "./components/AuthForm";
+import UserProfilePage from "./pages/UserProfilePage";
+import WelcomeScreen from "./pages/WelcomeScreen";
 import { Toaster } from "@/components/ui/toaster";
-import { UserProvider } from './contexts/UserContext';
-import WelcomeScreen from './pages/WelcomeScreen';
+import { useUser } from "./contexts/UserContext";
 
 function App() {
   console.log("🔵 App: Rendering with routes");
-  
+
+  // Protect Routes based on user authentication
+  const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+    const { user } = useUser();
+    return user?.isAuthenticated ? children : <Navigate to="/auth" replace />;
+  };
+
   return (
-    <UserProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<PreloaderPage />} />
-          <Route path="/game" element={<MainGamePage />} />
-          <Route 
-            path="/auth" 
-            element={<AuthForm onSuccess={() => {
-              console.log("✅ App: Auth success callback triggered");
-              window.location.href = '/welcome';
-            }} />} 
-          />
-          <Route path="/profile" element={<UserProfilePage />} />
-          <Route path="/welcome" element={<WelcomeScreen />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        <Toaster />
-      </Router>
-    </UserProvider>
+    <Router>
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<PreloaderPage />} />
+        <Route path="/auth" element={<AuthForm />} />
+
+        {/* Protected Routes */}
+        <Route
+          path="/game"
+          element={
+            <ProtectedRoute>
+              <MainGamePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <UserProfilePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/welcome"
+          element={
+            <ProtectedRoute>
+              <WelcomeScreen />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback Route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+      <Toaster />
+    </Router>
   );
 }
 
