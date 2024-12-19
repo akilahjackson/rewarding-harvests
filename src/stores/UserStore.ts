@@ -4,6 +4,7 @@ import {
   saveUserToDatabase,
   fetchUserFromDatabase
 } from "@/services/auth/userAuthService";
+import { createUserInGameShift } from "@/services/auth/gameShiftService";
 import { addPlayerAction } from "@/services/playerActions/playerActionService";
 
 export interface UserData {
@@ -13,11 +14,6 @@ export interface UserData {
   gameshiftId?: string;
   walletAddress?: string;
   token?: string;
-}
-
-interface BackendResponse {
-  user: UserData;
-  token: string;
 }
 
 class UserStore {
