@@ -19,9 +19,6 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | null>(null);
 
-/**
- * Hook to use User Context
- */
 export const useUser = () => {
   const context = useContext(UserContext);
   if (!context) {
@@ -30,32 +27,30 @@ export const useUser = () => {
   return context;
 };
 
-/**
- * User Provider
- */
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<UserState | null>(() => {
     const stored = localStorage.getItem("gameshift_user");
     const parsed = stored ? JSON.parse(stored) : null;
-    console.log("UserProvider: Initial user state loaded from localStorage:", parsed);
+    console.log("🔵 UserProvider: Initial user state loaded from localStorage:", parsed);
     return parsed;
   });
 
-  /**
-   * Update Last Active
-   */
   const updateLastActive = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log("⚠️ UserProvider: Cannot update lastActive - no user logged in");
+      return;
+    }
 
     const updatedUser = {
       ...user,
       lastActive: new Date().toISOString(),
     };
 
-    console.log("UserProvider: Updating last active:", updatedUser);
+    console.log("🔵 UserProvider: Updating last active:", updatedUser);
 
     setUser(updatedUser);
     localStorage.setItem("gameshift_user", JSON.stringify(updatedUser));
+    console.log("✅ UserProvider: Updated user state in localStorage");
 
     try {
       const response = await fetch("/api/users/updateLastActive", {
@@ -71,54 +66,50 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error("Failed to update last active in the backend");
       }
 
-      console.log("✅ UserProvider: Successfully updated last active in the backend.");
+      console.log("✅ UserProvider: Successfully updated last active in backend");
     } catch (error) {
       console.error("❌ UserProvider: Failed to sync last active:", error);
     }
   };
 
-  /**
-   * Log the user out
-   */
   const logout = async () => {
-    console.log("UserProvider: Logging out user:", user);
+    console.log("🔵 UserProvider: Logging out user:", user?.email);
 
     try {
-      await fetch("/api/users/logout", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${user?.tokenBalance}`,
-        },
-      });
-
-      console.log("✅ UserProvider: Successfully notified backend of logout.");
+      if (user?.tokenBalance) {
+        await fetch("/api/users/logout", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${user.tokenBalance}`,
+          },
+        });
+        console.log("✅ UserProvider: Successfully notified backend of logout");
+      }
     } catch (error) {
       console.error("❌ UserProvider: Failed to notify backend of logout:", error);
     }
 
-    // Clear Local Storage and Reset State
     localStorage.removeItem("gameshift_user");
+    localStorage.removeItem("auth_token");
     setUser(null);
+    console.log("✅ UserProvider: Cleared local storage and reset user state");
   };
 
-  /**
-   * Monitor Inactivity
-   */
   useEffect(() => {
     const checkSession = () => {
       if (!user?.lastActive) return;
 
       const inactiveTime = new Date().getTime() - new Date(user.lastActive).getTime();
-      console.log("UserProvider: Checking session. Inactive time:", inactiveTime);
+      console.log("🔵 UserProvider: Checking session. Inactive time:", inactiveTime);
 
-      if (inactiveTime > 15 * 60 * 1000) { // 15-minute timeout
+      if (inactiveTime > 15 * 60 * 1000) {
         console.warn("⚠️ UserProvider: User session expired. Logging out...");
         logout();
       }
     };
 
-    const interval = setInterval(checkSession, 60000); // Check every 60 seconds
-    return () => clearInterval(interval); // Clean up on component unmount
+    const interval = setInterval(checkSession, 60000);
+    return () => clearInterval(interval);
   }, [user]);
 
   return (

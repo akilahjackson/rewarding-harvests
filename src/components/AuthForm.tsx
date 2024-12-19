@@ -25,26 +25,32 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("AuthForm: Starting form submission");
+    console.log("🔵 AuthForm: Starting form submission with email:", email);
 
     if (userStore.isLoading) {
-      console.warn("⚠️ Submission already in progress...");
+      console.warn("⚠️ AuthForm: Submission already in progress...");
       return;
     }
 
     try {
       if (!isLogin) {
-        console.log("AuthForm: Attempting registration");
+        console.log("🔵 AuthForm: Attempting registration");
         await userStore.register(email, username);
 
         toast({
           title: "Account Created",
           description: "Welcome to Rewarding Harvest!",
         });
+        console.log("✅ AuthForm: Registration successful");
       } else {
-        console.log("AuthForm: Attempting login with email:", email);
+        console.log("🔵 AuthForm: Attempting login with email:", email);
         const userData = await userStore.login(email);
-        console.log("AuthForm: Login successful, user data:", userData);
+        console.log("✅ AuthForm: Login successful, received user data:", userData);
+
+        if (!userData) {
+          console.error("❌ AuthForm: No user data received after login");
+          throw new Error("Login failed - no user data received");
+        }
 
         setUser({
           email: userData.email,
@@ -53,20 +59,27 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
           tokenBalance: userData.token,
           lastActive: new Date().toISOString(),
         });
+        console.log("✅ AuthForm: User context updated");
 
         await userStore.logPlayerAction("LOGIN", "User logged in successfully");
+        console.log("✅ AuthForm: Player action logged");
 
         toast({
           title: "Login Successful",
           description: "Welcome back to Rewarding Harvest!",
         });
 
+        console.log("🔵 AuthForm: Preparing to redirect...");
         if (onSuccess) {
+          console.log("🔵 AuthForm: Calling onSuccess callback");
           onSuccess();
+        } else {
+          console.log("🔵 AuthForm: No onSuccess callback, navigating directly");
+          navigate('/welcome');
         }
       }
     } catch (error: any) {
-      console.error("❌ Auth Error:", error);
+      console.error("❌ AuthForm: Authentication error:", error);
       toast({
         title: "Authentication Error",
         description: error.message || "Please try again",

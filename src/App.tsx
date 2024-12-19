@@ -8,13 +8,21 @@ import { UserProvider } from './contexts/UserContext';
 import WelcomeScreen from './pages/WelcomeScreen';
 
 function App() {
+  console.log("🔵 App: Rendering with routes");
+  
   return (
     <UserProvider>
       <Router>
         <Routes>
           <Route path="/" element={<PreloaderPage />} />
           <Route path="/game" element={<MainGamePage />} />
-          <Route path="/auth" element={<AuthForm onSuccess={() => window.location.href = '/welcome'} />} />
+          <Route 
+            path="/auth" 
+            element={<AuthForm onSuccess={() => {
+              console.log("✅ App: Auth success callback triggered");
+              window.location.href = '/welcome';
+            }} />} 
+          />
           <Route path="/profile" element={<UserProfilePage />} />
           <Route path="/welcome" element={<WelcomeScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
