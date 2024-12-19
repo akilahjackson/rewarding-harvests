@@ -22,8 +22,8 @@ export const loginUser = async (email: string): Promise<LoginResponse> => {
   console.log("🔵 userAuthService: Attempting login for email:", email);
   
   try {
-    const response = await api.post<LoginResponse>(
-      '/api/proxy/users/login',
+    const response = await api.get<LoginResponse>(
+      '/api/users/login',
       { email },
       {
         headers: {
@@ -45,7 +45,7 @@ export const saveUserToDatabase = async (userData: Partial<UserData>): Promise<{
   console.log("🔵 userAuthService: Saving user to database:", userData);
   
   try {
-    const response = await api.post('/api/proxy/users', userData);
+    const response = await api.get('/api/users', userData);
     console.log("✅ userAuthService: User saved successfully:", response.data);
     return response.data;
   } catch (error) {
@@ -58,7 +58,7 @@ export const fetchUserFromDatabase = async (email: string): Promise<{ user: User
   console.log("🔵 userAuthService: Fetching user from database:", email);
   
   try {
-    const response = await api.get(`/api/proxy/users/${email}`);
+    const response = await api.get(`/api/users/login?${email}`);
     console.log("✅ userAuthService: User fetched successfully:", response.data);
     return response.data;
   } catch (error) {
