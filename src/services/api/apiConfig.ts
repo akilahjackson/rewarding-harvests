@@ -9,6 +9,7 @@ export const api = axios.create({
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
+    "Origin": window.location.origin
   },
   withCredentials: true // Enable sending cookies with requests
 });
@@ -18,6 +19,18 @@ export const gameshiftApi = axios.create({
   baseURL: API_GAMESHIFT_URL,
   headers: {
     "Content-Type": "application/json",
-    "Accept": "application/json"
+    "Accept": "application/json",
+    "Origin": window.location.origin
   }
 });
+
+// Add request interceptor to include credentials
+api.interceptors.request.use(
+  (config) => {
+    config.withCredentials = true;
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
