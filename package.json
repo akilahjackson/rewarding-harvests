@@ -8,7 +8,9 @@
     "build": "vite build",
     "start": "vite preview",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "build:dev": "vite build --mode development"
+
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.2",
