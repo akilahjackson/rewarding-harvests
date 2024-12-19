@@ -1,10 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
-//import { componentTagger } from "lovable-tagger";
 import path from 'path';
-
-///comments section
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -24,10 +21,8 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    //mode === 'development' && componentTagger(),
-    mode === 'development',
     tsconfigPaths(),
-  ].filter(Boolean),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
