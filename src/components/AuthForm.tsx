@@ -9,7 +9,11 @@ import { useNavigate } from "react-router-dom";
 import { useStore } from "@/contexts/StoreContext";
 import { useUser } from "@/contexts/UserContext";
 
-const AuthForm = observer(() => {
+interface AuthFormProps {
+  onSuccess?: () => void;
+}
+
+const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -42,7 +46,6 @@ const AuthForm = observer(() => {
         const userData = await userStore.login(email);
         console.log("AuthForm: Login successful, user data:", userData);
 
-        // Update user context with correct data structure
         setUser({
           email: userData.email,
           username: userData.username || "",
@@ -51,7 +54,6 @@ const AuthForm = observer(() => {
           lastActive: new Date().toISOString(),
         });
 
-        // Log the login action
         await userStore.logPlayerAction("LOGIN", "User logged in successfully");
 
         toast({
@@ -59,8 +61,9 @@ const AuthForm = observer(() => {
           description: "Welcome back to Rewarding Harvest!",
         });
 
-        console.log("AuthForm: Navigating to welcome page");
-        navigate("/welcome");
+        if (onSuccess) {
+          onSuccess();
+        }
       }
     } catch (error: any) {
       console.error("❌ Auth Error:", error);
