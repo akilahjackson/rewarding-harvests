@@ -13,7 +13,7 @@ const AuthForm = observer(() => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
-  const [password, setPassword] = useState(""); // Currently unused, ensure password usage in the backend
+  const [password, setPassword] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
   const { userStore } = useStore();
@@ -42,7 +42,7 @@ const AuthForm = observer(() => {
         const userData = await userStore.login(email);
         console.log("AuthForm: Login successful, user data:", userData);
 
-        // Update user context with correct data
+        // Update user context with correct data structure
         setUser({
           email: userData.email,
           username: userData.username || "",
@@ -50,6 +50,9 @@ const AuthForm = observer(() => {
           tokenBalance: userData.token,
           lastActive: new Date().toISOString(),
         });
+
+        // Log the login action
+        await userStore.logPlayerAction("LOGIN", "User logged in successfully");
 
         toast({
           title: "Login Successful",

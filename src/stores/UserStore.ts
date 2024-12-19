@@ -6,7 +6,6 @@ import {
   addPlayerAction,
 } from "@/services/userService";
 
-// Updated interfaces to match actual API responses
 export interface UserData {
   id: string;
   email: string;
@@ -97,6 +96,7 @@ class UserStore {
         this.user = response.user;
         this.isAuthenticated = true;
         localStorage.setItem("gameshift_user", JSON.stringify(response.user));
+        localStorage.setItem("auth_token", response.token);
       });
 
       console.log("UserStore: Login successful, returning user data");
@@ -111,6 +111,30 @@ class UserStore {
       runInAction(() => {
         this.isLoading = false;
       });
+    }
+  }
+
+  async logPlayerAction(
+    actionType: string,
+    actionDescription = "N/A"
+  ): Promise<void> {
+    try {
+      if (!this.user) {
+        throw new Error("User not logged in.");
+      }
+
+      await addPlayerAction(
+        this.user.id,
+        this.user.email,
+        actionType,
+        actionDescription,
+        "web"
+      );
+
+      console.log("✅ Player action logged:", actionType, actionDescription);
+    } catch (error) {
+      console.error("❌ Error logging player action:", error);
+      throw error;
     }
   }
 
@@ -134,37 +158,6 @@ class UserStore {
     }
   }
 
-  /**
-   * Log a Player Action
-   * Logs the user's action using the correct backend API call.
-   */
-  async logPlayerAction(
-    actionType: string,
-    actionDescription = "Login"
-  ): Promise<void> {
-    try {
-      if (!this.user) {
-        throw new Error("User not logged in.");
-      }
-
-      await addPlayerAction(
-        this.user.gameshiftId || "unknown",
-        this.user.email,
-        this.user.walletAddress || "unknown",
-        actionType,
-        actionDescription
-      );
-
-      console.log("✅ Player action logged:", actionType, actionDescription);
-    } catch (error) {
-      console.error("❌ Error logging player action:", error.message || error);
-    }
-  }
-
-  /**
-   * Log Out the Current User
-   * Clears all local storage and resets MobX state.
-   */
   logout(): void {
     runInAction(() => {
       this.user = null;
