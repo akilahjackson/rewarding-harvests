@@ -11,12 +11,9 @@ export interface UserData {
   id: string;
   email: string;
   username?: string;
+  gameshiftId?: string;
+  walletAddress?: string;
   token?: string;
-}
-
-interface GameShiftResponse {
-  referenceId: string;
-  email: string;
 }
 
 interface BackendResponse {
@@ -50,7 +47,7 @@ class UserStore {
 
       const savedUser = await saveUserToDatabase({
         email: newUserFromGameShift.email,
-        username
+        username,
       });
 
       if (!savedUser?.user?.id) {
@@ -93,7 +90,7 @@ class UserStore {
 
       const userData = {
         ...response.user,
-        token: response.token
+        token: response.token,
       };
 
       runInAction(() => {
@@ -104,7 +101,6 @@ class UserStore {
 
       console.log("UserStore: Login successful, returning user data");
       return userData;
-
     } catch (error) {
       console.error("UserStore: Login failed:", error);
       runInAction(() => {
@@ -137,7 +133,6 @@ class UserStore {
       console.error("❌ Failed to load user from local storage:", error);
     }
   }
-<<<<<<< HEAD
 
   /**
    * Log a Player Action
@@ -153,7 +148,7 @@ class UserStore {
       }
 
       await addPlayerAction(
-        this.user.gameshiftId,    // Correct mapping
+        this.user.gameshiftId || "unknown",
         this.user.email,
         this.user.walletAddress || "unknown",
         actionType,
@@ -181,8 +176,6 @@ class UserStore {
     localStorage.removeItem("gameshift_user");
     console.log("✅ User Logged Out");
   }
-=======
->>>>>>> a11b918c54e109aed53058229d93a98a351d8a2e
 }
 
 export const userStore = new UserStore();
