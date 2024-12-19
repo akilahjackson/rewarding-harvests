@@ -1,4 +1,3 @@
-// src/components/AuthForm.tsx
 import React, { useState } from "react";
 import { observer } from "mobx-react-lite";
 import { Input } from "@/components/ui/input";
@@ -8,7 +7,11 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useStore } from "@/contexts/StoreContext";
 
-const AuthForm: React.FC = observer(() => {
+interface AuthFormProps {
+  onSuccess?: () => void;
+}
+
+const AuthForm: React.FC<AuthFormProps> = observer(({ onSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");

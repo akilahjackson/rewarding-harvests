@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { MainGamePage } from "./pages/MainGamePage";
 import PreloaderPage from "./pages/PreloaderPage";
-import MainGamePage from "./pages/MainGamePage";
 import AuthForm from "./components/AuthForm";
 import UserProfilePage from "./pages/UserProfilePage";
 import WelcomeScreen from "./pages/WelcomeScreen";
