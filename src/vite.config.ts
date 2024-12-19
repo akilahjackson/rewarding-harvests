@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import path from 'path';
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
@@ -11,7 +11,7 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
-    minify: 'development' === 'production',
+    minify: mode === "production",
     emptyOutDir: true,
     rollupOptions: {
       input: {
@@ -28,4 +28,4 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-});
+}));
