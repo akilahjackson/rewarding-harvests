@@ -44,25 +44,62 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
         console.log("✅ AuthForm: Registration successful");
       } else {
         console.log("🔵 AuthForm: Attempting login with email:", email);
-        const userData = await userStore.login(email);
+        const response = await fetch(`https://rewarding-harvests-xfkmy.ondigitalocean.app/api/users/login?email=${encodeURIComponent(email)}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error('Login failed - server error');
+        }
+
+        const userData = await response.json();
         console.log("✅ AuthForm: Login successful, received user data:", userData);
 
-        if (!userData) {
+        if (!userData.user) {
           console.error("❌ AuthForm: No user data received after login");
           throw new Error("Login failed - no user data received");
         }
 
+        // Update user context with the received data
         setUser({
-          email: userData.email,
-          username: userData.username || "",
+          email: userData.user.email,
+          username: userData.user.username || "",
           isAuthenticated: true,
           tokenBalance: userData.token,
           lastActive: new Date().toISOString(),
         });
         console.log("✅ AuthForm: User context updated");
 
-        await userStore.logPlayerAction("LOGIN", "User logged in successfully");
+        // Log the player action
+        await fetch('https://rewarding-harvests-xfkmy.ondigitalocean.app/api/player-actions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${userData.token}`
+          },
+          body: JSON.stringify({
+            playerId: userData.user.id,
+            playerEmail: email,
+            actionType: "LOGIN",
+            actionDescription: "User logged in successfully",
+            device: "web"
+          })
+        });
         console.log("✅ AuthForm: Player action logged");
+
+        // Store user data in localStorage
+        localStorage.setItem('gameshift_user', JSON.stringify({
+          email: userData.user.email,
+          username: userData.user.username || "",
+          isAuthenticated: true,
+          tokenBalance: userData.token,
+          lastActive: new Date().toISOString(),
+        }));
+        localStorage.setItem('auth_token', userData.token);
+        console.log("✅ AuthForm: User data saved to localStorage");
 
         toast({
           title: "Login Successful",
