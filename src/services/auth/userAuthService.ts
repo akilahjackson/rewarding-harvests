@@ -1,5 +1,4 @@
 import { api, API_BACKEND_URL } from '../api/apiConfig';
-import axios from 'axios';
 
 export interface BackendResponse {
   user: {
@@ -34,59 +33,28 @@ export const fetchUserFromDatabase = async (email: string): Promise<BackendRespo
   console.log('🔍 Fetching user from backend:', email);
 
   try {
-    // Create a custom axios instance for this specific request
-    const customAxios = axios.create({
-      baseURL: API_BACKEND_URL,
+    // Use fetch API with no-cors mode as fallback
+    const response = await fetch(`${API_BACKEND_URL}/api/users/login?email=${encodeURIComponent(email)}`, {
+      method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
       },
-      // Add CORS configuration
-      withCredentials: true
     });
 
-    // Make the request with proper CORS handling
-    const response = await customAxios.get('/api/users/login', {
-      params: { email },
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-      }
-    });
-
-    console.log('✅ Backend login response:', response.data);
-
-    if (!response.data.user || !response.data.token) {
-      throw new Error("Invalid login response from backend.");
+    if (!response.ok) {
+      throw new Error('Login failed - server error');
     }
 
-    // Store authentication data
-    localStorage.setItem("auth_token", response.data.token);
-    localStorage.setItem("gameshift_user", JSON.stringify(response.data.user));
+    const data = await response.json();
+    console.log('✅ Login response:', data);
 
-    return response.data;
+    if (!data.user || !data.token) {
+      throw new Error("Invalid login response from server");
+    }
+
+    return data;
   } catch (error: any) {
     console.error('❌ Login failed:', error.message || error);
-    // If we get a CORS error, try with mode: 'no-cors'
-    if (error.message.includes('CORS')) {
-      console.log('⚠️ CORS error detected, retrying with no-cors mode');
-      try {
-        const response = await fetch(`${API_BACKEND_URL}/api/users/login?email=${encodeURIComponent(email)}`, {
-          method: 'GET',
-          mode: 'no-cors',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
-        const data = await response.json();
-        return data;
-      } catch (retryError) {
-        console.error('❌ Retry failed:', retryError);
-        throw new Error("Login failed after CORS retry. Please try again.");
-      }
-    }
-    throw new Error(error.response?.data?.message || "Login failed. Please try again.");
+    throw new Error(error.message || "Login failed. Please try again.");
   }
 };

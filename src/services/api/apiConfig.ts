@@ -10,9 +10,7 @@ export const api = axios.create({
   headers: {
     "Content-Type": "application/json",
     "Accept": "application/json",
-  },
-  // Add CORS configuration
-  withCredentials: true
+  }
 });
 
 // Create GameShift specific axios instance

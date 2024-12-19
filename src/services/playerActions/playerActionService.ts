@@ -5,12 +5,8 @@ export const addPlayerAction = async (
   playerEmail: string,
   actionType: string,
   actionDescription = "N/A",
-  device = "unknown"
-): Promise<void> => {
-  if (!playerId || !playerEmail || !actionType) {
-    throw new Error("Missing required action parameters.");
-  }
-
+  device = "web"
+) => {
   console.log('📝 Logging player action:', actionType);
 
   try {
@@ -25,10 +21,7 @@ export const addPlayerAction = async (
       },
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+          'Authorization': `Bearer ${token}`
         }
       }
     );
