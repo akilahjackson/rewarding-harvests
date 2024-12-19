@@ -1,23 +1,19 @@
-import React, { useState } from 'react';
-import { observer } from 'mobx-react-lite';
+import React, { useState } from "react";
+import { observer } from "mobx-react-lite";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { LogIn } from "lucide-react";
-import { useNavigate } from 'react-router-dom';
-import { useStore } from '@/contexts/StoreContext';
-import { useUser } from '@/contexts/UserContext';
+import { useNavigate } from "react-router-dom";
+import { useStore } from "@/contexts/StoreContext";
+import { useUser } from "@/contexts/UserContext";
 
-interface AuthFormProps {
-  onSuccess: () => void;
-}
-
-const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
+const AuthForm = observer(() => {
   const [isLogin, setIsLogin] = useState(true);
-  const [email, setEmail] = useState('');
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState(""); // Currently unused, ensure password usage in the backend
   const { toast } = useToast();
   const navigate = useNavigate();
   const { userStore } = useStore();
@@ -25,7 +21,7 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('AuthForm: Starting form submission');
+    console.log("AuthForm: Starting form submission");
 
     if (userStore.isLoading) {
       console.warn("⚠️ Submission already in progress...");
@@ -34,21 +30,22 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
 
     try {
       if (!isLogin) {
-        console.log('AuthForm: Attempting registration');
+        console.log("AuthForm: Attempting registration");
         await userStore.register(email, username);
+
         toast({
           title: "Account Created",
           description: "Welcome to Rewarding Harvest!",
         });
       } else {
-        console.log('AuthForm: Attempting login with email:', email);
+        console.log("AuthForm: Attempting login with email:", email);
         const userData = await userStore.login(email);
-        console.log('AuthForm: Login successful, user data:', userData);
-        
-        // Update user context with the correct data structure
+        console.log("AuthForm: Login successful, user data:", userData);
+
+        // Update user context with correct data
         setUser({
           email: userData.email,
-          username: userData.username || '',
+          username: userData.username || "",
           isAuthenticated: true,
           tokenBalance: userData.token,
           lastActive: new Date().toISOString(),
@@ -59,13 +56,11 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
           description: "Welcome back to Rewarding Harvest!",
         });
 
-        // Ensure navigation happens after context is updated
-        console.log('AuthForm: Navigating to welcome page');
-        navigate('/welcome');
-        onSuccess();
+        console.log("AuthForm: Navigating to welcome page");
+        navigate("/welcome");
       }
     } catch (error: any) {
-      console.error('❌ Auth Error:', error);
+      console.error("❌ Auth Error:", error);
       toast({
         title: "Authentication Error",
         description: error.message || "Please try again",
@@ -77,13 +72,15 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
   return (
     <div className="w-full max-w-md mx-auto p-8 bg-transparent backdrop-blur-sm rounded-2xl shadow-xl border border-neongreen/30">
       <h2 className="text-3xl font-extrabold text-neongreen text-center mb-6">
-        {isLogin ? 'Login' : 'Create Account'}
+        {isLogin ? "Login" : "Create Account"}
       </h2>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {!isLogin && (
           <div>
-            <Label htmlFor="username" className="text-neongreen">Username</Label>
+            <Label htmlFor="username" className="text-neongreen">
+              Username
+            </Label>
             <Input
               id="username"
               value={username}
@@ -95,7 +92,9 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
         )}
 
         <div>
-          <Label htmlFor="email" className="text-neongreen">Email</Label>
+          <Label htmlFor="email" className="text-neongreen">
+            Email
+          </Label>
           <Input
             id="email"
             type="email"
@@ -108,7 +107,9 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
         </div>
 
         <div>
-          <Label htmlFor="password" className="text-neongreen">Password</Label>
+          <Label htmlFor="password" className="text-neongreen">
+            Password
+          </Label>
           <Input
             id="password"
             type="password"
@@ -123,12 +124,14 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
         <Button
           type="submit"
           disabled={userStore.isLoading}
-          className={`w-full py-3 font-bold rounded-lg hover:scale-105 transition-transform
-            ${userStore.isLoading ? 'bg-gray-400 text-gray-800' : 'bg-neongreen text-black hover:bg-green-400'}
-          `}
+          className={`w-full py-3 font-bold rounded-lg hover:scale-105 transition-transform ${
+            userStore.isLoading
+              ? "bg-gray-400 text-gray-800"
+              : "bg-neongreen text-black hover:bg-green-400"
+          }`}
         >
           <LogIn className="mr-2 w-5 h-5" />
-          {userStore.isLoading ? "Processing..." : isLogin ? 'Login' : 'Sign Up'}
+          {userStore.isLoading ? "Processing..." : isLogin ? "Login" : "Sign Up"}
         </Button>
 
         <div className="text-center text-sm text-neongreen">
@@ -138,7 +141,7 @@ const AuthForm = observer(({ onSuccess }: AuthFormProps) => {
             onClick={() => setIsLogin(!isLogin)}
             className="text-neongreen hover:underline focus:outline-none"
           >
-            {isLogin ? 'Sign Up' : 'Login'}
+            {isLogin ? "Sign Up" : "Login"}
           </button>
         </div>
       </form>
