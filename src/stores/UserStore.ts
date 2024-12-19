@@ -1,38 +1,34 @@
-// src/store/UserStore.ts
 import { makeAutoObservable, runInAction } from "mobx";
-import {
-  createUserInGameShift,
-  saveUserToDatabase,
-  fetchUserFromDatabase,
+import { 
+  createUserInGameShift, 
+  saveUserToDatabase, 
+  fetchUserFromDatabase, 
   addPlayerAction,
-  UserResponse,
+  UserResponse 
 } from "@/services/UserService";
 
-export interface UserData {
+interface UserState {
   id: string;
   email: string;
-  username?: string;
-  gameshiftId?: string;
+  username: string;
+  gameshiftId: string;
   walletAddress?: string;
   avatarUrl?: string;
   token?: string;
 }
 
 class UserStore {
-  user: UserData | null = null;
+  user: UserState | null = null;
   isAuthenticated: boolean = false;
   isLoading: boolean = false;
   error: string | null = null;
 
   constructor() {
     makeAutoObservable(this);
-    this.loadUserFromStorage(); 
+    this.loadUserFromStorage();
   }
 
-  /**
-   * Register a new user
-   */
-  async register(email: string, username: string): Promise<void> {
+  async register(email: string, username: string) {
     if (this.isLoading) return;
 
     this.isLoading = true;
@@ -41,20 +37,19 @@ class UserStore {
     try {
       const newUserFromGameShift = await createUserInGameShift(email);
 
-      if (!newUserFromGameShift?.referenceId) {
+      if (!newUserFromGameShift?.user?.id) {
         throw new Error("Failed to create user in GameShift.");
       }
 
       const savedUser = await saveUserToDatabase({
-        email: newUserFromGameShift.email,
-        username,
+        email: newUserFromGameShift.user.email,
+        username
       });
 
       if (!savedUser?.user?.id) {
         throw new Error("Failed to save user in the backend.");
       }
 
-      // Update MobX state
       runInAction(() => {
         this.user = savedUser.user;
         this.isAuthenticated = true;
@@ -74,10 +69,7 @@ class UserStore {
     }
   }
 
-  /**
-   * Login the user
-   */
-  async login(email: string): Promise<UserData> {
+  async login(email: string) {
     if (this.isLoading) return Promise.reject(new Error("Login already in progress."));
 
     this.isLoading = true;
@@ -86,16 +78,15 @@ class UserStore {
     try {
       const response = await fetchUserFromDatabase(email);
 
-      if (!response || !response.user || !response.token) {
+      if (!response?.user?.id || !response.token) {
         throw new Error("Invalid login response.");
       }
 
-      const userData: UserData = {
+      const userData: UserState = {
         ...response.user,
-        token: response.token,
+        token: response.token
       };
 
-      // Update MobX state
       runInAction(() => {
         this.user = userData;
         this.isAuthenticated = true;
@@ -116,10 +107,7 @@ class UserStore {
     }
   }
 
-  /**
-   * Log player actions after user activity
-   */
-  async logPlayerAction(actionType: string, actionDescription = "User activity"): Promise<void> {
+  async logPlayerAction(actionType: string, actionDescription = "User activity") {
     if (!this.user) {
       console.warn("⚠️ No user found. Cannot log player action.");
       return;
@@ -133,21 +121,17 @@ class UserStore {
         actionType,
         actionDescription
       );
-
       console.log("✅ Player Action Logged:", actionType, actionDescription);
     } catch (error) {
       console.error("❌ Error Logging Player Action:", error);
     }
   }
 
-  /**
-   * Load the user from local storage on app start
-   */
-  loadUserFromStorage(): void {
+  loadUserFromStorage() {
     try {
       const storedUser = localStorage.getItem("gameshift_user");
       if (storedUser) {
-        const parsedUser: UserData = JSON.parse(storedUser);
+        const parsedUser = JSON.parse(storedUser);
         runInAction(() => {
           this.user = parsedUser;
           this.isAuthenticated = true;
@@ -159,16 +143,12 @@ class UserStore {
     }
   }
 
-  /**
-   * Logout the user and clear state
-   */
-  logout(): void {
+  logout() {
     runInAction(() => {
       this.user = null;
       this.isAuthenticated = false;
       this.error = null;
     });
-
     localStorage.removeItem("gameshift_user");
     console.log("✅ User Logged Out");
   }

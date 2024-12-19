@@ -4,57 +4,26 @@ import PreloaderPage from "./pages/PreloaderPage";
 import AuthForm from "./components/AuthForm";
 import UserProfilePage from "./pages/UserProfilePage";
 import WelcomeScreen from "./pages/WelcomeScreen";
-import { Toaster } from "@/components/ui/toaster";
-import { useUser } from "./contexts/UserContext";
+import { UserProvider } from "./contexts/UserContext";
+import { StoreProvider } from "./contexts/StoreContext";
 
-function App() {
-  console.log("🔵 App: Rendering with routes");
-
-  // Protect Routes based on user authentication
-  const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-    const { user } = useUser();
-    return user?.isAuthenticated ? children : <Navigate to="/auth" replace />;
-  };
-
+const App = () => {
   return (
-    <Router>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<PreloaderPage />} />
-        <Route path="/auth" element={<AuthForm />} />
-
-        {/* Protected Routes */}
-        <Route
-          path="/game"
-          element={
-            <ProtectedRoute>
-              <MainGamePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/profile"
-          element={
-            <ProtectedRoute>
-              <UserProfilePage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/welcome"
-          element={
-            <ProtectedRoute>
-              <WelcomeScreen />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Fallback Route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      <Toaster />
-    </Router>
+    <StoreProvider>
+      <UserProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<WelcomeScreen />} />
+            <Route path="/auth" element={<AuthForm />} />
+            <Route path="/preloader" element={<PreloaderPage />} />
+            <Route path="/game" element={<MainGamePage />} />
+            <Route path="/profile" element={<UserProfilePage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Router>
+      </UserProvider>
+    </StoreProvider>
   );
-}
+};
 
 export default App;
