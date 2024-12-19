@@ -4,6 +4,8 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 import { componentTagger } from "lovable-tagger";
 import path from 'path';
 
+///comments section
+
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
