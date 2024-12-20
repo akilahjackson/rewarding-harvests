@@ -4,12 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "start": "vite preview",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "type-check": "tsc --noEmit",
-    "build:dev": "vite build --mode development"
+      "start": "parcel src/index.html",
+      "build": "parcel build src/index.htm"
+
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.2",
