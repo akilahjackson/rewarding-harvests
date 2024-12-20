@@ -7,8 +7,6 @@ import WelcomeScreen from "./pages/WelcomeScreen";
 
 const App = () => {
   return (
-    <StoreProvider>
-      <UserProvider>
         <Router>
           <Routes>
             <Route path="/welcome" element={<WelcomeScreen />} />
@@ -19,8 +17,6 @@ const App = () => {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Router>
-      </UserProvider>
-    </StoreProvider>
   );
 };
 
