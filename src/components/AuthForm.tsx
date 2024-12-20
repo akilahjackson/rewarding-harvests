@@ -48,6 +48,7 @@ const AuthForm: React.FC<AuthFormProps> = observer(({ onSuccess }) => {
 
         navigate("/welcome");
       }
+      onSuccess?.();
     } catch (error: any) {
       toast({
         title: "Authentication Error",
