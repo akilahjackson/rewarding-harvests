@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
       "start": "parcel index.html",
-      "build": "parcel build index.htm"
+      "build": "parcel build index.html > build.log 2> error.log"
 
   },
   "dependencies": {
