@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { componentTagger } from 'lovable-tagger';
+import path from 'path';
 
 export default defineConfig(({ mode }) => ({
   server: {
@@ -34,7 +35,7 @@ export default defineConfig(({ mode }) => ({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: 'index.html',
+        main: path.resolve(__dirname, 'index.html'),
       },
     }
   },
@@ -45,7 +46,7 @@ export default defineConfig(({ mode }) => ({
   ].filter(Boolean),
   resolve: {
     alias: {
-      "@": "/src",
+      "@": path.resolve(__dirname, 'src'),
     },
   },
 }));
