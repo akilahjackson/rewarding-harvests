@@ -1,22 +1,19 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { MainGamePage } from "./pages/MainGamePage";
-import PreloaderPage from "./pages/PreloaderPage";
-import AuthForm from "./components/AuthForm";
-import UserProfilePage from "./pages/UserProfilePage";
-import WelcomeScreen from "./pages/WelcomeScreen";
+import React from 'react';
+import { BrowserRouter as Router } from 'react-router-dom';
+import { UserProvider } from './contexts/UserContext';
+import { Toaster } from './components/ui/toaster';
+import AppRoutes from './AppRoutes';
 
 const App = () => {
   return (
-        <Router>
-          <Routes>
-            <Route path="/welcome" element={<WelcomeScreen />} />
-            <Route path="/auth" element={<AuthForm />} />
-            <Route path="/preloader" element={<PreloaderPage />} />
-            <Route path="/game" element={<MainGamePage />} />
-            <Route path="/profile" element={<UserProfilePage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Router>
+    <Router>
+      <UserProvider>
+        <div className="min-h-screen bg-nightsky">
+          <AppRoutes />
+          <Toaster />
+        </div>
+      </UserProvider>
+    </Router>
   );
 };
 
