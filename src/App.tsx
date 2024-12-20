@@ -4,8 +4,6 @@ import PreloaderPage from "./pages/PreloaderPage";
 import AuthForm from "./components/AuthForm";
 import UserProfilePage from "./pages/UserProfilePage";
 import WelcomeScreen from "./pages/WelcomeScreen";
-import { UserProvider } from "./contexts/UserContext";
-import { StoreProvider } from "./contexts/StoreContext";
 
 const App = () => {
   return (
@@ -13,7 +11,7 @@ const App = () => {
       <UserProvider>
         <Router>
           <Routes>
-            <Route path="/" element={<WelcomeScreen />} />
+            <Route path="/welcome" element={<WelcomeScreen />} />
             <Route path="/auth" element={<AuthForm />} />
             <Route path="/preloader" element={<PreloaderPage />} />
             <Route path="/game" element={<MainGamePage />} />
