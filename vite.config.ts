@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react-swc';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
+import { componentTagger } from 'lovable-tagger';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
