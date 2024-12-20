@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
       "start": "parcel index.html",
-      "build": "parcel build src/index.htm"
+      "build": "parcel build index.htm"
 
   },
   "dependencies": {
@@ -15,11 +15,9 @@
     "@radix-ui/react-slider": "^1.2.2",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-toast": "^1.2.4",
-    "@vitejs/plugin-react": "^4.3.4",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "lovable-tagger": "^1.0.19",
     "lucide-react": "^0.468.0",
     "mobx": "^6.12.0",
     "mobx-react-lite": "^4.0.5",
