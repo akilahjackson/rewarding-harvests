@@ -22,4 +22,4 @@ export default defineConfig(({ mode }) => ({
       '@': '/src', // Alias for your source directory
     },
   },
-}))
+}));
