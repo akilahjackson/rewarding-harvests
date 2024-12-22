@@ -1,0 +1,27 @@
+@parcel/core: Invalid Parcel Config
+
+.parcelrc:17:13
+  16 |   },
+> 17 |   "bundler": {
+>    |              ^
+> 18 |     "default": "@parcel/bundler-default"
+>    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 19 |   },
+>    | ^^^ Expected type string
+> 20 |   "resolvers": {
+>    |                ^
+> 21 |     "*": [
+>    | ^^^^^^^^^^
+> 22 |       "@parcel/resolver-default"
+>    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 23 |     ]
+>    | ^^^^^
+> 24 |   },
+>    | ^^^ Expected type array
+> 25 |   "runtimes": {
+>    |               ^
+> 26 |     "browser": [
+>    | ^^^^^^^^^^^^^^^^
+> 27 |       "@parcel/runtime-js"
+>    | ^^^^^^^^^^^^^^^^^^^^^^^^^^
+

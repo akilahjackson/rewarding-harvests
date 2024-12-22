@@ -4,9 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-      "start": "parcel index.html",
-      "build": "parcel build index.html > build.log 2> error.log"
-
+    "start": "parcel index.html",
+    "build": "parcel build index.html > build.log 2> error.log"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.2",
@@ -22,6 +21,7 @@
     "mobx": "^6.12.0",
     "mobx-react-lite": "^4.0.5",
     "phaser": "^3.87.0",
+    "process": "^0.11.10",
     "react": "^19.0.0",
     "react-avatar": "^5.0.3",
     "react-dom": "^19.0.0",
@@ -35,6 +35,11 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@parcel/config-default": "^2.13.3",
+    "@parcel/resolver-default": "^2.13.3",
+    "@parcel/runtime-js": "^2.13.3",
+    "@parcel/transformer-postcss": "^2.13.3",
+    "@parcel/transformer-typescript-tsc": "^2.13.3",
     "@rollup/plugin-typescript": "^12.1.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^9.16.0",
