@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "start": "parcel index.html",
-    "build": "parcel build index.html > build.log 2> error.log"
+    "build": "parcel build index.html > build.log 2> error.log",
+    "build:dev": "parcel build index.html --no-optimize"
+
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.2",
