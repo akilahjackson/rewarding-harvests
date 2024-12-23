@@ -12,7 +12,8 @@ export default tseslint.config(
       ecmaVersion: 2020,
       globals: {
         ...globals.browser,
-        Buffer: true
+        Buffer: true,
+        process: true
       },
     },
     plugins: {

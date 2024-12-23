@@ -6,9 +6,6 @@
     "*.html": ["@parcel/transformer-html"]
   },
   "resolvers": ["@parcel/resolver-default"],
-  "optimizers": {
-    "*.js": ["@parcel/optimizer-terser"]
-  },
   "packagers": {
     "*.html": "@parcel/packager-html"
   },
