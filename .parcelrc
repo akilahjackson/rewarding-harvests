@@ -4,5 +4,17 @@
     "*.{ts,tsx}": ["@parcel/transformer-typescript-tsc"],
     "*.css": ["@parcel/transformer-postcss"],
     "*.html": ["@parcel/transformer-html"]
+  },
+  "resolvers": ["@parcel/resolver-default"],
+  "optimizers": {
+    "*.js": ["@parcel/optimizer-terser"]
+  },
+  "packagers": {
+    "*.html": "@parcel/packager-html"
+  },
+  "namers": ["@parcel/namer-default"],
+  "reporters": ["@parcel/reporter-cli"],
+  "validators": {
+    "*.{ts,tsx}": ["@parcel/validator-typescript"]
   }
 }
