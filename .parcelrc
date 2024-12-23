@@ -5,14 +5,5 @@
     "*.tsx": ["@parcel/transformer-typescript-tsc"],
     "*.css": ["@parcel/transformer-postcss"],
     "*.html": ["@parcel/transformer-html"]
-  },
-  "bundler": {
-    "default": "@parcel/bundler-default"
-  },
-  "resolvers": {
-    "*": ["@parcel/resolver-default"]
-  },
-  "runtimes": {
-    "browser": ["@parcel/runtime-js"]
   }
 }
