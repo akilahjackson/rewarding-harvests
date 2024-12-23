@@ -5,7 +5,9 @@
     "*.css": ["@parcel/transformer-postcss"],
     "*.html": ["@parcel/transformer-html"]
   },
-  "resolvers": ["@parcel/resolver-default"],
+  "optimizers": {
+    "*.js": ["@parcel/optimizer-esbuild"]
+  },
   "packagers": {
     "*.html": "@parcel/packager-html"
   },

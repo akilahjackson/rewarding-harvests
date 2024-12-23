@@ -9,6 +9,7 @@
     "build:dev": "parcel build index.html --no-optimize"
   },
   "dependencies": {
+    "@parcel/optimizer-esbuild": "^2.13.3",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-label": "^2.1.1",
