@@ -12,8 +12,5 @@
     "*.html": "@parcel/packager-html"
   },
   "namers": ["@parcel/namer-default"],
-  "reporters": ["@parcel/reporter-cli"],
-  "validators": {
-    "*.{ts,tsx}": ["@parcel/validator-typescript"]
-  }
+  "reporters": ["@parcel/reporter-cli"]
 }
