@@ -1,10 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 
-// API Key from environment variables
 const API_KEY = process.env.GAMESHIFT_API_KEY;
-
 if (!API_KEY) {
-  console.warn("⚠️ GameShift API key not found. Some features may not work properly.");
+  console.warn('⚠️ GameShift: API key not found in environment variables');
 }
 
 // Generate a unique reference ID
@@ -18,8 +16,10 @@ interface GameShiftUserData {
 
 export const registerGameShiftUser = async (email: string, externalWallet?: string): Promise<any> => {
   if (!API_KEY) {
-    throw new Error("GameShift API key is not configured. Please check your environment variables.");
+    throw new Error('GameShift API key not found');
   }
+
+  console.log('🎮 GameShift: Attempting registration...');
 
   try {
     const endpoint = 'https://api.gameshift.dev/nx/users';
@@ -36,10 +36,9 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
       ...(externalWallet && { externalWallet })
     };
 
-    console.log('🔵 GameShift: Sending registration request:', {
-      endpoint,
-      headers: { ...headers, 'x-api-key': '[REDACTED]' },
-      body: userData,
+    console.log('📤 GameShift: Sending registration request with data:', {
+      ...userData,
+      externalWallet: userData.externalWallet ? '[REDACTED]' : undefined
     });
 
     const response = await fetch(endpoint, {
@@ -50,14 +49,8 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
 
     const data = await response.json();
 
-    // Handle existing user case
-    if (response.status === 409) {
-      console.log('⚠️ GameShift: User already exists:', data);
-      throw new Error('An account with this email already exists. Please try logging in instead.');
-    }
-
     if (!response.ok) {
-      console.error('❌ GameShift: Error Response:', data);
+      console.error('❌ GameShift: Server responded with error:', data);
       throw new Error(data.message || 'Failed to register user with GameShift');
     }
 
@@ -69,10 +62,9 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
   }
 };
 
-// Fetch wallet balances using GameShift API
-export const fetchWalletBalances = async (walletAddress: string) => {
+export const getWalletBalances = async () => {
   if (!API_KEY) {
-    throw new Error("GameShift API key is not configured. Please check your environment variables.");
+    throw new Error('GameShift API key not found');
   }
 
   const response = await fetch(`https://api.gameshift.dev/nx/users/${referenceID}/wallet-address`, {
