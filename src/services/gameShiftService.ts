@@ -1,7 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 
 // API Key from environment variables
-const API_KEY = import.meta.env.VITE_GAMESHIFT_API_KEY;
+const API_KEY = process.env.GAMESHIFT_API_KEY;
 
 // Generate a unique reference ID
 const referenceID = `user_${uuidv4().replace(/-/g, '')}`;
