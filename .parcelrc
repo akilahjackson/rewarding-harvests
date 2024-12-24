@@ -4,6 +4,7 @@
     "*.{ts,tsx}": ["@parcel/transformer-typescript-tsc"],
     "*.css": ["@parcel/transformer-postcss"]
   },
+  "resolvers": ["@parcel/resolver-default"],
   "optimizers": {
     "*.js": ["@parcel/optimizer-esbuild"]
   },
