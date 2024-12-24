@@ -10,10 +10,10 @@ if (!API_KEY) {
 // Generate a unique reference ID
 const referenceID = `user_${uuidv4().replace(/-/g, '')}`;
 
-interface GameShiftUser {
-  referenceId: string;
+interface GameShiftUserData {
   email: string;
   externalWallet?: string;
+  referenceId: string;
 }
 
 export const registerGameShiftUser = async (email: string, externalWallet?: string): Promise<any> => {
@@ -24,17 +24,15 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
   try {
     const endpoint = 'https://api.gameshift.dev/nx/users';
 
-    // Define headers
     const headers = {
       'accept': 'application/json',
-      'content-type': 'application/json',
       'x-api-key': API_KEY,
+      'Content-Type': 'application/json'
     };
 
-    // Define payload
-    const userData: GameShiftUser = {
-      referenceId: referenceID,
+    const userData: GameShiftUserData = {
       email,
+      referenceId: referenceID,
       ...(externalWallet && { externalWallet })
     };
 
@@ -44,11 +42,10 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
       body: userData,
     });
 
-    // Make the POST request
     const response = await fetch(endpoint, {
       method: 'POST',
       headers,
-      body: JSON.stringify(userData),
+      body: JSON.stringify(userData)
     });
 
     const data = await response.json();
@@ -66,7 +63,7 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
 
     console.log('✅ GameShift: Registration Successful:', data);
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ GameShift: Registration Error:', error.message);
     throw error;
   }
@@ -81,21 +78,13 @@ export const fetchWalletBalances = async (walletAddress: string) => {
   const response = await fetch(`https://api.gameshift.dev/nx/users/${referenceID}/wallet-address`, {
     headers: {
       'accept': 'application/json',
-      'content-type': 'application/json',
-      'x-api-key': API_KEY,
-      'referenceId': referenceID
-    },
+      'x-api-key': API_KEY
+    }
   });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch wallet balances.");
+    throw new Error('Failed to fetch wallet balances');
   }
 
-  const data = await response.json();
-
-  return {
-    usdc: data.usdc || 0,
-    sol: data.sol || 0,
-    hrvst: data.hrvst || 0,
-  };
+  return await response.json();
 };
