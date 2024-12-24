@@ -3,15 +3,18 @@ import axios from "axios";
 // API Configuration
 const API_GAMESHIFT_URL = "https://api.gameshift.dev/nx/users";
 const API_BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "https://rewarding-harvests-xfkmy.ondigitalocean.app/";
-const GAMESHIFT_API_KEY = import.meta.env.VITE_GAME_SHIFT_API_KEY;
+const GAMESHIFT_API_KEY = import.meta.env.VITE_GAMESHIFT_API_KEY;
 
 // Create a Centralized Axios Instance
 const api = axios.create({
- // baseURL: API_GAMESHIFT_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+if (!GAMESHIFT_API_KEY) {
+  console.warn("⚠️ No GameShift API key found. Some features may not work properly.");
+}
 
 /**
  * Axios Request Interceptor - Attach JWT Token if Available
@@ -33,6 +36,11 @@ api.interceptors.request.use(
 export const createUserInGameShift = async (email) => {
   if (!email) {
     throw new Error("Email is required.");
+  }
+
+  if (!GAMESHIFT_API_KEY) {
+    console.error("GameShift API key is not configured");
+    throw new Error("GameShift API key is missing. Please configure it in your environment.");
   }
 
   const referenceId = crypto.randomUUID(); // Generate Unique Reference ID
