@@ -47,6 +47,7 @@ const UserMenuBar = () => {
     fetchBalances();
   }, [user?.walletAddress]);
 
+  // ... keep existing code (rest of the component remains the same)
   return (
     <div className="fixed top-0 left-0 right-0 bg-nightsky/90 border-b border-neongreen/20 px-4 py-2 z-50">
       <div className="flex items-center justify-between max-w-7xl mx-auto">

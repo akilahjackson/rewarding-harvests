@@ -62,7 +62,8 @@ export const registerGameShiftUser = async (email: string, externalWallet?: stri
   }
 };
 
-export const getWalletBalances = async () => {
+// Rename getWalletBalances to fetchWalletBalances to match the import in UserMenuBar
+export const fetchWalletBalances = async (walletAddress: string) => {
   if (!API_KEY) {
     throw new Error('GameShift API key not found');
   }
