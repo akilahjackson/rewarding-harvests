@@ -1,19 +1,19 @@
-import React from "react";
+import * as React from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom"; // Import BrowserRouter
+import { BrowserRouter } from "react-router-dom";
 import App from "./App.tsx";
 import { StoreProvider } from "@/contexts/StoreContext";
 import { UserProvider } from "@/contexts/UserContext";
 import "./index.css";
 
-// Use BrowserRouter to enable routing
-createRoot(document.getElementById("root")!).render(
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error('Failed to find the root element');
+
+createRoot(rootElement).render(
   <React.StrictMode>
     <StoreProvider>
       <UserProvider>
-        <BrowserRouter>  {/* Wrap the App component with BrowserRouter */}
-          <App />
-        </BrowserRouter>
+        <App />
       </UserProvider>
     </StoreProvider>
   </React.StrictMode>
