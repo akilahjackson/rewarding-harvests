@@ -1,0 +1,9 @@
+@parcel/core: Failed to resolve 'react-router/dom' from 
+'./node_modules/react-router-dom/dist/index.mjs'
+  /root/rewarding-harvests/node_modules/react-router-dom/dist/index.mjs:13:48
+    12 | // index.ts
+  > 13 | import { HydratedRouter, RouterProvider } from "react-router/dom";
+  >    |                                                ^^^^^^^^^^^^^^^^^^
+    14 | export * from "react-router";
+    15 | export {
+@parcel/resolver-default: Cannot load file './dom' from module 'react-router'

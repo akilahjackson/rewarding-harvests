@@ -1,0 +1,14 @@
+
+> rewarding-harvest@1.0.0 start
+> parcel index.html
+
+Server running at http://localhost:1234
+Building...
+🚨 Build failed.
+
+
+
+🚨 Build failed.
+
+
+
