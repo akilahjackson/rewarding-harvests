@@ -13,7 +13,9 @@ createRoot(rootElement).render(
   <React.StrictMode>
     <StoreProvider>
       <UserProvider>
-        <App />
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
       </UserProvider>
     </StoreProvider>
   </React.StrictMode>
