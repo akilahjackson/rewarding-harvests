@@ -28,11 +28,11 @@ export class SoundManager {
 
   private loadSoundEffects() {
     try {
-      this.scene.load.audio('spin-sound', '/sounds/spin.mp3');
-      this.scene.load.audio('win-sound', '/sounds/win.mp3');
-      this.scene.load.audio('big-win-sound', '/sounds/big-win.mp3');
-      this.scene.load.audio('lose-sound', '/sounds/lose.mp3');
-      this.scene.load.audio('background-music', '/sounds/background-music.mp3');
+      this.scene.load.audio('spin-sound', './sounds/spin.mp3');
+      this.scene.load.audio('win-sound', './sounds/win.mp3');
+      this.scene.load.audio('big-win-sound', './sounds/big-win.mp3');
+      this.scene.load.audio('lose-sound', './sounds/lose.mp3');
+      this.scene.load.audio('background-music', './sounds/background-music.mp3');
       this.scene.load.once('complete', () => {
         console.log('SoundManager: Sound effects loaded successfully');
         this.initializeSounds();
