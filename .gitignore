@@ -35,3 +35,4 @@ db/fetchallUsers.cjs
 .github
 
 .parcel-cache
+.replit

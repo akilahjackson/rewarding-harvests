@@ -5,7 +5,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 const API_URL = process.env.API_URL || '';
-
+const mySecret = process.env['GAMESHIFT_API_USERS']
 
 // Define API Response Interfaces
 export interface UserResponse {
@@ -32,7 +32,7 @@ export interface PlayerActionResponse {
  */
 export const createUserInGameShift = async (email: string): Promise<UserResponse> => {
   try {
-    const response: AxiosResponse<UserResponse> = await axios.post("${API_URL}/api/gameshift/register", {
+    const response: AxiosResponse<UserResponse> = await axios.post("${GAMESHIFT_API_USERS}", {
       email,
     });
 
@@ -57,7 +57,7 @@ export const saveUserToDatabase = async (
   userData: Partial<UserResponse["user"]>
 ): Promise<UserResponse> => {
   try {
-    const response: AxiosResponse<UserResponse> = await axios.post("${API_URL}/api/users/register", userData);
+    const response: AxiosResponse<UserResponse> = await axios.post("", userData);
 
     if (!response.data || !response.data.user || !response.data.user.id) {
       throw new Error("Failed to save user to the backend.");
@@ -79,7 +79,7 @@ export const saveUserToDatabase = async (
 export const fetchUserFromDatabase = async (email: string): Promise<UserResponse> => {
   try {
     const response: AxiosResponse<UserResponse> = await axios.get(
-    "${API_URL}/api/users/login?email=${email}"
+    "${API_URL}/users/email/${email}"
     );
 
     if (!response.data || !response.data.user || !response.data.token) {
@@ -111,7 +111,7 @@ export const addPlayerAction = async (
   actionDescription: string
 ): Promise<PlayerActionResponse> => {
   try {
-    const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}/api/player-actions", {
+    const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}/player-actions/email/${email}", {
       playerId,
       playerEmail,
       playerWallet: walletAddress,
