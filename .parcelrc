@@ -1,16 +1,7 @@
+
 {
   "extends": "@parcel/config-default",
   "transformers": {
-    "*.{ts,tsx}": ["@parcel/transformer-typescript-tsc"],
-    "*.css": ["@parcel/transformer-postcss"]
-  },
-  "resolvers": ["@parcel/resolver-default"],
-  "optimizers": {
-    "*.js": ["@parcel/optimizer-esbuild"]
-  },
-  "packagers": {
-    "*.html": "@parcel/packager-html"
-  },
-  "namers": ["@parcel/namer-default"],
-  "reporters": ["@parcel/reporter-cli"]
+    "*.{ts,tsx}": ["@parcel/transformer-typescript-tsc"]
+  }
 }
