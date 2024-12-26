@@ -2,6 +2,8 @@
 
 import axios, { AxiosResponse } from "axios";
 
+const API_URL = process.env['API_URL']
+
 // Define API Response Interfaces
 export interface UserResponse {
   user: {
@@ -27,7 +29,7 @@ export interface PlayerActionResponse {
  */
 export const createUserInGameShift = async (email: string): Promise<UserResponse> => {
   try {
-    const response: AxiosResponse<UserResponse> = await axios.post("/api/gameshift/register", {
+    const response: AxiosResponse<UserResponse> = await axios.post(/api/gameshift/register", {
       email,
     });
 
