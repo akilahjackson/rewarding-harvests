@@ -9,6 +9,7 @@
     "dev": "parcel index.html --port 1234 --host 0.0.0.0"
   },
   "dependencies": {
+    "@parcel/transformer-raw": "^2.13.3",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-dialog": "^1.1.4",
     "@radix-ui/react-label": "^2.1.1",
