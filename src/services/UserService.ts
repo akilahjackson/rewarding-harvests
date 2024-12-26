@@ -1,8 +1,11 @@
 // src/services/UserService.ts
 
 import axios, { AxiosResponse } from "axios";
+import dotenv from 'dotenv';
 
-const API_URL = process.env['API_URL']
+dotenv.config();
+const API_URL = process.env.API_URL || '';
+
 
 // Define API Response Interfaces
 export interface UserResponse {
