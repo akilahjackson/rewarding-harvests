@@ -33,3 +33,5 @@ db/fetchallUsers.cjs
 
 #Github Actions
 .github
+
+.parcel-cache
