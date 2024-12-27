@@ -79,6 +79,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "User-Agent": navigator.userAgent || 'unknown', 
         },
         body: JSON.stringify({        playerId: user.gameshiftId,
           playerEmail: user.email,
