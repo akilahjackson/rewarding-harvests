@@ -4,8 +4,8 @@ import axios, { AxiosResponse } from "axios";
 import dotenv from 'dotenv';
 
 dotenv.config();
-const API_URL = process.env.API_URL || '';
-const mySecret = process.env['GAMESHIFT_API_USERS']
+const API_URL = process.env['API_URL']|| '';
+const GAMESHIFT_API_URL_USERS = process.env['GAMESHIFT_API_URL_USERS']
 
 // Define API Response Interfaces
 export interface UserResponse {
@@ -32,7 +32,7 @@ export interface PlayerActionResponse {
  */
 export const createUserInGameShift = async (email: string): Promise<UserResponse> => {
   try {
-    const response: AxiosResponse<UserResponse> = await axios.post("${GAMESHIFT_API_USERS}", {
+    const response: AxiosResponse<UserResponse> = await axios.post("${GAMESHIFT_API_URL_USERS}", {
       email,
     });
 
@@ -79,7 +79,7 @@ export const saveUserToDatabase = async (
 export const fetchUserFromDatabase = async (email: string): Promise<UserResponse> => {
   try {
     const response: AxiosResponse<UserResponse> = await axios.get(
-    "${API_URL}/users/email/${email}"
+    "${API_URL}/users/login?email=${email}"
     );
 
     if (!response.data || !response.data.user || !response.data.token) {

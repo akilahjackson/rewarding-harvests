@@ -1,4 +1,9 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import dotenv from "dotenv";
+
+dotenv.config(); // Load environment variables from .env file
+
+const API_URL = process.env["API_URL"];
 
 interface UserState {
   email: string;
@@ -39,6 +44,21 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   /**
+   * Set User State and Sync to LocalStorage
+   */
+  const handleSetUser = useCallback((user: UserState | null) => {
+    console.log("🔵 UserProvider: Setting user state:", user);
+    if (user) {
+      localStorage.setItem("gameshift_user", JSON.stringify(user));
+      console.log("✅ UserProvider: User state saved to localStorage");
+    } else {
+      localStorage.removeItem("gameshift_user");
+      console.log("✅ UserProvider: User state cleared from localStorage");
+    }
+    setUser(user);
+  }, []);
+
+  /**
    * Update Last Active Timestamp Using Player Actions API
    */
   const updateLastActive = useCallback(async () => {
@@ -47,27 +67,23 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    console.log("🔵 UserProvider: Attempting to update last active for user:", user.email);
+
     const updatedUser = {
       ...user,
       lastActive: new Date().toISOString(),
     };
 
-    // Update local state and localStorage
-    setUser(updatedUser);
-    localStorage.setItem("gameshift_user", JSON.stringify(updatedUser));
-
     try {
-      const response = await fetch("/api/player-actions", {
+      const response = await fetch(`${API_URL}/player-actions/email/${email}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${user.tokenBalance}`,
         },
-        body: JSON.stringify({
-          playerId: user.gameshiftId,        // Correct playerId
-          playerEmail: user.email,           // Correct playerEmail
+        body: JSON.stringify({        playerId: user.gameshiftId,
+          playerEmail: user.email,
           playerWallet: user.walletAddress || "unknown",
-          actionType: "user_active",         // Custom action type
+          actionType: "user_active",
           actionDescription: "User last active update",
         }),
       });
@@ -77,11 +93,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         throw new Error(error.message || "Failed to update last active in the backend");
       }
 
-      console.log("✅ UserProvider: Successfully logged last active action");
+      console.log("✅ UserProvider: Successfully logged last active action in backend");
+
+      // Update state and localStorage
+      handleSetUser(updatedUser);
     } catch (error) {
       console.error("❌ UserProvider: Failed to sync last active:", error);
     }
-  }, [user]);
+  }, [user, handleSetUser]);
 
   /**
    * Logout the Current User
@@ -91,7 +110,9 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     try {
       if (user?.tokenBalance) {
-        const response = await fetch("/api/users/logout", {
+        console.log("🔵 UserProvider: Notifying backend of logout for user:", user.email);
+
+        const response = await fetch(`${API_URL}/users/logout`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${user.tokenBalance}`,
@@ -104,24 +125,29 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         console.log("✅ UserProvider: Successfully notified backend of logout");
+      } else {
+        console.warn("⚠️ UserProvider: No token found for user, skipping backend notification");
       }
     } catch (error) {
       console.error("❌ UserProvider: Logout API call failed:", error);
     } finally {
-      // Clear local storage and reset state
+      console.log("🔵 UserProvider: Clearing local storage and resetting user state");
       localStorage.removeItem("gameshift_user");
       localStorage.removeItem("auth_token");
-      setUser(null);
-      console.log("✅ UserProvider: Cleared local storage and reset user state");
+      handleSetUser(null);
+      console.log("✅ UserProvider: User state successfully reset");
     }
-  }, [user]);
+  }, [user, handleSetUser]);
 
   /**
    * Automatic Session Management with Inactivity Check
    */
   useEffect(() => {
     const checkSession = () => {
-      if (!user?.lastActive) return;
+      if (!user?.lastActive) {
+        console.log("🔵 UserProvider: No last active timestamp found, skipping session check");
+        return;
+      }
 
       const inactiveTime = Date.now() - new Date(user.lastActive).getTime();
 
@@ -129,6 +155,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.warn("⚠️ UserProvider: Session expired. Logging out...");
         logout(); // Logout user after inactivity
       } else {
+        console.log("🔵 UserProvider: User is active, updating last active timestamp");
         updateLastActive(); // Optionally refresh last active status
       }
     };
@@ -140,7 +167,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Provide the context value
   const value = {
     user,
-    setUser,
+    setUser: handleSetUser,
     updateLastActive,
     logout,
   };
