@@ -75,7 +75,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     try {
-      const response = await fetch(`${API_URL}player-actions/email/${email}`, {
+      const response = await fetch(`${API_URL}player-actions/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
