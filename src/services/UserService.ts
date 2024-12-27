@@ -114,6 +114,16 @@ export const addPlayerAction = async (
   device: string
 ): Promise<PlayerActionResponse> => {
   try {
+
+    // Log the values of the input parameters
+    console.log("Testing Player Action Parameters:");
+    console.log("playerId:", playerId);
+    console.log("playerEmail:", playerEmail);
+    console.log("walletAddress:", walletAddress);
+    console.log("actionType:", actionType);
+    console.log("actionDescription:", actionDescription);
+    console.log("device:", device);
+
     const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}player-actions", {
       playerId,
       playerEmail,
