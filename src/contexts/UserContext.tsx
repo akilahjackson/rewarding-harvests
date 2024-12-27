@@ -5,6 +5,8 @@ dotenv.config(); // Load environment variables from .env file
 
 const API_URL = process.env["API_URL"];
 
+const device = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown';
+
 interface UserState {
   email: string;
   gameshiftId: string;
@@ -78,15 +80,14 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const response = await fetch(`${API_URL}player-actions`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-          "User-Agent": navigator.userAgent || 'unknown', 
+          "Content-Type": "application/json", 
         },
         body: JSON.stringify({        playerId: user.gameshiftId,
           playerEmail: user.email,
           playerWallet: user.walletAddress || "unknown",
           actionType: "user_active",
           actionDescription: "User last active update",
-          device: navigator.userAgent || 'unknown',
+          device : device
         }),
       });
 
