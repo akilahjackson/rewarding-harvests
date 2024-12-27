@@ -114,7 +114,7 @@ export const addPlayerAction = async (
   device: string
 ): Promise<PlayerActionResponse> => {
   try {
-    const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}player-actions/", {
+    const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}player-actions", {
       playerId,
       playerEmail,
       playerWallet: walletAddress,
