@@ -108,7 +108,7 @@ export const fetchUserFromDatabase = async (email: string): Promise<UserResponse
 export const addPlayerAction = async (
   playerId: string,
   playerEmail: string,
-  walletAddress: string,
+  playerWallet: string,
   actionType: string,
   actionDescription: string
   
@@ -119,7 +119,7 @@ export const addPlayerAction = async (
     console.log("Testing Player Action Parameters:");
     console.log("playerId:", playerId);
     console.log("playerEmail:", playerEmail);
-    console.log("walletAddress:", walletAddress);
+    console.log("playerWallet:", walletAddress);
     console.log("actionType:", actionType);
     console.log("actionDescription:", actionDescription);
     console.log("device:", device);
