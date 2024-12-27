@@ -79,7 +79,7 @@ export const saveUserToDatabase = async (
 export const fetchUserFromDatabase = async (email: string): Promise<UserResponse> => {
   try {
 
-      const response: AxiosResponse<UserResponse> = await axios.post(
+      const response: AxiosResponse<UserResponse> = await axios.get(
           `${API_URL}/users/login?email=${email}`
       );
 
