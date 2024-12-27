@@ -125,12 +125,12 @@ export const addPlayerAction = async (
     console.log("device:", device);
 
     const response: AxiosResponse<PlayerActionResponse> = await axios.post(`${API_URL}player-actions` , {
-      playerId,
-      playerEmail,
-      playerWallet: walletAddress,
-      actionType,
-      actionDescription,
-      device
+      "playerId": playerId,               
+      "playerEmail": playerEmail,         
+      "playerWallet": walletAddress,     
+      "actionType": actionType,           
+      "actionDescription": actionDescription, 
+      "device": device                      
     });
 
     if (!response.data || !response.data.success) {
