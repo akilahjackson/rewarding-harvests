@@ -113,7 +113,7 @@ export const addPlayerAction = async (
   actionDescription: string
 ): Promise<PlayerActionResponse> => {
   try {
-    const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}player-actions/email/${email}", {
+    const response: AxiosResponse<PlayerActionResponse> = await axios.put("${API_URL}player-actions/email/${email}", {
       playerId,
       playerEmail,
       playerWallet: walletAddress,
