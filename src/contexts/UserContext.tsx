@@ -75,7 +75,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     try {
-      const response = await fetch(`${API_URL}/player-actions/email/${email}`, {
+      const response = await fetch(`${API_URL}player-actions/email/${email}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -112,7 +112,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user?.tokenBalance) {
         console.log("🔵 UserProvider: Notifying backend of logout for user:", user.email);
 
-        const response = await fetch(`${API_URL}/users/logout`, {
+        const response = await fetch(`${API_URL}users/logout`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${user.tokenBalance}`,

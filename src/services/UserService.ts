@@ -80,7 +80,7 @@ export const fetchUserFromDatabase = async (email: string): Promise<UserResponse
   try {
 
       const response: AxiosResponse<UserResponse> = await axios.get(
-          `${API_URL}/users/login?email=${email}`
+          `${API_URL}users/login?email=${email}`
       );
 
 
@@ -113,7 +113,7 @@ export const addPlayerAction = async (
   actionDescription: string
 ): Promise<PlayerActionResponse> => {
   try {
-    const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}/player-actions/email/${email}", {
+    const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}player-actions/email/${email}", {
       playerId,
       playerEmail,
       playerWallet: walletAddress,
