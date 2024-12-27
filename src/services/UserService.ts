@@ -110,8 +110,8 @@ export const addPlayerAction = async (
   playerEmail: string,
   walletAddress: string,
   actionType: string,
-  actionDescription: string,
-  device: string
+  actionDescription: string
+  
 ): Promise<PlayerActionResponse> => {
   try {
     const device = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown';
@@ -124,13 +124,13 @@ export const addPlayerAction = async (
     console.log("actionDescription:", actionDescription);
     console.log("device:", device);
 
-    const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}player-actions", {
+    const response: AxiosResponse<PlayerActionResponse> = await axios.post(`${API_URL}player-actions` , {
       playerId,
       playerEmail,
       playerWallet: walletAddress,
       actionType,
       actionDescription,
-      device,
+      device
     });
 
     if (!response.data || !response.data.success) {
