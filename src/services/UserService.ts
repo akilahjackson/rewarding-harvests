@@ -130,7 +130,11 @@ export const addPlayerAction = async (
       "playerWallet": walletAddress,     
       "actionType": actionType,           
       "actionDescription": actionDescription, 
-      "device": device                      
+      "device": device 
+      }, {
+        headers: {
+          "Content-Type": "application/json"
+        }
     });
 
     if (!response.data || !response.data.success) {
