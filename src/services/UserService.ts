@@ -78,9 +78,11 @@ export const saveUserToDatabase = async (
  */
 export const fetchUserFromDatabase = async (email: string): Promise<UserResponse> => {
   try {
-    const response: AxiosResponse<UserResponse> = await axios.get(
-    "${API_URL}/users/login?email=${email}"
-    );
+
+      const response: AxiosResponse<UserResponse> = await axios.get(
+          `${API_URL}/users/login?email=${email}`
+      );
+
 
     if (!response.data || !response.data.user || !response.data.token) {
       throw new Error("Invalid login response from the backend.");
