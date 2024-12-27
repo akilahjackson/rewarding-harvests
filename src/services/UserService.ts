@@ -110,7 +110,8 @@ export const addPlayerAction = async (
   playerEmail: string,
   walletAddress: string,
   actionType: string,
-  actionDescription: string
+  actionDescription: string,
+  device: string
 ): Promise<PlayerActionResponse> => {
   try {
     const response: AxiosResponse<PlayerActionResponse> = await axios.post("${API_URL}player-actions/", {
@@ -119,6 +120,7 @@ export const addPlayerAction = async (
       playerWallet: walletAddress,
       actionType,
       actionDescription,
+      device: navigator.userAgent || 'unknown',
     });
 
     if (!response.data || !response.data.success) {

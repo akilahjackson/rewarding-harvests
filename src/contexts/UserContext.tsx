@@ -85,6 +85,7 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
           playerWallet: user.walletAddress || "unknown",
           actionType: "user_active",
           actionDescription: "User last active update",
+          device: navigator.userAgent || 'unknown',
         }),
       });
 
