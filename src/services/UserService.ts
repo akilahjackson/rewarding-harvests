@@ -108,7 +108,7 @@ export const fetchUserFromDatabase = async (email: string): Promise<UserResponse
 export const addPlayerAction = async (
   playerId: string,
   playerEmail: string,
-  playerWallet: string,
+  walletAddress: string,
   actionType: string,
   actionDescription: string
   
@@ -116,14 +116,14 @@ export const addPlayerAction = async (
   try {
     const device = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown';
     // Log the values of the input parameters
-    console.log("Testing Player Action Parameters:");
+ /*   console.log("Testing Player Action Parameters:");
     console.log("playerId:", playerId);
     console.log("playerEmail:", playerEmail);
     console.log("playerWallet:", walletAddress);
     console.log("actionType:", actionType);
     console.log("actionDescription:", actionDescription);
     console.log("device:", device);
-
+*/
     const response: AxiosResponse<PlayerActionResponse> = await axios.post(`${API_URL}player-actions` , {
       "playerId": playerId,               
       "playerEmail": playerEmail,         
@@ -132,10 +132,12 @@ export const addPlayerAction = async (
       "actionDescription": actionDescription, 
       "device": device 
       }, {
-        headers: {
-          "Content-Type": "application/json"
-        }
-    });
+    headers: { "Content-Type": "application/json" },
+        validateStatus: (status) => status >= 200 && status < 300, // Allow 201 responses as successful
+      }
+    );
+
+   // console.log("🔍 Full Response from Backend:", response);
 
     if (!response.data || !response.data.success) {
       throw new Error("Failed to log player action.");
