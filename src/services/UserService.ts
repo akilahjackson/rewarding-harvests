@@ -114,7 +114,7 @@ export const addPlayerAction = async (
   device: string
 ): Promise<PlayerActionResponse> => {
   try {
-
+    const device = typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown';
     // Log the values of the input parameters
     console.log("Testing Player Action Parameters:");
     console.log("playerId:", playerId);
@@ -130,7 +130,7 @@ export const addPlayerAction = async (
       playerWallet: walletAddress,
       actionType,
       actionDescription,
-      device: navigator.userAgent || 'unknown',
+      device,
     });
 
     if (!response.data || !response.data.success) {
