@@ -4,7 +4,6 @@ import { useUser } from './contexts/UserContext';
 import PreloaderPage from './pages/PreloaderPage';
 
 // Use React.lazy for lazy-loading components if needed
-const Index = React.lazy(() => import('./pages/Index'));
 const MainGamePage = React.lazy(() => import('./pages/MainGamePage'));
 
 const AppRoutes = () => {
@@ -13,12 +12,13 @@ const AppRoutes = () => {
   return (
     <Suspense fallback={<PreloaderPage />}>
       <Routes>
-        <Route path="/" element={<Index />} />
+        <Route path="/" element={<Navigate to="/preloader" replace />} />
+        <Route path="/preloader" element={<PreloaderPage />} />
         <Route
           path="/game"
-          element={user?.isAuthenticated ? <MainGamePage /> : <Navigate to="/" replace />}
+          element={user?.isAuthenticated ? <MainGamePage /> : <Navigate to="/preloader" replace />}
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/preloader" replace />} />
       </Routes>
     </Suspense>
   );
