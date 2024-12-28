@@ -1,4 +1,7 @@
 import Phaser from 'phaser';
+import React from 'react';
+import ReactDOM from 'react-dom';
+import TitleAnimation from './components/TitleAnimation'; // React Component
 import { LOADING_MESSAGES } from './constants/loadingMessages';
 
 interface PreloaderSceneData {
@@ -14,6 +17,8 @@ export class PreloaderScene extends Phaser.Scene {
   private messageIndex: number = 0;
   private messageTimer?: Phaser.Time.TimerEvent;
   private showAuthModal?: () => void;
+
+  private reactContainerId: string = 'react-container';
 
   constructor() {
     super({ key: 'PreloaderScene' });
@@ -42,10 +47,12 @@ export class PreloaderScene extends Phaser.Scene {
   create() {
     const { width, height } = this.cameras.main;
 
-    // Background
-    this.bgImage = this.add.image(width / 2, height / 2, 'preloader-bg').setDisplaySize(width, height);
+    // Set background image
+    this.bgImage = this.add
+      .image(width / 2, height / 2, 'preloader-bg')
+      .setDisplaySize(width, height);
 
-    // Floating animation
+    // Floating animation for background image
     this.tweens.add({
       targets: this.bgImage,
       y: height / 2 - 10,
@@ -55,44 +62,53 @@ export class PreloaderScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
+    // Render React TitleAnimation component
+    this.mountReactTitle();
+
     // Loading text
-    this.loadingText = this.add.text(width / 2, height * 0.3, '', {
-      fontFamily: 'Space Grotesk',
-      fontSize: `${Math.min(width * 0.03, 24)}px`,
-      color: '#4AE54A',
-      align: 'center',
-      stroke: '#000',
-      strokeThickness: 4,
-    }).setOrigin(0.5);
+    this.loadingText = this.add
+      .text(width / 2, height * 0.3, '', {
+        fontFamily: 'Space Grotesk',
+        fontSize: `${Math.min(width * 0.03, 24)}px`,
+        color: '#4AE54A',
+        align: 'center',
+        stroke: '#000',
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5);
 
     // Welcome message
-    this.messageText = this.add.text(width / 2, height * 0.4, 'Welcome to Harvest Haven', {
-      fontFamily: 'Space Grotesk',
-      fontSize: `${Math.min(width * 0.05, 32)}px`,
-      color: '#4AE54A',
-      align: 'center',
-      stroke: '#000',
-      strokeThickness: 4,
-    }).setOrigin(0.5).setAlpha(0);
+    this.messageText = this.add
+      .text(width / 2, height * 0.4, 'Reap What You Sow', {
+        fontFamily: 'Space Grotesk',
+        fontSize: `${Math.min(width * 0.05, 32)}px`,
+        color: '#4AE54A',
+        align: 'center',
+        stroke: '#000',
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5)
+      .setAlpha(0);
 
     // Login button
-    this.loginButton = this.add.text(width / 2, height * 0.6, 'Login to Play', {
-      fontFamily: 'Space Grotesk',
-      fontSize: `${Math.min(width * 0.04, 24)}px`,
-      color: '#FFF',
-      backgroundColor: '#FF6B35',
-      padding: { x: 20, y: 10 },
-      align: 'center',
-      stroke: '#000',
-      strokeThickness: 3,
-    })
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
-    .on('pointerdown', () => {
-      if (this.showAuthModal) {
-        this.showAuthModal();
-      }
-    });
+    this.loginButton = this.add
+      .text(width / 2, height * 0.6, 'Login to Play', {
+        fontFamily: 'Space Grotesk',
+        fontSize: `${Math.min(width * 0.04, 24)}px`,
+        color: '#FFF',
+        backgroundColor: '#FF6B35',
+        padding: { x: 20, y: 10 },
+        align: 'center',
+        stroke: '#000',
+        strokeThickness: 3,
+      })
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on('pointerdown', () => {
+        if (this.showAuthModal) {
+          this.showAuthModal();
+        }
+      });
 
     // Show loading messages
     this.startLoadingMessages();
@@ -106,7 +122,33 @@ export class PreloaderScene extends Phaser.Scene {
     });
   }
 
-  private startLoadingMessages() {
+  private mountReactTitle(): void {
+    const rootElement = document.getElementById('root'); // Ensure the root container exists
+    if (rootElement) {
+      // Create the React container if it doesn't already exist
+      let reactContainer = document.getElementById(this.reactContainerId);
+      if (!reactContainer) {
+        reactContainer = document.createElement('div');
+        reactContainer.id = this.reactContainerId;
+        rootElement.appendChild(reactContainer); // Append to root
+      }
+
+      // Safely render the React component
+      ReactDOM.render(<TitleAnimation />, reactContainer);
+    } else {
+      console.error('Root element not found!');
+    }
+  }
+
+  private unmountReactTitle(): void {
+    const reactContainer = document.getElementById(this.reactContainerId);
+    if (reactContainer) {
+      ReactDOM.unmountComponentAtNode(reactContainer); // Unmount React component
+      reactContainer.remove(); // Remove the container element
+    }
+  }
+
+  private startLoadingMessages(): void {
     if (this.messageTimer) this.messageTimer.destroy();
 
     this.messageTimer = this.time.addEvent({
@@ -119,7 +161,7 @@ export class PreloaderScene extends Phaser.Scene {
     this.updateLoadingMessage();
   }
 
-  private updateLoadingMessage() {
+  private updateLoadingMessage(): void {
     if (this.loadingText) {
       const message = LOADING_MESSAGES[this.messageIndex];
       this.loadingText.setText(message);
@@ -127,10 +169,14 @@ export class PreloaderScene extends Phaser.Scene {
     }
   }
 
-  private initializeBackgroundMusic() {
+  private initializeBackgroundMusic(): void {
     if (!this.sound.get('background-music')) {
       this.bgMusic = this.sound.add('background-music', { volume: 0.5, loop: true });
       this.bgMusic.play();
     }
+  }
+
+  shutdown(): void {
+    this.unmountReactTitle(); // Clean up React component on scene shutdown
   }
 }
