@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "start": "parcel index.html --port 1234 --host 0.0.0.0 --hmr-port 1235",
-    "build": "parcel build index.html",
+    "build": "parcel build index.html > build.log 2> error.log",
     "dev": "parcel index.html --port 1234 --host 0.0.0.0"
   },
   "dependencies": {
@@ -15,6 +15,7 @@
     "@radix-ui/react-slider": "^1.2.2",
     "@radix-ui/react-slot": "^1.1.1",
     "@radix-ui/react-toast": "^1.1.5",
+    "@solana/web3.js": "^1.98.0",
     "axios": "^1.7.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -35,6 +36,7 @@
   },
   "devDependencies": {
     "@parcel/transformer-postcss": "^2.9.3",
+    "@parcel/transformer-sass": "^2.13.3",
     "@parcel/transformer-typescript-tsc": "^2.9.3",
     "@types/react": "^18.2.55",
     "@types/react-dom": "^18.2.19",

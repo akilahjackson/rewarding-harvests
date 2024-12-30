@@ -1,22 +1,22 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { observer } from 'mobx-react-lite';
-import GameCanvas from '@/components/GameCanvas';
-import BettingControls from '@/components/BettingControls';
-import UserMenuBar from '@/components/UserMenuBar';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
-import { HelpCircle } from 'lucide-react';
+import React, { useEffect, useState, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { observer } from "mobx-react-lite";
+import GameCanvas from "@/components/GameCanvas";
+import BettingControls from "@/components/BettingControls";
+import UserMenuBar from "@/components/UserMenuBar";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { HelpCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import HowToPlay from '@/components/HowToPlay';
-import { SlotGameScene } from '@/scenes/SlotGameScene';
-import { getWinToastMessage, getLoseToastMessage } from '@/utils/toastMessages';
-import { useStore } from '@/contexts/StoreContext';
+import HowToPlay from "@/components/HowToPlay";
+import { SlotGameScene } from "@/scenes/SlotGameScene";
+import { getWinToastMessage, getLoseToastMessage } from "@/utils/toastMessages";
+import { useStore } from "@/contexts/StoreContext";
 
 export const MainGamePage = observer(() => {
   const navigate = useNavigate();
@@ -27,16 +27,20 @@ export const MainGamePage = observer(() => {
 
   useEffect(() => {
     if (!userStore.user) {
-      navigate('/');
+      console.warn("MainGamePage: No authenticated user, redirecting.");
+      navigate("/");
       return;
     }
 
     // Initialize background music
-    const bgMusic = new Audio('/sounds/background-music.mp3');
+    const bgMusic = new Audio("/sounds/background-music.mp3");
     bgMusic.loop = true;
     bgMusic.volume = 0.5;
+
     if (!gameStore.isMuted) {
-      bgMusic.play().catch(error => console.log('Audio playback failed:', error));
+      bgMusic.play().catch((error) =>
+        console.warn("Audio playback failed:", error)
+      );
     }
 
     return () => {
@@ -46,41 +50,40 @@ export const MainGamePage = observer(() => {
   }, [navigate, userStore.user, gameStore.isMuted]);
 
   const handleSceneCreated = useCallback((scene: SlotGameScene) => {
-    console.log('MainGamePage: Game scene created');
+    console.log("MainGamePage: Game scene created");
     setGameScene(scene);
   }, []);
 
   const handleSpin = async () => {
+    console.log("Attempting to spin with bet:", gameStore.betAmount);
     if (!gameScene || gameStore.betAmount > gameStore.balance) {
       toast({
         title: "Insufficient Balance",
         description: "Please lower your bet amount.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
     try {
+      console.log("Placing bet...");
       gameStore.placeBet();
       const { totalWinAmount, winningLines } = await gameScene.startSpin(gameStore.betAmount, 1);
-      
+      console.log("Spin result:", totalWinAmount, winningLines);
+
       if (winningLines.length > 0) {
         gameStore.updateAfterSpin(totalWinAmount);
-        
-        const isBigWin = totalWinAmount >= gameStore.betAmount * 50;
-        const toastConfig = getWinToastMessage(totalWinAmount, isBigWin);
-        toast(toastConfig);
+        toast(getWinToastMessage(totalWinAmount, totalWinAmount >= gameStore.betAmount * 50));
       } else {
         gameStore.setSpinning(false);
-        const toastConfig = getLoseToastMessage();
-        toast(toastConfig);
+        toast(getLoseToastMessage());
       }
     } catch (error) {
-      console.error('Error during spin:', error);
+      console.error("Error during spin:", error);
       toast({
         title: "Error",
         description: "An error occurred during spin.",
-        variant: "destructive"
+        variant: "destructive",
       });
       gameStore.setSpinning(false);
     }
@@ -90,11 +93,10 @@ export const MainGamePage = observer(() => {
 
   return (
     <div className="min-h-screen bg-nightsky relative overflow-hidden">
-      <div 
+      <div
         className="absolute inset-0 bg-cover bg-center opacity-20"
         style={{ backgroundImage: `url('/images/neon-crop-circles.WEBP')` }}
       />
-      
       <UserMenuBar />
 
       <div className="pt-16">

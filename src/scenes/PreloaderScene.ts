@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import TitleAnimation from './components/TitleAnimation'; // React Component
+import ReactDOM from 'react-dom/client';
+import { gameStore } from '../stores/GameStore';
+import TitleAnimation from '../components/TitleAnimation';
 import { LOADING_MESSAGES } from './constants/loadingMessages';
 
 interface PreloaderSceneData {
@@ -9,28 +10,29 @@ interface PreloaderSceneData {
 }
 
 export class PreloaderScene extends Phaser.Scene {
-  private loadingText?: Phaser.GameObjects.Text;
-  private messageText?: Phaser.GameObjects.Text;
   private bgImage?: Phaser.GameObjects.Image;
-  private bgMusic?: Phaser.Sound.BaseSound;
-  private loginButton?: Phaser.GameObjects.Text;
-  private messageIndex: number = 0;
-  private messageTimer?: Phaser.Time.TimerEvent;
-  private showAuthModal?: () => void;
+  private static bgMusic?: Phaser.Sound.BaseSound;
+  private showAuthModal?: (() => void) | undefined;
 
   private reactContainerId: string = 'react-container';
+  private messageContainerId: string = 'loading-messages-container';
 
   constructor() {
     super({ key: 'PreloaderScene' });
   }
 
-  init(data: PreloaderSceneData) {
+  init(data: PreloaderSceneData): void {
     this.showAuthModal = data.showAuthModal;
+    console.log('PreloaderScene: Initialized with data:', data);
   }
 
-  preload() {
+  preload(): void {
+    console.log('PreloaderScene: Preloading assets...');
+
+    // Preload background image
     this.load.image('preloader-bg', '/images/neon-crop-circles.WEBP');
 
+    // Preload audio files
     const audioFiles = [
       { key: 'background-music', path: '/sounds/background-music.mp3' },
       { key: 'spin-sound', path: '/sounds/spin.mp3' },
@@ -39,12 +41,48 @@ export class PreloaderScene extends Phaser.Scene {
       { key: 'lose-sound', path: '/sounds/lose.mp3' },
     ];
 
-    audioFiles.forEach((audio) => this.load.audio(audio.key, audio.path));
+    audioFiles.forEach((audio) => {
+      this.load.audio(audio.key, audio.path);
+    });
 
-    this.load.on('complete', () => this.initializeBackgroundMusic());
+    // Dynamically load all symbols
+    this.preloadSymbols();
   }
 
-  create() {
+  private preloadSymbols(): void {
+    const symbolsPath = '/images/assets/';
+    const symbolFilenames = [
+      'avocado',
+      'banana',
+      'blueberries',
+      'broccoli',
+      'carrot',
+      'cauliflower',
+      'cherry',
+      'corn',
+      'cucumber',
+      'eggplant',
+      'grapes',
+      'lime',
+      'pear',
+      'plum',
+      'pumpkin',
+      'strawberry',
+      'tomato',
+      'watermelon',
+    ];
+
+    symbolFilenames.forEach((filename) => {
+      const filePath = `${symbolsPath}${filename}.svg`;
+      console.log(`PreloaderScene: Loading symbol - ${filename} (${filePath})`);
+      this.load.svg(filename, filePath);
+      gameStore.symbolKeys.push(filename); // Add to gameStore
+    });
+  }
+
+  create(): void {
+    console.log('PreloaderScene: Assets loaded, creating scene...');
+
     const { width, height } = this.cameras.main;
 
     // Set background image
@@ -52,7 +90,7 @@ export class PreloaderScene extends Phaser.Scene {
       .image(width / 2, height / 2, 'preloader-bg')
       .setDisplaySize(width, height);
 
-    // Floating animation for background image
+    // Add floating animation to the background
     this.tweens.add({
       targets: this.bgImage,
       y: height / 2 - 10,
@@ -62,121 +100,115 @@ export class PreloaderScene extends Phaser.Scene {
       ease: 'Sine.easeInOut',
     });
 
-    // Render React TitleAnimation component
-    this.mountReactTitle();
+    // Play background music
+    this.playBackgroundMusic();
 
-    // Loading text
-    this.loadingText = this.add
-      .text(width / 2, height * 0.3, '', {
-        fontFamily: 'Space Grotesk',
-        fontSize: `${Math.min(width * 0.03, 24)}px`,
-        color: '#4AE54A',
-        align: 'center',
-        stroke: '#000',
-        strokeThickness: 4,
-      })
-      .setOrigin(0.5);
+    // Mount React components
+    this.mountReactComponents();
 
-    // Welcome message
-    this.messageText = this.add
-      .text(width / 2, height * 0.4, 'Reap What You Sow', {
-        fontFamily: 'Space Grotesk',
-        fontSize: `${Math.min(width * 0.05, 32)}px`,
-        color: '#4AE54A',
-        align: 'center',
-        stroke: '#000',
-        strokeThickness: 4,
-      })
-      .setOrigin(0.5)
-      .setAlpha(0);
-
-    // Login button
-    this.loginButton = this.add
-      .text(width / 2, height * 0.6, 'Login to Play', {
-        fontFamily: 'Space Grotesk',
-        fontSize: `${Math.min(width * 0.04, 24)}px`,
-        color: '#FFF',
-        backgroundColor: '#FF6B35',
-        padding: { x: 20, y: 10 },
-        align: 'center',
-        stroke: '#000',
-        strokeThickness: 3,
-      })
-      .setOrigin(0.5)
-      .setInteractive({ useHandCursor: true })
-      .on('pointerdown', () => {
-        if (this.showAuthModal) {
-          this.showAuthModal();
-        }
-      });
-
-    // Show loading messages
-    this.startLoadingMessages();
-
-    // Fade in texts
-    this.tweens.add({
-      targets: [this.messageText, this.loginButton],
-      alpha: 1,
-      duration: 1000,
-      ease: 'Power2',
-    });
+    // Emit ready event
+    this.emitReadyEvent();
   }
 
-  private mountReactTitle(): void {
-    const rootElement = document.getElementById('root'); // Ensure the root container exists
+  private playBackgroundMusic(): void {
+    if (!PreloaderScene.bgMusic) {
+      PreloaderScene.bgMusic = this.sound.add('background-music', {
+        volume: 0.5,
+        loop: true,
+      });
+      PreloaderScene.bgMusic.play();
+    }
+  }
+
+  private mountReactComponents(): void {
+    const rootElement = document.getElementById('root');
     if (rootElement) {
-      // Create the React container if it doesn't already exist
       let reactContainer = document.getElementById(this.reactContainerId);
       if (!reactContainer) {
         reactContainer = document.createElement('div');
         reactContainer.id = this.reactContainerId;
-        rootElement.appendChild(reactContainer); // Append to root
+        rootElement.appendChild(reactContainer);
       }
 
-      // Safely render the React component
-      ReactDOM.render(<TitleAnimation />, reactContainer);
-    } else {
-      console.error('Root element not found!');
+      const root = ReactDOM.createRoot(reactContainer);
+      root.render(<TitleAnimation />);
+
+      this.createLoadingMessages();
     }
   }
 
-  private unmountReactTitle(): void {
-    const reactContainer = document.getElementById(this.reactContainerId);
-    if (reactContainer) {
-      ReactDOM.unmountComponentAtNode(reactContainer); // Unmount React component
-      reactContainer.remove(); // Remove the container element
+  private createLoadingMessages(): void {
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      let messageContainer = document.getElementById(this.messageContainerId);
+      if (!messageContainer) {
+        messageContainer = document.createElement('div');
+        messageContainer.id = this.messageContainerId;
+        rootElement.appendChild(messageContainer);
+      }
+
+      messageContainer.className = 'text-container';
+
+      LOADING_MESSAGES.forEach((message, index) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.textContent = message;
+        messageDiv.style.animationDelay = `${index * 2}s`;
+        messageDiv.className = 'come2life';
+        messageContainer.appendChild(messageDiv);
+      });
     }
   }
 
-  private startLoadingMessages(): void {
-    if (this.messageTimer) this.messageTimer.destroy();
-
-    this.messageTimer = this.time.addEvent({
-      delay: 3000,
-      callback: this.updateLoadingMessage,
-      callbackScope: this,
-      loop: true,
-    });
-
-    this.updateLoadingMessage();
+  private emitReadyEvent(): void {
+    console.log('PreloaderScene: Ready, transitioning to WelcomeScene.');
+    gameStore.setActiveScene('WelcomeScene');
+    this.scene.start('WelcomeScene');
   }
 
-  private updateLoadingMessage(): void {
-    if (this.loadingText) {
-      const message = LOADING_MESSAGES[this.messageIndex];
-      this.loadingText.setText(message);
-      this.messageIndex = (this.messageIndex + 1) % LOADING_MESSAGES.length;
-    }
-  }
+  injectPreloaderCSS(): void {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      html, body {
+        margin: 0;
+        overflow: hidden;
+      }
 
-  private initializeBackgroundMusic(): void {
-    if (!this.sound.get('background-music')) {
-      this.bgMusic = this.sound.add('background-music', { volume: 0.5, loop: true });
-      this.bgMusic.play();
-    }
-  }
+      #${this.reactContainerId} {
+        position: absolute;
+        top: 15%;
+        left: 50%;
+        transform: translate(-50%, 0);
+        text-align: center;
+        z-index: 1000;
+      }
 
-  shutdown(): void {
-    this.unmountReactTitle(); // Clean up React component on scene shutdown
+      .text-container {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        color: #fff;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: bold;
+        font-size: 24px;
+        z-index: 999;
+      }
+
+      .come2life {
+        animation: come2life 5s linear infinite;
+        opacity: 0;
+      }
+
+      @keyframes come2life {
+        0% { opacity: 0; transform: scale(0.8); }
+        50% { opacity: 1; transform: scale(1.1); }
+        100% { opacity: 0; transform: scale(1.4); }
+      }
+    `;
+    document.head.appendChild(style);
   }
 }

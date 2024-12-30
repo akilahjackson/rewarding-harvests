@@ -1,24 +1,25 @@
-import React, { useEffect, useState, useRef } from 'react';
-import Phaser from 'phaser';
-import { SlotGameScene } from '@/scenes/SlotGameScene';
-import { useIsMobile } from '@/hooks/use-mobile';
+import React, { useEffect, useState, useRef } from "react";
+import Phaser from "phaser";
+import { SlotGameScene } from "@/scenes/SlotGameScene";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Loader2 } from "lucide-react";
+import { gameStore } from "@/stores/GameStore";
 
 interface GameCanvasProps {
   onSceneCreated?: (scene: SlotGameScene) => void;
 }
 
 const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
-  console.log('GameCanvas: Component mounting');
+  console.log("GameCanvas: Component mounting");
   const isMobile = useIsMobile();
   const [isLoading, setIsLoading] = useState(true);
   const gameRef = useRef<Phaser.Game | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    console.log('GameCanvas: Initial mount');
+    console.log("GameCanvas: Initial mount");
     if (!containerRef.current || gameRef.current) {
-      console.log('GameCanvas: Container not ready or game already initialized');
+      console.log("GameCanvas: Container not ready or game already initialized");
       return;
     }
 
@@ -30,7 +31,7 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
     };
 
     const { width, height } = getGameDimensions();
-    console.log('GameCanvas: Creating new game instance with dimensions:', { width, height });
+    console.log("GameCanvas: Creating new game instance with dimensions:", { width, height });
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
@@ -40,10 +41,10 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
       transparent: true,
       scene: SlotGameScene,
       physics: {
-           default: 'arcade',
-            arcade: {
-            debug: false, // Ensure this is false
-                    },
+        default: "arcade",
+        arcade: {
+          debug: false, // Ensure this is false
+        },
       },
       scale: {
         mode: Phaser.Scale.RESIZE,
@@ -52,45 +53,53 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
         height: height,
       },
       dom: {
-        createContainer: true
+        createContainer: true,
       },
       audio: {
-        disableWebAudio: false
+        disableWebAudio: false,
       },
       callbacks: {
         postBoot: (game) => {
-          console.log('GameCanvas: Game loaded successfully');
-          const scene = game.scene.getScene('SlotGameScene') as SlotGameScene;
+          console.log("GameCanvas: Game loaded successfully");
+
+          // Register the game instance in gameStore
+          gameStore.connectToGameInstance(game);
+
+          const scene = game.scene.getScene("SlotGameScene") as SlotGameScene;
           if (onSceneCreated) {
             onSceneCreated(scene);
           }
           setIsLoading(false);
-        }
-      }
+        },
+      },
     };
 
     try {
-      console.log('GameCanvas: Attempting to create new Phaser game instance');
+      console.log("GameCanvas: Attempting to create new Phaser game instance");
       gameRef.current = new Phaser.Game(config);
-      console.log('GameCanvas: Successfully created Phaser game instance');
+      console.log("GameCanvas: Successfully created Phaser game instance");
     } catch (error) {
-      console.error('GameCanvas: Error creating Phaser game instance:', error);
+      console.error("GameCanvas: Error creating Phaser game instance:", error);
       setIsLoading(false);
     }
 
     const handleResize = () => {
       if (!gameRef.current) return;
       const { width: newWidth, height: newHeight } = getGameDimensions();
-      console.log('GameCanvas: Resizing game to:', { newWidth, newHeight });
+      console.log("GameCanvas: Resizing game to:", { newWidth, newHeight });
       gameRef.current.scale.resize(newWidth, newHeight);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     return () => {
-      console.log('GameCanvas: Cleaning up game instance');
-      window.removeEventListener('resize', handleResize);
+      console.log("GameCanvas: Cleaning up game instance");
+      window.removeEventListener("resize", handleResize);
+
       if (gameRef.current) {
+        // Disconnect game instance from gameStore
+        gameStore.destroyGameInstance();
+
         gameRef.current.destroy(true);
         gameRef.current = null;
       }
@@ -107,12 +116,12 @@ const GameCanvas: React.FC<GameCanvasProps> = ({ onSceneCreated }) => {
           </div>
         </div>
       )}
-      <div 
+      <div
         ref={containerRef}
         className="w-full h-full"
-        style={{ 
-          background: 'transparent',
-          outline: 'none'
+        style={{
+          background: "transparent",
+          outline: "none",
         }}
       />
     </div>

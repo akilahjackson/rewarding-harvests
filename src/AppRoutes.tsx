@@ -5,6 +5,7 @@ import PreloaderPage from './pages/PreloaderPage';
 
 // Use React.lazy for lazy-loading components if needed
 const MainGamePage = React.lazy(() => import('./pages/MainGamePage'));
+const WelcomePage = React.lazy(() => import('./pages/WelcomeScreen')); // Lazy-load WelcomePage
 
 const AppRoutes = () => {
   const { user } = useUser();
@@ -14,9 +15,10 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<Navigate to="/preloader" replace />} />
         <Route path="/preloader" element={<PreloaderPage />} />
+        <Route path="/welcome" element={<WelcomePage />} /> {/* Add this line */}
         <Route
           path="/game"
-          element={user?.isAuthenticated ? <MainGamePage /> : <Navigate to="/preloader" replace />}
+          element={user?.isAuthenticated ? <MainGamePage /> : <Navigate to="/game" replace />}
         />
         <Route path="*" element={<Navigate to="/preloader" replace />} />
       </Routes>

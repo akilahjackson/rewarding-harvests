@@ -1,11 +1,12 @@
-import React from "react";
-import "./TitleAnimation.css";
+import React from 'react';
+import './TitleAnimation.scss'; // Updated SCSS for styling
 
 const TitleAnimation: React.FC = () => {
   return (
-    <div className="title-container">
-      <div className="main-title">Seekers of the Harvest</div>
-      <div className="subtitle">Presents Rewarding Harvests</div>
+    <div className="title-animation-wrapper">
+      <h1 className="neon-text" data-text="Seekers of the Harvest">
+        Seekers of the Harvest
+      </h1>
     </div>
   );
 };
