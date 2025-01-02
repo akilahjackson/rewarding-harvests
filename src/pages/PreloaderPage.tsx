@@ -26,6 +26,8 @@ const PreloaderPage: React.FC = observer(() => {
     if (!gameInitialized.current && !gameStore.gameInstance) {
       const loadingTimer = setTimeout(() => {
         console.log("PreloaderPage: Initializing Phaser game.");
+        setIsLoading(false); // Remove loading component before game starts
+        
         const config: Phaser.Types.Core.GameConfig = {
           type: Phaser.AUTO,
           parent: "game-container",
@@ -49,8 +51,7 @@ const PreloaderPage: React.FC = observer(() => {
 
         gameStore.connectToGameInstance(game);
         gameInitialized.current = true;
-        setIsLoading(false);
-      }, 2000);
+      }, 1000); // Reduced timer to prevent overlap
 
       return () => {
         clearTimeout(loadingTimer);
