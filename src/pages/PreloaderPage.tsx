@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState, useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import Phaser from "phaser";
 import { PreloaderScene } from "@/scenes/PreloaderScene";
@@ -13,6 +14,7 @@ const PreloaderPage: React.FC = observer(() => {
   const { user, logout } = useUser();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const gameInitialized = useRef(false);
 
   useEffect(() => {
     if (user?.isAuthenticated) {
@@ -21,44 +23,46 @@ const PreloaderPage: React.FC = observer(() => {
       return;
     }
 
-    const loadingTimer = setTimeout(() => {
-      console.log("PreloaderPage: Initializing Phaser game.");
+    if (!gameInitialized.current && !gameStore.gameInstance) {
+      const loadingTimer = setTimeout(() => {
+        console.log("PreloaderPage: Initializing Phaser game.");
+        const config: Phaser.Types.Core.GameConfig = {
+          type: Phaser.AUTO,
+          parent: "game-container",
+          width: window.innerWidth,
+          height: window.innerHeight,
+          backgroundColor: "#1A1F2C",
+          scene: [PreloaderScene],
+          scale: {
+            mode: Phaser.Scale.RESIZE,
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+          },
+          audio: {
+            disableWebAudio: false,
+          },
+        };
 
-      const config: Phaser.Types.Core.GameConfig = {
-        type: Phaser.AUTO,
-        parent: "game-container",
-        width: window.innerWidth,
-        height: window.innerHeight,
-        backgroundColor: "#1A1F2C",
-        scene: [PreloaderScene],
-        scale: {
-          mode: Phaser.Scale.RESIZE,
-          autoCenter: Phaser.Scale.CENTER_BOTH,
-        },
-        audio: {
-          disableWebAudio: false,
-        },
+        const game = new Phaser.Game(config);
+        game.scene.start("PreloaderScene", {
+          showAuthModal: () => setShowAuthModal(true),
+        });
+
+        gameStore.connectToGameInstance(game);
+        gameInitialized.current = true;
+        setIsLoading(false);
+      }, 2000);
+
+      return () => {
+        clearTimeout(loadingTimer);
+        console.log("PreloaderPage: Timer cleaned up.");
       };
-
-      const game = new Phaser.Game(config);
-      game.scene.start("PreloaderScene", {
-        showAuthModal: () => setShowAuthModal(true),
-      });
-
-      gameStore.connectToGameInstance(game);
-      setIsLoading(false);
-    }, 2000);
-
-    return () => {
-      clearTimeout(loadingTimer);
-      console.log("PreloaderPage: Cleanup is handled during logout.");
-      // Do not destroy the game instance here
-    };
+    }
   }, [navigate, user]);
 
   const handleLogout = () => {
     logout();
-    gameStore.destroyGameInstance(); // Now, destroy the Phaser instance
+    gameStore.destroyGameInstance();
+    gameInitialized.current = false;
     console.log("PreloaderPage: User logged out, Phaser game instance destroyed.");
   };
 
