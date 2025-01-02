@@ -5,6 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Trophy, Target, ArrowRight } from "lucide-react";
 import { useUser } from "@/contexts/UserContext";
 import UserMenuBar from "@/components/UserMenuBar";
+import { gameStore } from "@/stores/GameStore";
 
 const WelcomeScreen = () => {
   const navigate = useNavigate();
@@ -14,18 +15,40 @@ const WelcomeScreen = () => {
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
 
   useEffect(() => {
-    const bgMusic = new Audio("/sounds/background-music.mp3");
-    bgMusic.loop = true;
-    bgMusic.volume = 0.5;
-    bgMusic.play().catch((error) => console.log("Audio playback failed:", error));
+    console.log("WelcomeScreen: Checking game store connection.", gameStore);
+
+    // Ensure WebGL context is error-free
+    const canvas = document.querySelector("canvas");
+    if (canvas && canvas.getContext) {
+      const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+      if (gl && gl.getError() !== gl.NO_ERROR) {
+        console.warn("WelcomeScreen: WebGL context error detected.");
+      }
+    }
+
+    // Resume or play background music from gameStore
+    if (gameStore.backgroundMusic && gameStore.backgroundMusic.paused) {
+      gameStore.backgroundMusic.play().catch((error) => {
+        console.log("WelcomeScreen: Audio playback failed:", error);
+      });
+    }
 
     return () => {
-      bgMusic.pause();
-      bgMusic.currentTime = 0;
+      if (gameStore.backgroundMusic) {
+        gameStore.backgroundMusic.pause();
+        console.log("WelcomeScreen: Background music paused.");
+      }
     };
   }, []);
 
+  const handleStartPlaying = () => {
+    console.log("WelcomeScreen: Start Playing button clicked.");
+    gameStore.setActiveScene("MainGameScene");
+    navigate("/game"); // Navigate to the main game page
+  };
+
   if (!user) {
+    console.warn("WelcomeScreen: No authenticated user, redirecting to home.");
     return <Navigate to="/" replace />;
   }
 
@@ -45,19 +68,16 @@ const WelcomeScreen = () => {
           Welcome, {user.username}!
         </h1>
 
-        {/* Start Playing Button */}
         <div className="flex justify-center mb-8">
           <Button
-            onClick={() => navigate("/game")}
+            onClick={handleStartPlaying}
             className="bg-gradient-to-r from-harvestorange to-harvestpeach text-black font-bold py-3 px-8 rounded-full shadow-lg hover:shadow-harvestpeach/50 hover:scale-105 transition-transform flex items-center animate-fade-in"
           >
             Start Playing <ArrowRight className="ml-2" />
           </Button>
         </div>
 
-        {/* Collapsible Cards */}
         <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-          {/* Daily Missions */}
           <Card className="bg-nightsky/80 border border-neongreen/30 rounded-xl transition-all animate-scale-in">
             <div
               className="cursor-pointer flex items-center justify-between p-4 text-neongreen text-2xl"
@@ -92,7 +112,6 @@ const WelcomeScreen = () => {
             )}
           </Card>
 
-          {/* Leaderboard */}
           <Card className="bg-nightsky/80 border border-neongreen/30 rounded-xl transition-all animate-scale-in">
             <div
               className="cursor-pointer flex items-center justify-between p-4 text-neongreen text-2xl"
@@ -104,27 +123,7 @@ const WelcomeScreen = () => {
               </div>
               <span>{isLeaderboardOpen ? "-" : "+"}</span>
             </div>
-            {isLeaderboardOpen && (
-              <div className="p-4">
-                <ul className="space-y-4">
-                  {[
-                    { name: "Player1", score: "1,250 HRVST" },
-                    { name: "Player2", score: "980 HRVST" },
-                    { name: "Player3", score: "750 HRVST" },
-                  ].map((player, index) => (
-                    <li
-                      key={index}
-                      className="flex justify-between items-center text-gray-300"
-                    >
-                      <span>{`${index + 1}. ${player.name}`}</span>
-                      <span className="text-harvestorange font-semibold">
-                        {player.score}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+            {isLeaderboardOpen && <div className="p-4">Leaderboard content here...</div>}
           </Card>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import React from "react";
 import ReactDOM from "react-dom/client"; // React 18 API
-import { gameStore } from "../stores/GameStore"; // Centralized GameStore
+import { gameStore } from "../stores/GameStore"; // GameStore import
 import TitleAnimation from "../components/TitleAnimation"; // React Component
 import { LOADING_MESSAGES } from "./constants/loadingMessages";
 
@@ -23,12 +23,7 @@ export class PreloaderScene extends Phaser.Scene {
   }
 
   init(data: PreloaderSceneData) {
-    if (data && typeof data.showAuthModal === "function") {
-      this.showAuthModal = data.showAuthModal;
-      console.log("PreloaderScene: showAuthModal initialized.");
-    } else {
-      console.error("PreloaderScene: showAuthModal not passed or invalid.");
-    }
+    this.showAuthModal = data.showAuthModal;
   }
 
   preload() {
@@ -47,6 +42,7 @@ export class PreloaderScene extends Phaser.Scene {
     ];
     audioFiles.forEach((audio) => this.load.audio(audio.key, audio.path));
 
+    // Preload symbols
     this.preloadSymbols();
   }
 
@@ -75,10 +71,11 @@ export class PreloaderScene extends Phaser.Scene {
 
     symbolFilenames.forEach((filename) => {
       const filePath = `${symbolsPath}${filename}.svg`;
+      console.log(`PreloaderScene: Preloading symbol - ${filename}`);
       this.load.svg(filename, filePath);
     });
 
-    // Save symbols to GameStore
+    // Update GameStore symbol keys
     gameStore.setSymbolKeys(symbolFilenames);
   }
 
@@ -88,14 +85,10 @@ export class PreloaderScene extends Phaser.Scene {
     // Inject Preloader CSS
     this.injectPreloaderCSS();
 
-    // Add background image
-    this.bgImage = this.add.image(width / 2, height / 2, "preloader-bg");
-    if (this.bgImage) {
-      this.bgImage.setDisplaySize(width, height);
-      console.log("PreloaderScene: Background image displayed.");
-    } else {
-      console.error("PreloaderScene: Background image failed to load.");
-    }
+    // Set background image
+    this.bgImage = this.add
+      .image(width / 2, height / 2, "preloader-bg")
+      .setDisplaySize(width, height);
 
     // Floating animation for background image
     this.tweens.add({
@@ -123,6 +116,16 @@ export class PreloaderScene extends Phaser.Scene {
     gameStore.setActiveScene("PreloaderScene");
   }
 
+  private playBackgroundMusic(): void {
+    if (!PreloaderScene.bgMusic) {
+      PreloaderScene.bgMusic = this.sound.add("background-music", {
+        volume: 0.5,
+        loop: true,
+      });
+      PreloaderScene.bgMusic.play();
+    }
+  }
+
   private injectPreloaderCSS(): void {
     const style = document.createElement("style");
     style.innerHTML = `
@@ -135,10 +138,10 @@ export class PreloaderScene extends Phaser.Scene {
         position: absolute;
         top: 15%;
         left: 50%;
-        transform: translate(-50%, 0);
+        transform: translate(-50%, 0); /* Horizontally center */
         text-align: center;
         z-index: 1000;
-        width: 100%;
+        width: 100%; /* Ensure it doesn't go off-canvas */
       }
 
       .text-container {
@@ -194,16 +197,6 @@ export class PreloaderScene extends Phaser.Scene {
     document.head.appendChild(style);
   }
 
-  private playBackgroundMusic(): void {
-    if (!PreloaderScene.bgMusic) {
-      PreloaderScene.bgMusic = this.sound.add("background-music", {
-        volume: 0.5,
-        loop: true,
-      });
-      PreloaderScene.bgMusic.play();
-    }
-  }
-
   private mountReactTitle(): void {
     const rootElement = document.getElementById("root");
     if (rootElement) {
@@ -217,7 +210,7 @@ export class PreloaderScene extends Phaser.Scene {
       const root = ReactDOM.createRoot(reactContainer);
       root.render(React.createElement(TitleAnimation));
     } else {
-      console.error("PreloaderScene: Root element not found.");
+      console.error("PreloaderScene: Root element not found!");
     }
   }
 
@@ -253,12 +246,11 @@ export class PreloaderScene extends Phaser.Scene {
         rootElement.appendChild(loginButton);
       }
 
+      loginButton.className = "login-button";
       loginButton.onclick = () => {
         console.log("PreloaderScene: Login button clicked.");
         if (this.showAuthModal) {
-          this.showAuthModal();
-        } else {
-          console.error("PreloaderScene: showAuthModal is not defined.");
+          this.showAuthModal(); // Open AuthForm via PreloaderPage
         }
       };
     }

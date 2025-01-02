@@ -19,7 +19,10 @@ export class SlotGameScene extends Phaser.Scene {
     const { width, height } = this.cameras.main;
 
     // Background setup
-    this.add.image(width / 2, height / 2, "preloader-bg").setDisplaySize(width, height).setAlpha(0.3);
+    this.add
+      .image(width / 2, height / 2, "preloader-bg")
+      .setDisplaySize(width, height)
+      .setAlpha(0.3);
 
     // Display balance and bet amount
     this.balanceText = this.add.text(10, 10, `Balance: ${gameStore.balance}`, {
@@ -76,8 +79,17 @@ export class SlotGameScene extends Phaser.Scene {
       }
     );
 
+    // React to symbol updates
+    const symbolsReaction = reaction(
+      () => gameStore.symbolKeys,
+      (newSymbols) => {
+        console.log("SlotGameScene: Symbols updated in GameStore.", newSymbols);
+        this.updateSlotGrid(newSymbols);
+      }
+    );
+
     // Track reactions for cleanup
-    this.disposeReactions.push(balanceReaction, betAmountReaction);
+    this.disposeReactions.push(balanceReaction, betAmountReaction, symbolsReaction);
   }
 
   private createSlotGrid() {
@@ -92,7 +104,7 @@ export class SlotGameScene extends Phaser.Scene {
         const x = gridStartX + col * SYMBOL_SIZE;
         const y = gridStartY + row * SYMBOL_SIZE;
 
-        const symbolKey = `symbol-${Math.floor(Math.random() * 5) + 1}`; // Random symbol key
+        const symbolKey = gameStore.symbolKeys[row * GRID_SIZE + col] || "placeholder";
         const symbol = this.add
           .image(x, y, symbolKey)
           .setDisplaySize(SYMBOL_SIZE, SYMBOL_SIZE)
@@ -132,11 +144,13 @@ export class SlotGameScene extends Phaser.Scene {
     });
   }
 
-  private updateSlotGrid() {
+  private updateSlotGrid(newSymbols?: string[]) {
     console.log("SlotGameScene: Updating slot grid...");
     for (let row = 0; row < GRID_SIZE; row++) {
       for (let col = 0; col < GRID_SIZE; col++) {
-        const symbolKey = `symbol-${Math.floor(Math.random() * 5) + 1}`; // Random symbol key
+        const symbolKey = newSymbols
+          ? newSymbols[row * GRID_SIZE + col]
+          : `symbol-${Math.floor(Math.random() * 5) + 1}`;
         this.symbols[row][col].setTexture(symbolKey);
       }
     }

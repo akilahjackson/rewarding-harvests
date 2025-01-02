@@ -5,14 +5,13 @@ import Phaser from "phaser";
 import { PreloaderScene } from "@/scenes/PreloaderScene";
 import { SlotGameScene } from "@/scenes/SlotGameScene";
 
-// Define wallet balances
+
 export interface WalletBalances {
   SOL: string;
   USDC: string;
   HRVST: string;
 }
 
-// Define the game state interface
 export interface GameState {
   balance: number;
   totalWinnings: number;
@@ -56,7 +55,7 @@ class GameStore {
     makeAutoObservable(this);
   }
 
-  // Get the current game state
+  // Get current game state
   getState(): GameState {
     const state = {
       balance: this.balance,
@@ -93,30 +92,7 @@ class GameStore {
     }
   }
 
-  // Initialize the Phaser game
-  initializeGame(containerId: string) {
-    if (this.gameInstance) {
-      console.warn("GameStore: Game instance already exists.");
-      return;
-    }
-
-    const container = document.getElementById(containerId);
-    if (!container) {
-      console.error(`GameStore: DOM container with ID '${containerId}' not found.`);
-      return;
-    }
-
-    console.log("GameStore: Initializing Phaser game instance.");
-    this.gameInstance = new Phaser.Game({
-      type: Phaser.AUTO,
-      parent: containerId,
-      width: 800,
-      height: 600,
-      scene: [PreloaderScene, SlotGameScene],
-    });
-  }
-
-  // Set the active scene
+  // Set active scene
   setActiveScene(scene: string) {
     console.log("GameStore: Setting active scene to:", scene);
     this.activeScene = scene;
@@ -126,9 +102,9 @@ class GameStore {
   setAssetsLoaded(status: boolean) {
     console.log("GameStore: Assets loaded status updated to:", status);
     this.assetsLoaded = status;
-  }
 
-  // Change the Phaser scene
+
+  // Change Phaser scene
   changeScene(sceneKey: string) {
     if (!this.gameInstance) {
       console.error("GameStore: No game instance available to change scene.");
@@ -139,31 +115,31 @@ class GameStore {
     this.setActiveScene(sceneKey);
   }
 
-  // Update the balance
+  // Update balance
   setBalance(amount: number) {
     console.log("GameStore: Updating balance to:", amount);
     this.balance = amount;
   }
 
-  // Update the total winnings
+  // Update total winnings
   setTotalWinnings(amount: number) {
     console.log("GameStore: Updating total winnings by:", amount);
     this.totalWinnings += amount;
   }
 
-  // Update the spinning state
+  // Update spinning state
   setSpinning(isSpinning: boolean) {
     console.log("GameStore: Updating spinning state to:", isSpinning);
     this.isSpinning = isSpinning;
   }
 
-  // Toggle auto-spin mode
+  // Toggle auto-spin
   toggleAutoSpin() {
     console.log("GameStore: Toggling auto-spin");
     this.isAutoSpin = !this.isAutoSpin;
   }
 
-  // Toggle mute state
+  // Toggle mute
   toggleMute() {
     console.log("GameStore: Toggling mute");
     this.isMuted = !this.isMuted;
@@ -175,17 +151,12 @@ class GameStore {
     this.walletBalances = { ...this.walletBalances, ...newBalances };
   }
 
-  // Set symbol keys for slot game
-  setSymbolKeys(keys: string[]) {
-    console.log("GameStore: Setting symbol keys:", keys);
-    this.symbolKeys = keys;
-  }
-
   // Log a player action
   async logPlayerAction(actionType: string, actionDescription: string) {
     if (!this.validatePlayerInfo()) return;
 
     try {
+      // Example placeholder for logging player actions
       console.log("Player action logged:", {
         playerId: this.playerId,
         actionType,
@@ -213,5 +184,6 @@ class GameStore {
     return true;
   }
 }
+}
 
-export const gameStore = new GameStore();
+  export const gameStore = new GameStore();

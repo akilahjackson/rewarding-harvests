@@ -1,57 +1,48 @@
-import React, { createContext, useContext, useEffect, useRef } from "react";
+import React, { createContext, useRef, useEffect } from "react";
 import Phaser from "phaser";
-import { gameStore } from "@/stores/GameStore"; // Import GameStore
+import { gameStore } from "@/stores/GameStore";
+import { PreloaderScene } from "@/scenes/PreloaderScene";
+import { SlotGameScene } from "@/scenes/SlotGameScene";
+import { MainGameScene} from "@/scenes/MainGameScene";
 
-const GameContext = createContext<Phaser.Game | null>(null);
+// Create a context for the Phaser game instance
+export const GameContext = createContext<Phaser.Game | null>(null);
 
-export const useGame = () => {
-  return useContext(GameContext);
-};
+interface GameProviderProps {
+  children: React.ReactNode;
+}
 
-export const GameProvider = ({ children }: { children: React.ReactNode }) => {
+export const GameProvider: React.FC<GameProviderProps> = ({ children }) => {
+  // Ref to hold the Phaser game instance
   const gameInstanceRef = useRef<Phaser.Game | null>(null);
 
   useEffect(() => {
+    // Initialize Phaser game instance if it hasn't been created
     if (!gameInstanceRef.current) {
       console.log("GameContext: Initializing Phaser game instance.");
 
-      const config: Phaser.Types.Core.GameConfig = {
-        type: Phaser.AUTO,
-        width: 800,
-        height: 600,
-        scene: [/* Your Scenes */],
-      };
+      gameInstanceRef.current = new Phaser.Game({
+        type: Phaser.AUTO, // Automatically choose WebGL or Canvas
+        parent: "game-container", // Attach the game to this DOM element
+        width: 800, // Game width
+        height: 600, // Game height
+        scene: [PreloaderScene, MainGameScene, SlotGameScene], // Include scenes
+      });
 
-      gameInstanceRef.current = new Phaser.Game(config);
-
-      // Notify the GameStore about the game instance
-      if (gameStore.connectToGameInstance) {
-        gameStore.connectToGameInstance(gameInstanceRef.current);
-      } else {
-        console.error("GameContext: connectToGameInstance is not defined.");
-      }
-    } else {
-      console.log("GameContext: Reusing existing Phaser game instance.");
+      // Connect the game instance to the GameStore
+      gameStore.connectToGameInstance(gameInstanceRef.current);
     }
 
+    // Cleanup the Phaser game instance when the provider unmounts
     return () => {
-      console.log("GameContext: Cleaning up game instance.");
-
-      // Notify GameStore to destroy the instance reference
-      if (gameStore.destroyGameInstance) {
-        gameStore.destroyGameInstance();
-      } else {
-        console.error("GameContext: destroyGameInstance is not defined.");
+      if (gameInstanceRef.current) {
+        console.log("GameContext: Cleaning up game instance.");
+        gameStore.destroyGameInstance(); // Destroy via GameStore
+        gameInstanceRef.current = null;
       }
-
-      gameInstanceRef.current?.destroy(true);
-      gameInstanceRef.current = null;
     };
   }, []);
 
-  return (
-    <GameContext.Provider value={gameInstanceRef.current}>
-      {children}
-    </GameContext.Provider>
-  );
+  // Provide the Phaser game instance to children components
+  return <GameContext.Provider value={gameInstanceRef.current}>{children}</GameContext.Provider>;
 };

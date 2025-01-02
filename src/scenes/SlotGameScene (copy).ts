@@ -1,25 +1,27 @@
 import Phaser from "phaser";
 import { gameStore } from "../stores/GameStore";
 import { reaction } from "mobx";
+import { GRID_SIZE, SYMBOL_SIZE } from "./configs/symbolConfig";
 
-export class MainGameScene extends Phaser.Scene {
+export class SlotGameScene extends Phaser.Scene {
+  private symbols: Phaser.GameObjects.Image[][] = [];
   private balanceText?: Phaser.GameObjects.Text;
   private betAmountText?: Phaser.GameObjects.Text;
   private disposeReactions: (() => void)[] = []; // Track MobX reactions for cleanup
 
   constructor() {
-    super({ key: "MainGameScene" });
+    super({ key: "SlotGameScene" });
   }
 
   create() {
-    console.log("Creating MainGameScene...");
+    console.log("Creating SlotGameScene...");
 
     const { width, height } = this.cameras.main;
 
     // Background setup
     this.add.image(width / 2, height / 2, "preloader-bg").setDisplaySize(width, height).setAlpha(0.3);
 
-    // Add balance and bet amount display
+    // Display balance and bet amount
     this.balanceText = this.add.text(10, 10, `Balance: ${gameStore.balance}`, {
       fontSize: "24px",
       color: "#ffffff",
@@ -29,6 +31,9 @@ export class MainGameScene extends Phaser.Scene {
       fontSize: "24px",
       color: "#ffffff",
     });
+
+    // Add slot grid
+    this.createSlotGrid();
 
     // Add "Spin" button
     const spinButton = this.add.text(width / 2, height - 50, "SPIN", {
@@ -41,15 +46,15 @@ export class MainGameScene extends Phaser.Scene {
     spinButton.setOrigin(0.5);
     spinButton.on("pointerdown", this.handleSpin, this);
 
-    // Setup reactions for dynamic updates
+    // Setup MobX reactions
     this.setupReactions();
 
     // Update the active scene in GameStore
-    gameStore.setActiveScene("MainGameScene");
+    gameStore.setActiveScene("SlotGameScene");
   }
 
   private setupReactions() {
-    console.log("MainGameScene: Setting up reactions...");
+    console.log("SlotGameScene: Setting up reactions...");
 
     // React to balance changes
     const balanceReaction = reaction(
@@ -75,8 +80,33 @@ export class MainGameScene extends Phaser.Scene {
     this.disposeReactions.push(balanceReaction, betAmountReaction);
   }
 
+  private createSlotGrid() {
+    console.log("SlotGameScene: Creating slot grid...");
+    const { width, height } = this.cameras.main;
+    const gridStartX = width / 2 - (GRID_SIZE * SYMBOL_SIZE) / 2;
+    const gridStartY = height / 2 - (GRID_SIZE * SYMBOL_SIZE) / 2;
+
+    for (let row = 0; row < GRID_SIZE; row++) {
+      this.symbols[row] = [];
+      for (let col = 0; col < GRID_SIZE; col++) {
+        const x = gridStartX + col * SYMBOL_SIZE;
+        const y = gridStartY + row * SYMBOL_SIZE;
+
+        const symbolKey = `symbol-${Math.floor(Math.random() * 5) + 1}`; // Random symbol key
+        const symbol = this.add
+          .image(x, y, symbolKey)
+          .setDisplaySize(SYMBOL_SIZE, SYMBOL_SIZE)
+          .setOrigin(0.5);
+
+        this.symbols[row][col] = symbol;
+      }
+    }
+
+    console.log("SlotGameScene: Slot grid created.");
+  }
+
   private handleSpin() {
-    console.log("MainGameScene: Spin button clicked.");
+    console.log("SlotGameScene: Spin button clicked.");
 
     const { betAmount, balance } = gameStore;
 
@@ -90,7 +120,7 @@ export class MainGameScene extends Phaser.Scene {
     gameStore.setBalance(balance - betAmount);
     gameStore.setSpinning(true);
 
-    // Simulate spin result
+    // Simulate slot results
     this.time.delayedCall(2000, () => {
       const winnings = Math.floor(Math.random() * betAmount * 5); // Random winnings
       gameStore.setBalance(gameStore.balance + winnings);
@@ -98,11 +128,22 @@ export class MainGameScene extends Phaser.Scene {
       gameStore.setSpinning(false);
 
       console.log(`Spin complete. Winnings: ${winnings}`);
+      this.updateSlotGrid();
     });
   }
 
+  private updateSlotGrid() {
+    console.log("SlotGameScene: Updating slot grid...");
+    for (let row = 0; row < GRID_SIZE; row++) {
+      for (let col = 0; col < GRID_SIZE; col++) {
+        const symbolKey = `symbol-${Math.floor(Math.random() * 5) + 1}`; // Random symbol key
+        this.symbols[row][col].setTexture(symbolKey);
+      }
+    }
+  }
+
   shutdown() {
-    console.log("MainGameScene: Cleaning up...");
+    console.log("SlotGameScene: Cleaning up...");
     this.disposeReactions.forEach((dispose) => dispose());
     this.disposeReactions = [];
   }

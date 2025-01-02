@@ -1,9 +1,9 @@
-import Phaser from 'phaser';
-import React from 'react';
-import ReactDOM from 'react-dom/client'; // React 18 API
-import { gameStore } from '../stores/GameStore'; // GameStore import
-import TitleAnimation from '../components/TitleAnimation'; // React Component
-import { LOADING_MESSAGES } from './constants/loadingMessages';
+import Phaser from "phaser";
+import React from "react";
+import ReactDOM from "react-dom/client"; // React 18 API
+import { gameStore } from "../stores/GameStore"; // Centralized GameStore
+import TitleAnimation from "../components/TitleAnimation"; // React Component
+import { LOADING_MESSAGES } from "./constants/loadingMessages"; // Correct path retained
 
 interface PreloaderSceneData {
   showAuthModal: () => void;
@@ -14,33 +14,39 @@ export class PreloaderScene extends Phaser.Scene {
   private static bgMusic?: Phaser.Sound.BaseSound; // Static to persist across scenes
   private showAuthModal?: () => void;
 
-  private reactContainerId: string = 'react-container';
-  private messageContainerId: string = 'loading-messages-container';
-  private loginButtonId: string = 'login-button';
+  private reactContainerId: string = "react-container";
+  private messageContainerId: string = "loading-messages-container";
+  private loginButtonId: string = "login-button";
 
   constructor() {
-    super({ key: 'PreloaderScene' });
+    super({ key: "PreloaderScene" });
   }
 
   init(data: PreloaderSceneData) {
-    this.showAuthModal = data.showAuthModal;
+    if (data && typeof data.showAuthModal === "function") {
+      this.showAuthModal = data.showAuthModal;
+      console.log("PreloaderScene: showAuthModal initialized.");
+    } else {
+      console.error("PreloaderScene: showAuthModal not passed or invalid.");
+    }
   }
 
   preload() {
+    console.log("PreloaderScene: Preloading assets...");
+
     // Preload background image
-    this.load.image('preloader-bg', '/images/neon-crop-circles.WEBP');
+    this.load.image("preloader-bg", "/images/neon-crop-circles.WEBP");
 
     // Preload audio files
     const audioFiles = [
-      { key: 'background-music', path: '/sounds/background-music.mp3' },
-      { key: 'spin-sound', path: '/sounds/spin.mp3' },
-      { key: 'win-sound', path: '/sounds/win.mp3' },
-      { key: 'big-win-sound', path: '/sounds/big-win.mp3' },
-      { key: 'lose-sound', path: '/sounds/lose.mp3' },
+      { key: "background-music", path: "/sounds/background-music.mp3" },
+      { key: "spin-sound", path: "/sounds/spin.mp3" },
+      { key: "win-sound", path: "/sounds/win.mp3" },
+      { key: "big-win-sound", path: "/sounds/big-win.mp3" },
+      { key: "lose-sound", path: "/sounds/lose.mp3" },
     ];
     audioFiles.forEach((audio) => this.load.audio(audio.key, audio.path));
 
-    // Preload symbols
     this.preloadSymbols();
   }
 
@@ -69,22 +75,27 @@ export class PreloaderScene extends Phaser.Scene {
 
     symbolFilenames.forEach((filename) => {
       const filePath = `${symbolsPath}${filename}.svg`;
-      console.log(`PreloaderScene: Preloading symbol - ${filename}`);
-      this.load.svg(filename, filePath); // Load SVG symbol
-      gameStore.symbolKeys.push(filename); // Store symbol keys in the GameStore
+      this.load.svg(filename, filePath);
     });
+
+    // Save symbols to GameStore
+    gameStore.setSymbolKeys(symbolFilenames);
   }
 
   create() {
     const { width, height } = this.cameras.main;
 
-    // Dynamically inject Preloader CSS
+    // Inject Preloader CSS
     this.injectPreloaderCSS();
 
-    // Set background image
-    this.bgImage = this.add
-      .image(width / 2, height / 2, 'preloader-bg')
-      .setDisplaySize(width, height);
+    // Add background image
+    this.bgImage = this.add.image(width / 2, height / 2, "preloader-bg");
+    if (this.bgImage) {
+      this.bgImage.setDisplaySize(width, height);
+      console.log("PreloaderScene: Background image displayed.");
+    } else {
+      console.error("PreloaderScene: Background image failed to load.");
+    }
 
     // Floating animation for background image
     this.tweens.add({
@@ -93,7 +104,7 @@ export class PreloaderScene extends Phaser.Scene {
       duration: 2000,
       yoyo: true,
       repeat: -1,
-      ease: 'Sine.easeInOut',
+      ease: "Sine.easeInOut",
     });
 
     // Play background music
@@ -108,93 +119,12 @@ export class PreloaderScene extends Phaser.Scene {
     // Add styled login button
     this.createLoginButton();
 
-    // Emit "ready" event and notify GameStore
-    this.emitReadyEvent();
-  }
-
-  private emitReadyEvent() {
-    // Emit the "ready" event to signal the end of preloading
-    this.time.delayedCall(2000, () => {
-      console.log('PreloaderScene: Preloading complete, emitting ready event.');
-      this.events.emit('ready');
-
-      // Notify GameStore about scene transition
-      gameStore.setActiveScene('WelcomeScene');
-    });
-  }
-
-  private playBackgroundMusic(): void {
-    if (!PreloaderScene.bgMusic) {
-      PreloaderScene.bgMusic = this.sound.add('background-music', {
-        volume: 0.5,
-        loop: true,
-      });
-      PreloaderScene.bgMusic.play();
-    }
-  }
-
-  private mountReactTitle(): void {
-    const rootElement = document.getElementById('root');
-    if (rootElement) {
-      let reactContainer = document.getElementById(this.reactContainerId);
-      if (!reactContainer) {
-        reactContainer = document.createElement('div');
-        reactContainer.id = this.reactContainerId;
-        rootElement.appendChild(reactContainer);
-      }
-
-      const root = ReactDOM.createRoot(reactContainer);
-      root.render(React.createElement(TitleAnimation));
-    } else {
-      console.error('Root element not found!');
-    }
-  }
-
-  private createLoadingMessages(): void {
-    const rootElement = document.getElementById('root');
-    if (rootElement) {
-      let messageContainer = document.getElementById(this.messageContainerId);
-      if (!messageContainer) {
-        messageContainer = document.createElement('div');
-        messageContainer.id = this.messageContainerId;
-        rootElement.appendChild(messageContainer);
-      }
-
-      messageContainer.className = 'text-container';
-
-      LOADING_MESSAGES.forEach((message, index) => {
-        const messageDiv = document.createElement('div');
-        messageDiv.textContent = message;
-        messageDiv.style.animationDelay = `${index * 2}s`; // Stagger animations
-        messageContainer.appendChild(messageDiv);
-      });
-    }
-  }
-
-  private createLoginButton(): void {
-    const rootElement = document.getElementById('root');
-    if (rootElement) {
-      let loginButton = document.getElementById(this.loginButtonId);
-      if (!loginButton) {
-        loginButton = document.createElement('button');
-        loginButton.id = this.loginButtonId;
-        loginButton.textContent = 'Login to Play';
-        rootElement.appendChild(loginButton);
-      }
-
-      loginButton.className = 'login-button';
-      loginButton.onclick = () => {
-        if (this.showAuthModal) {
-          this.showAuthModal();
-        }
-
-        this.cleanupDOMElements();
-      };
-    }
+    // Notify GameStore of the active scene
+    gameStore.setActiveScene("PreloaderScene");
   }
 
   private injectPreloaderCSS(): void {
-    const style = document.createElement('style');
+    const style = document.createElement("style");
     style.innerHTML = `
       html, body {
         margin: 0;
@@ -205,10 +135,10 @@ export class PreloaderScene extends Phaser.Scene {
         position: absolute;
         top: 15%;
         left: 50%;
-        transform: translate(-50%, 0); /* Horizontally center */
+        transform: translate(-50%, 0);
         text-align: center;
         z-index: 1000;
-        width: 100%; /* Ensure it doesn't go off-canvas */
+        width: 100%;
       }
 
       .text-container {
@@ -228,8 +158,14 @@ export class PreloaderScene extends Phaser.Scene {
       }
 
       .text-container > div {
-        animation: come2life 5s linear infinite;
+        animation: fadeInOut 5s ease-in-out infinite;
         opacity: 0;
+      }
+
+      @keyframes fadeInOut {
+        0% { opacity: 0; }
+        50% { opacity: 1; }
+        100% { opacity: 0; }
       }
 
       #${this.loginButtonId} {
@@ -246,54 +182,88 @@ export class PreloaderScene extends Phaser.Scene {
         border: none;
         border-radius: 4px;
         cursor: pointer;
-        text-transform: uppercase;
-        transition: background-color 0.3s ease;
         z-index: 1000;
-      }
-
-      #${this.loginButtonId}:hover {
-        background-color: #3bb13b;
-      }
-
-      @keyframes come2life {
-        0% {
-          opacity: 0;
-          transform: scale(0.8);
-        }
-        50% {
-          opacity: 1;
-          transform: scale(1.1);
-        }
-        100% {
-          opacity: 0;
-          transform: scale(1.4);
-        }
       }
     `;
     document.head.appendChild(style);
   }
 
-  shutdown(): void {
-    // Cleanup when transitioning to another scene
-    this.cleanupDOMElements();
+  private playBackgroundMusic(): void {
+    if (!PreloaderScene.bgMusic) {
+      PreloaderScene.bgMusic = this.sound.add("background-music", {
+        volume: 0.5,
+        loop: true,
+      });
+      PreloaderScene.bgMusic.play();
+    }
   }
 
-  private cleanupDOMElements(): void {
-    const reactContainer = document.getElementById(this.reactContainerId);
-    if (reactContainer) {
+  private mountReactTitle(): void {
+    const rootElement = document.getElementById("root");
+    if (rootElement) {
+      let reactContainer = document.getElementById(this.reactContainerId);
+      if (!reactContainer) {
+        reactContainer = document.createElement("div");
+        reactContainer.id = this.reactContainerId;
+        rootElement.appendChild(reactContainer);
+      }
+
       const root = ReactDOM.createRoot(reactContainer);
-      root.unmount();
-      reactContainer.remove();
+      root.render(React.createElement(TitleAnimation));
     }
+  }
+
+  private createLoadingMessages(): void {
+    const rootElement = document.getElementById("root");
+    if (rootElement) {
+      let messageContainer = document.getElementById(this.messageContainerId);
+      if (!messageContainer) {
+        messageContainer = document.createElement("div");
+        messageContainer.id = this.messageContainerId;
+        rootElement.appendChild(messageContainer);
+      }
+
+      messageContainer.className = "text-container";
+
+      LOADING_MESSAGES.forEach((message, index) => {
+        const messageDiv = document.createElement("div");
+        messageDiv.textContent = message;
+        messageDiv.style.animationDelay = `${index * 2}s`; // Animation restored
+        messageContainer.appendChild(messageDiv);
+      });
+    }
+  }
+
+  private createLoginButton(): void {
+    const rootElement = document.getElementById("root");
+    if (rootElement) {
+      let loginButton = document.getElementById(this.loginButtonId);
+      if (!loginButton) {
+        loginButton = document.createElement("button");
+        loginButton.id = this.loginButtonId;
+        loginButton.textContent = "Login to Play";
+        rootElement.appendChild(loginButton);
+      }
+
+      loginButton.onclick = () => {
+        console.log("PreloaderScene: Login button clicked.");
+        if (this.showAuthModal) {
+          this.hidePreloaderUI(); // Hides preloader UI
+          this.showAuthModal();
+        }
+      };
+    }
+  }
+
+  private hidePreloaderUI(): void {
+    console.log("PreloaderScene: Hiding preloader UI components.");
+    const reactContainer = document.getElementById(this.reactContainerId);
+    if (reactContainer) reactContainer.remove();
 
     const messageContainer = document.getElementById(this.messageContainerId);
-    if (messageContainer) {
-      messageContainer.remove();
-    }
+    if (messageContainer) messageContainer.remove();
 
     const loginButton = document.getElementById(this.loginButtonId);
-    if (loginButton) {
-      loginButton.remove();
-    }
+    if (loginButton) loginButton.remove();
   }
 }
