@@ -2,42 +2,34 @@ import React, { useState, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import Phaser from "phaser";
 import { PreloaderScene } from "@/scenes/PreloaderScene";
-import { useNavigate } from "react-router-dom";
-import { gameStore } from "@/stores/GameStore";
 import AuthForm from "@/components/AuthForm";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 import { useUser } from "@/contexts/UserContext";
+import { gameStore } from "@/stores/GameStore";
 
 const PreloaderPage: React.FC = observer(() => {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { user, logout } = useUser();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Timer for managing loading-spinner and background cleanup
   useEffect(() => {
+    if (user?.isAuthenticated) {
+      console.log("PreloaderPage: User authenticated. Redirecting to /welcome.");
+      navigate("/welcome", { replace: true });
+      return;
+    }
+
     const loadingTimer = setTimeout(() => {
-      console.log("PreloaderPage: Loading spinner finished.");
-      setIsLoading(false); // Hide spinner and clean related components
-    }, 2000);
-
-    return () => {
-      clearTimeout(loadingTimer);
-      console.log("PreloaderPage: Timer cleaned up.");
-    };
-  }, []);
-
-  // Initialize Phaser game after spinner and background cleanup
-  useEffect(() => {
-    if (!isLoading && !gameStore.gameInstance) {
-      console.log("PreloaderPage: Initializing Phaser game instance.");
+      console.log("PreloaderPage: Initializing Phaser game.");
 
       const config: Phaser.Types.Core.GameConfig = {
         type: Phaser.AUTO,
         parent: "game-container",
         width: window.innerWidth,
         height: window.innerHeight,
-        backgroundColor: "#1A1F2C", // Matches React's background
+        backgroundColor: "#1A1F2C",
         scene: [PreloaderScene],
         scale: {
           mode: Phaser.Scale.RESIZE,
@@ -49,29 +41,37 @@ const PreloaderPage: React.FC = observer(() => {
       };
 
       const game = new Phaser.Game(config);
-
       game.scene.start("PreloaderScene", {
         showAuthModal: () => setShowAuthModal(true),
       });
 
       gameStore.connectToGameInstance(game);
-      console.log("PreloaderPage: Phaser game instance created.");
-    }
-  }, [isLoading]);
+      setIsLoading(false);
+    }, 2000);
+
+    return () => {
+      clearTimeout(loadingTimer);
+      console.log("PreloaderPage: Cleanup is handled during logout.");
+      // Do not destroy the game instance here
+    };
+  }, [navigate, user]);
+
+  const handleLogout = () => {
+    logout();
+    gameStore.destroyGameInstance(); // Now, destroy the Phaser instance
+    console.log("PreloaderPage: User logged out, Phaser game instance destroyed.");
+  };
 
   return (
-    <div className="relative w-full h-screen" style={{ backgroundColor: "#1A1F2C" }}>
-      {/* Spinner and background */}
+    <div className="relative w-full h-screen bg-nightsky">
+      <div id="game-container" className="absolute inset-0" />
+
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center z-50">
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 fade-in-out">
           <h1 className="text-white text-2xl font-bold">Loading...</h1>
         </div>
       )}
 
-      {/* Game container for Phaser */}
-      {!isLoading && <div id="game-container" className="absolute inset-0" />}
-
-      {/* Authentication Modal */}
       <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
         <DialogContent className="bg-transparent border-none shadow-none">
           <AuthForm
@@ -83,6 +83,10 @@ const PreloaderPage: React.FC = observer(() => {
           />
         </DialogContent>
       </Dialog>
+
+      <button onClick={handleLogout} className="logout-button">
+        Logout
+      </button>
     </div>
   );
 });
