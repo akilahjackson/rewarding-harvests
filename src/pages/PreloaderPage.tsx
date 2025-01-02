@@ -68,11 +68,11 @@ const PreloaderPage: React.FC = observer(() => {
   };
 
   return (
-    <div className="relative w-full h-screen bg-nightsky">
+    <div className="relative w-full h-screen">
       <div id="game-container" className="absolute inset-0" />
 
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 fade-in-out">
+        <div className="absolute inset-0 flex items-center justify-center bg-nightsky z-50 fade-in-out">
           <h1 className="text-white text-2xl font-bold">Loading...</h1>
         </div>
       )}
