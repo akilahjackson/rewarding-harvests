@@ -45,25 +45,29 @@ const PreloaderPage: React.FC = observer(() => {
       });
 
       gameStore.connectToGameInstance(game);
-      setIsLoading(false);
+
+      // Remove loading spinner and background after 1 second
+      setTimeout(() => {
+        setIsLoading(false);
+        console.log("PreloaderPage: Loading spinner and background removed.");
+      }, 1000);
     }, 2000);
 
     return () => {
       clearTimeout(loadingTimer);
       console.log("PreloaderPage: Cleanup is handled during logout.");
-      // Do not destroy the game instance here
     };
   }, [navigate, user]);
-
-  const handleLogout = () => {
-    logout();
-    gameStore.destroyGameInstance(); // Now, destroy the Phaser instance
-    console.log("PreloaderPage: User logged out, Phaser game instance destroyed.");
-  };
 
   return (
     <div className="relative w-full h-screen bg-nightsky">
       <div id="game-container" className="absolute inset-0" />
+
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 fade-in-out">
+          <h1 className="text-white text-2xl font-bold">Loading...</h1>
+        </div>
+      )}
 
       <Dialog open={showAuthModal} onOpenChange={setShowAuthModal}>
         <DialogContent className="bg-transparent border-none shadow-none">
@@ -77,7 +81,7 @@ const PreloaderPage: React.FC = observer(() => {
         </DialogContent>
       </Dialog>
 
-      <button onClick={handleLogout} className="logout-button">
+      <button onClick={logout} className="logout-button">
         Logout
       </button>
     </div>

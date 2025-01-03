@@ -93,28 +93,27 @@ class GameStore {
     }
   }
 
-  // Initialize the Phaser game
-  initializeGame(containerId: string) {
+  initializeGame() {
     if (this.gameInstance) {
       console.warn("GameStore: Game instance already exists.");
       return;
     }
-
+    const containerId = "game-container"; // Set containerId to "game-container"
     const container = document.getElementById(containerId);
     if (!container) {
       console.error(`GameStore: DOM container with ID '${containerId}' not found.`);
       return;
     }
-
     console.log("GameStore: Initializing Phaser game instance.");
     this.gameInstance = new Phaser.Game({
       type: Phaser.AUTO,
-      parent: containerId,
+      parent: containerId,  // Use "game-container" consistently
       width: 800,
       height: 600,
       scene: [PreloaderScene, SlotGameScene],
     });
   }
+
 
   // Set the active scene
   setActiveScene(scene: string) {

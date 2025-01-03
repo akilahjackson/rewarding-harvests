@@ -14,8 +14,8 @@ export class MainGameScene extends Phaser.Scene {
   preload() {
     console.log("MainGameScene: Preloading assets...");
 
-    // Preload background
-    this.load.image("background", "/images/background.png");
+   /* // Preload background
+    this.load.image("background", "/images/background.png"); */
 
     // Preload symbol assets using gameStore.symbolKeys
     gameStore.symbolKeys.forEach((key) => {
